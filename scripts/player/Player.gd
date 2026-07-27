@@ -129,9 +129,9 @@ func _setup_lit_receiver() -> void:
 		lp.range = 350.0
 		lp.color = Color(1.0, 0.92, 0.7)  # Daha geniş, daha yumuşak ışık
 		lp.height = 56.0
-		lp.shadow_enabled = false
-		lp.shadow_color = Color(0.0, 0.0, 0.0, 0.25)
-		lp.shadow_hardness = 0.2
+		lp.shadow_enabled = true
+		lp.shadow_color = Color(0.0, 0.0, 0.0, 0.4)
+		lp.shadow_hardness = 0.15
 		lp.z_index = 5
 		add_child(lp)
 
