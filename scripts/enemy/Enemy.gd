@@ -171,19 +171,28 @@ func _draw() -> void:
 	if not health or health.max_health <= 0:
 		return
 	var pct := clampf(health.current_health / health.max_health, 0.0, 1.0)
-	var bar_w := 34.0
-	var bar_h := 4.0
-	# Sprite boyutuna göre can barı pozisyonu (büyük canavarlar için dinamik)
+	var bar_w := 40.0
+	var bar_h := 5.0
+	# Sprite boyutuna göre can barı pozisyonu
 	var sprite_h: float = (sprite.scale.y * 48.0) if sprite and sprite.scale.y > 0 else 48.0
-	var bar_y: float = -(sprite_h * 0.5 + 6.0)  # Sprite'ın üst kenarı + 6px boşluk
-	
-	# Arka plan (siyah)
-	draw_rect(Rect2(-bar_w / 2.0, bar_y, bar_w, bar_h), Color(0.0, 0.0, 0.0, 0.7))
-	
-	# Kırmızı can barı — can azaldıkça bar kısalır
-	if pct > 0.0:
-		draw_rect(Rect2(-bar_w / 2.0, bar_y, bar_w * pct, bar_h), Color(0.9, 0.15, 0.15))
+	var bar_y: float = -(sprite_h * 0.5 + 8.0)
 
+	# Dış çerçeve (koyu gri)
+	draw_rect(Rect2(-bar_w / 2.0 - 1, bar_y - 1, bar_w + 2, bar_h + 2), Color(0.15, 0.1, 0.15, 0.9), true)
+	# Arka plan (koyu)
+	draw_rect(Rect2(-bar_w / 2.0, bar_y, bar_w, bar_h), Color(0.2, 0.05, 0.05, 0.9))
+	# Can barı - renk HP yüzdesine göre değişir
+	if pct > 0.0:
+		var hp_color: Color
+		if pct > 0.6:
+			hp_color = Color(0.85, 0.2, 0.15)  # Kırmızı
+		elif pct > 0.3:
+			hp_color = Color(0.9, 0.55, 0.1)  # Turuncu
+		else:
+			hp_color = Color(0.95, 0.15, 0.1)  # Parlak kırmızı
+		draw_rect(Rect2(-bar_w / 2.0 + 1, bar_y + 1, (bar_w - 2) * pct, bar_h - 2), hp_color)
+		# Parlama efekti (üst kenar)
+		draw_rect(Rect2(-bar_w / 2.0 + 1, bar_y + 1, (bar_w - 2) * pct, 1), Color(1.0, 0.5, 0.5, 0.3))
 
 ## VS: Dusman sinifi - sadece melee
 func set_enemy_class_info(class_id: int, skill_ids: Array) -> void:
