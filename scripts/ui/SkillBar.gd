@@ -10,6 +10,8 @@ var _slot_labels: Array[Label] = []
 var _slot_mana_labels: Array[Label] = []  # Mana cost göstergesi
 var _slot_icons: Array[TextureRect] = []
 var _slot_glows: Array[ColorRect] = []  # Aktif aura göstergesi
+var _slot_cooldown_overlays: Array[ColorRect] = []  # Cooldown overlay
+var _slot_cooldown_labels: Array[Label] = []  # Cooldown countdown label
 
 const SLOT_SIZE := 44
 const SLOT_GAP := 3
@@ -35,6 +37,9 @@ func _process(_delta: float) -> void:
 	# Aktif aura glow gösterimini güncelle ve pulse animasyonu
 	if not _slot_glows.is_empty() and player:
 		_update_aura_glows()
+	# Cooldown overlay güncelle
+	if not _slot_cooldown_overlays.is_empty() and player:
+		_update_cooldown_overlays()
 
 func _build_ui() -> void:
 	var vp_w: float = ProjectSettings.get_setting("display/window/size/viewport_width", 1280)
@@ -82,6 +87,29 @@ func _build_ui() -> void:
 		icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(icon_rect)
 		_slot_icons.append(icon_rect)
+			
+			# Cooldown overlay
+			var cd_overlay := ColorRect.new()
+			cd_overlay.name = "CDOverlay_" + str(i)
+			cd_overlay.color = Color(0, 0, 0, 0)
+			cd_overlay.position = Vector2(sx, bar_y)
+			cd_overlay.size = Vector2(SLOT_SIZE, SLOT_SIZE)
+			add_child(cd_overlay)
+			_slot_cooldown_overlays.append(cd_overlay)
+			
+			# Cooldown label
+			var cd_label := Label.new()
+			cd_label.name = "CDLabel_" + str(i)
+			cd_label.text = ""
+			cd_label.add_theme_color_override("font_color", Color.WHITE)
+			cd_label.add_theme_font_size_override("font_size", 14)
+			cd_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			cd_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			cd_label.position = Vector2(sx, bar_y)
+			cd_label.size = Vector2(SLOT_SIZE, SLOT_SIZE)
+			cd_label.modulate = Color(1, 1, 1, 0.9)
+			add_child(cd_label)
+			_slot_cooldown_labels.append(cd_label)
 		
 		# Skill adı (ikon altında)
 		var lbl := Label.new()
@@ -211,6 +239,36 @@ func _update_mana_costs() -> void:
 
 ## Aktif buff/aura skill'leri olan hotbar slot'larında glow efekti göster.
 ## Player._active_buffs'teki skill_path'ler ile hotbar slotlarını eşleştirir.
+func _update_cooldown_overlays() -> void:
+	"""Cooldown overlay ve label'larını güncelle"""
+	for i in range(min(20, player.hotbar.size())):
+		if i >= _slot_cooldown_overlays.size() or i >= _slot_cooldown_labels.size():
+			continue
+		
+		var skill_path: String = player.hotbar[i]
+		if skill_path.is_empty():
+			_slot_cooldown_overlays[i].color = Color(0, 0, 0, 0)
+			_slot_cooldown_labels[i].text = ""
+			continue
+		
+		var cd_remaining: float = 0.0
+		if player._skill_cooldowns.has(skill_path):
+			cd_remaining = player._skill_cooldowns[skill_path]
+		
+		if cd_remaining > 0:
+			# Cooldown aktif - overlay göster
+			var max_cd: float = 1.0
+			var sd: SkillData = load(skill_path) as SkillData
+			if sd and sd.cooldown > 0:
+				max_cd = sd.cooldown
+			var fill_ratio: float = clampf(cd_remaining / max_cd, 0.0, 1.0)
+			_slot_cooldown_overlays[i].color = Color(0, 0, 0, 0.7 * fill_ratio)
+			_slot_cooldown_labels[i].text = "%.1f" % cd_remaining
+		else:
+			# Cooldown yok - temizle
+			_slot_cooldown_overlays[i].color = Color(0, 0, 0, 0)
+			_slot_cooldown_labels[i].text = ""
+
 func _update_aura_glows() -> void:
 	if not player:
 		return

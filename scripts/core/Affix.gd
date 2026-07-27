@@ -132,17 +132,19 @@ func get_colored_text() -> String:
 	var display_name: String = STAT_NAMES.get(stat_name, stat_name)
 	var val_str: String = _format_value(value)
 	var color: String = "#a0d0ff"  # açık mavi (soğuk statlar)
-	# Renk kodları: can=yeşil, mana=mavi, hasar=kırmızı, direnç=turuncu
-	if stat_name.contains("life") or stat_name.contains("health"):
-		color = "#6fdc8c"  # yeşil
+	# Negatif değerler için kırmızı (kayıp/güçlük)
+	if value < 0:
+		color = "#ff6b6b"  # kırmızı (negatif = kötü)
+	elif stat_name.contains("life") or stat_name.contains("health"):
+		color = "#6fdc8c"  # yeşil (can = iyi)
 	elif stat_name.contains("mana"):
-		color = "#5b9cff"  # mavi
+		color = "#5b9cff"  # mavi (mana = iyi)
 	elif stat_name.contains("damage") or stat_name.contains("attack"):
-		color = "#ff7b6b"  # kırmızı
+		color = "#ff7b6b"  # kırmızı (hasar = iyi)
 	elif stat_name.contains("resistance"):
-		color = "#ffb347"  # turuncu
+		color = "#ffb347"  # turuncu (direnç = iyi)
 	elif stat_name.contains("speed") or stat_name.contains("movement"):
-		color = "#b0d060"  # sarımsı yeşil
+		color = "#b0d060"  # sarımsı yeşil (hız = iyi)
 
 	var tier_color: String = _tier_color()
 	
