@@ -529,7 +529,10 @@ func _setup_tooltip() -> void:
 	tt_style.border_width_right = 1
 	tt_style.border_width_top = 1
 	tt_style.border_width_bottom = 1
-	tt_style.set_corner_radius_all(4)
+	tt_style.set_corner_radius_all(6)
+	tt_style.shadow_color = Color(0, 0, 0, 0.6)
+	tt_style.shadow_size = 6
+	tt_style.shadow_offset = Vector2(2, 3)
 	_tooltip_panel.add_theme_stylebox_override("panel", tt_style)
 	add_child(_tooltip_panel)
 	
