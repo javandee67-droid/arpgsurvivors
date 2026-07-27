@@ -455,7 +455,7 @@ func _configure_vs_enemy(enemy: Node) -> void:
 	if enemy.get("speed") != null:
 		enemy.speed = (etype.get("speed") if etype.get("speed") != null else 40.0) * 0.4
 	
-	var stats_node := enemy.get_node_or_null("CharacterStats") as CharacterStats
+	var stats_node: CharacterStats = enemy.get_node_or_null("CharacterStats")
 	if stats_node and health_node:
 		stats_node.base_life = health_node.max_health
 		stats_node.base_armour = 5.0 * _difficulty_tier
@@ -559,7 +559,7 @@ func _spawn_boss() -> void:
 	if boss.get("speed", null) != null:
 		boss.speed = (etype.get("speed") if etype.get("speed") != null else 40.0) * 0.5
 	
-	var stats_node := boss.get_node_or_null("CharacterStats") as CharacterStats
+	var stats_node: CharacterStats = boss.get_node_or_null("CharacterStats")
 	if stats_node and health_node:
 		stats_node.base_life = health_node.max_health
 		stats_node.base_armour = 50.0 * _difficulty_tier
