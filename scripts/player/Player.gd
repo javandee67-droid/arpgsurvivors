@@ -23,6 +23,7 @@ var _last_dir: Vector2 = Vector2.DOWN
 
 ## Hotbar: 20 slot (1-9, 0, -, =, Q, W, E, R, T, Y, U, I) -> skill path'leri
 var hotbar: Array[String] = []
+var _momentum_timer: Dictionary = {}  ## Momentum/Aftermath/LastBreath timerlari
 ## Skill cooldown sistemi: {"skill_path": kalan_sure}
 var _skill_cooldowns: Dictionary = {}
 ## Attack animasyonu ne kadar süre daha oynasın (saniye)
@@ -1027,7 +1028,15 @@ func _get_base_damage_for_skill(skill: SkillData) -> float:
 	# Attacks use weapon damage
 	var wr := _calculate_weapon_damage_range()
 	var weapon_damage: float = (wr.min + wr.max) / 2.0
-	return weapon_damage * skill.damage_effectiveness
+	var base_dmg: float = weapon_damage * skill.damage_effectiveness
+	# Momentum bonus: her yigin %8 damage artisi
+	if stats and stats.momentum_stacks > 0:
+		var momentum_bonus: float = stats.momentum_stacks * stats.momentum_damage_per_stack
+		base_dmg += momentum_bonus
+	# Aftermath bonus: kullanim basina %25 damage
+	if stats and stats.kill_bonus_damage > 0:
+		base_dmg *= (1.0 + stats.kill_bonus_damage / 100.0)
+	return base_dmg
 
 ## SkillInstance sistemini test et — konsola dogrulama yazdir
 func _verify_support_system() -> void:
@@ -1352,6 +1361,13 @@ func _do_melee_basic(primary_enemy: Node) -> void:
 		chain_proj.setup(primary_enemy.global_position + chain_dir * 200.0, dmg, tags, self, chain_tex, "", "chain_melee", false, 0.0, dmg_type)
 		chain_proj.set_meta("attacker_stats", stats)
 
+	# Aftermath: dusman oldurulurse bonus aktive et
+	if is_instance_valid(primary_enemy) and primary_enemy.has_node("Health"):
+		var ph: Health = primary_enemy.get_node("Health")
+		if ph.current_health <= 0:
+			_trigger_aftermath()
+
+
 func _do_ranged_basic(target_pos: Vector2, wtype: String, weapon: ItemData) -> void:
 	var dmg_arr: Array = _get_basic_damage(weapon)
 	var dmg: float = dmg_arr[0] as float
@@ -1425,6 +1441,10 @@ func _do_ranged_basic(target_pos: Vector2, wtype: String, weapon: ItemData) -> v
 			# Chain count da ekstra mermilere aktar
 			if stats:
 				extra.chain_count = stats.chain_count + chain_from_supports
+
+	# Aftermath: ranged saldiri sonrasi hedef kontrolu
+	# (Mermi gittiği için burada direkt kontrol edemeyiz, projectile temas ettiğinde kontrol edilecek)
+
 
 func _spawn_player_swing_effect(target_pos: Vector2) -> void:
 	"""Düşman pozisyonunda mavi kesme efekti."""
@@ -1611,6 +1631,38 @@ func _process(delta: float) -> void:
 	# Infernal Circle can drain
 	_process_infernal_circle_drain(delta)
 
+	# ===== YENI SUPPORT MEKANIKLERI =====
+
+	# Momentum: yigin timeout kontrolü
+	if stats and stats.momentum_stacks > 0:
+		if not _momentum_timer.has("momentum"):
+			_momentum_timer["momentum"] = 0.0
+		_momentum_timer["momentum"] += delta
+		if _momentum_timer["momentum"] >= stats.momentum_timeout:
+			stats.momentum_stacks = 0
+			_momentum_timer["momentum"] = 0.0
+
+	# Aftermath: kill bonus timeout kontrolü
+	if stats and stats.kill_bonus_damage > 0:
+		if not _momentum_timer.has("aftermath"):
+			_momentum_timer["aftermath"] = 0.0
+		_momentum_timer["aftermath"] += delta
+		if _momentum_timer["aftermath"] >= stats.kill_bonus_timer:
+			stats.kill_bonus_damage = 0.0
+			_momentum_timer["aftermath"] = 0.0
+
+	# Last Breath: HP %20 altinda kontrolü
+	if stats and stats.last_breath_trigger:
+		if health and health.current_health / health.max_health <= 0.20:
+			if not _momentum_timer.has("last_breath_cd"):
+				_momentum_timer["last_breath_cd"] = 0.0
+			if _momentum_timer["last_breath_cd"] <= 0.0:
+				_trigger_last_breath()
+				_momentum_timer["last_breath_cd"] = stats.last_breath_cooldown
+		elif _momentum_timer.has("last_breath_cd") and _momentum_timer["last_breath_cd"] > 0.0:
+			_momentum_timer["last_breath_cd"] = maxf(0.0, _momentum_timer["last_breath_cd"] - delta)
+
+
 
 func cast_hotbar_skill(slot_idx: int) -> void:
 	"""Hotbar'daki bir skill'i kullan."""
@@ -1681,6 +1733,10 @@ func cast_hotbar_skill(slot_idx: int) -> void:
 		_:
 			# Bilinmeyen skill - normal attack yap
 			_cast_normal_attack()
+
+
+	# Momentum: her skill kullaniminda yigin ekle
+	_add_momentum_stack()
 
 func _cast_normal_attack() -> void:
 	"""Normal Attack - basit saldiri (melee/ranged)."""
@@ -1883,7 +1939,7 @@ func _cast_slice_wave(skill_data: SkillData, auto_target: Node = null) -> void:
 			ex.chain_count = main_chain
 			ex.setup(extra_target, dmg, ["attack", "physical", "projectile", "area"] as Array[String], self,
 				"res://assets/generated/proj_slice_wave_frame_0.png",
-				"res://assets/generated/vfx_fire_explosion.png", "slice_wave", false, 0.0, "physical")
+				"res://assets/generated/hit_slash_arc_new.png", "slice_wave", false, 0.0, "physical")
 			ex.proj_anim_fw = 32; ex.proj_anim_fh = 32
 			ex.proj_anim_cols = 4; ex.proj_anim_count = 8; ex.proj_anim_fps = 12.0
 			ex.hit_effect_fw = 48; ex.hit_effect_fh = 48
@@ -2242,10 +2298,10 @@ func _cast_ice_shard_vs(skill_data: SkillData, target: Node, skill_path: String)
 	)
 	
 	proj.setup(target_pos, dmg, skill_data.tags.duplicate(), self,
-		"res://assets/generated/proj_fireball_anim.png",
-		"res://assets/generated/hit_slash_arc_new.png", "ice_shard", false, 0.0, "cold")
+		"res://assets/generated/proj_frostbolt_anim.png",
+		"res://assets/generated/hit_ice_burst.png", "ice_shard", false, 0.0, "cold")
 	proj.proj_anim_fw = 32; proj.proj_anim_fh = 32
-	proj.proj_anim_cols = 4; proj.proj_anim_count = 8; proj.proj_anim_fps = 12.0
+	proj.proj_anim_cols = 4; proj.proj_anim_count = 6; proj.proj_anim_fps = 14.0
 	proj.set_meta("attacker_stats", stats)
 
 # ─── 3. ZİNCİR ÇARPMASI (lightning_chain) ───────────────────────────
@@ -2478,7 +2534,7 @@ func _cast_arcane_orb_vs(skill_data: SkillData, target: Node, skill_path: String
 	var sprite := AnimatedSprite2D.new()
 	sprite.sprite_frames = SpriteFrames.new()
 	sprite.sprite_frames.add_animation("default")
-	var tex_path := "res://assets/generated/proj_fireball_anim.png"
+	var tex_path := "res://assets/generated/projectile_arcane_frame_0.png"
 	if ResourceLoader.exists(tex_path):
 		var tex := load(tex_path) as Texture2D
 		var fw := 32; var fh := 32
@@ -3164,6 +3220,70 @@ func _refresh_infernal_circle_supports(skill_path: String) -> void:
 	_infernal_circle_ref._active_supports = supports
 	_infernal_circle_ref.apply_support_gems(supports)
 	print("Infernal Circle SUPPORT REFRESH - radius=", _infernal_circle_ref.radius, ", damage=", _infernal_circle_ref.base_damage_per_tick)
+
+
+## Last Breath Support: HP %20 altinda buyuk bir AoE patlamasi tetikler
+func _trigger_last_breath() -> void:
+	print("[Last Breath] Tetiklendi!")
+	# Buyuk bir AoE patlamasi yap
+	var blast_radius: float = 300.0
+	var blast_damage: float = stats.max_life * 0.5  ## Max HP'nin %50'si
+	# Tum düsmanlara hasar ver
+	var enemies := get_tree().get_nodes_in_group("enemies")
+	for enemy in enemies:
+		if not is_instance_valid(enemy):
+			continue
+		var dist: float = global_position.distance_to(enemy.global_position)
+		if dist <= blast_radius:
+			var h: Node = enemy.get_node_or_null("Health")
+			if h and h.has_method("take_damage"):
+				# Mesafeye gore hasar azalir
+				var falloff: float = 1.0 - (dist / blast_radius) * 0.5
+				h.take_damage(blast_damage * falloff, self, ["spell", "holy", "area"] as Array[String], false, 0.0)
+	# Gorsel efekt
+	var blast: AnimatedSprite2D = AnimatedSprite2D.new()
+	var sf := SpriteFrames.new()
+	sf.add_animation("vfx")
+	var tex := load("res://assets/generated/vfx_fire_explosion.png") as Texture2D
+	for row in range(4):
+		for col in range(4):
+			var atlas := AtlasTexture.new()
+			atlas.atlas = tex
+			atlas.region = Rect2(col * 48, row * 48, 48, 48)
+			sf.add_frame("vfx", atlas)
+	sf.set_animation_speed("vfx", 24.0)
+	blast.sprite_frames = sf
+	blast.play("vfx")
+	blast.scale = Vector2(blast_radius * 2.0 / 48.0, blast_radius * 2.0 / 48.0)
+	blast.position = global_position
+	get_parent().add_child(blast)
+	blast.tree_exited.connect(blast.queue_free)
+	# Kamera sarsintisi
+	var cam: Camera2D = get_node_or_null("Camera2D")
+	if cam:
+		var shake: Node = cam.get_node_or_null("ScreenShake")
+		if shake and shake.has_method("add_trauma"):
+			shake.add_trauma(0.8)
+
+
+
+## Momentum Support: Saldiri basina yigin ekler
+func _add_momentum_stack() -> void:
+	if not stats:
+		return
+	if stats.momentum_stacks < stats.momentum_max_stacks:
+		stats.momentum_stacks += 1
+	_momentum_timer["momentum"] = 0.0  # Timer'i sifirla
+	print("[Momentum] Yigin: ", stats.momentum_stacks, "/", stats.momentum_max_stacks)
+
+## Aftermath Support: Düsman oldurulunce cagirilir
+func _trigger_aftermath() -> void:
+	if not stats:
+		return
+	# Aftermath bonusunu aktiflestir
+	stats.kill_bonus_damage = 25.0  # %25 bonus
+	_momentum_timer["aftermath"] = 0.0
+	print("[Aftermath] Aktiflesti! +25% hasar")
 
 
 func _process_infernal_circle_drain(delta: float) -> void:

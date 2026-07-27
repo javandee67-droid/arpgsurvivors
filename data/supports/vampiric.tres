@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="SupportData" format=3]
+
+[ext_resource type="Script" uid="uid://bgvgabasayfa8" path="res://scripts/core/SupportData.gd" id="1"]
+[ext_resource type="Script" uid="uid://dwdtrcc4a6y56" path="res://scripts/core/StatModifier.gd" id="2"]
+
+[sub_resource type="Resource" id="mod_dmg"]
+script = ExtResource("2")
+stat = "damage"
+modifier_type = 1
+value = -10.0
+damage_type_filter = ""
+skill_tag_filter = ""
+
+[sub_resource type="Resource" id="mod_lifesteal"]
+script = ExtResource("2")
+stat = "life_leech_percent"
+modifier_type = 0
+value = 1.5
+damage_type_filter = ""
+skill_tag_filter = ""
+
+[resource]
+script = ExtResource("1")
+id = "vampiric"
+display_name = "Kan Emme Desteği"
+gem_description = "Her saldırıda düşman başına %1.5 can çalar ve bu canı sana verir. Hasar %10 düşer ama hayatta kalmanı artırır. Saldırı ve Büyü skill'lerine takılır."
+icon_path = "res://assets/generated/support_vampiric_frame_0.png"
+required_level = 8
+damage_multiplier = 0.9
+mana_multiplier = 1.0
+allowed_tags = Array[String](["Attack", "Spell"])
+modifiers = Array[Resource]([SubResource("mod_dmg"), SubResource("mod_lifesteal")])

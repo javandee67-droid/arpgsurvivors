@@ -19,6 +19,7 @@ var _vignette: ColorRect = null  # Dusuk can efekti
 var _vs_kill_label: Label = null  # VS kill counter
 var _connected: bool = false
 var _wave_label: Label = null
+var _tier_label: Label = null  # Difficulty tier göstergesi
 
 # ── Status Effects UI (top-left ailment display) ──
 var _status_container: HBoxContainer = null
@@ -91,6 +92,30 @@ func set_game_time(time_sec: float) -> void:
 func set_wave(wave: int) -> void:
 	if _wave_label:
 		_wave_label.text = "Wave: %d" % wave
+
+func set_tier(tier: int) -> void:
+	if _tier_label:
+		# Renk kodlaması: tier arttıkça kırmızıya döner
+		var tier_color: Color
+		match tier:
+			1: tier_color = Color(0.5, 0.9, 0.5)  # Yeşil - kolay
+			2: tier_color = Color(0.9, 0.9, 0.4)  # Sarı - orta
+			3: tier_color = Color(0.9, 0.7, 0.3)  # Turuncu - zor
+			4: tier_color = Color(0.9, 0.5, 0.3)  # Koyu turuncu - çok zor
+			5: tier_color = Color(0.9, 0.3, 0.3)  # Kırmızı - çok zor
+			_: tier_color = Color(0.7, 0.2, 0.9)  # Mor - boss seviyesi
+		
+		var icon: String
+		match tier:
+			1: icon = "☆"
+			2: icon = "★"
+			3: icon = "★★"
+			4: icon = "★★★"
+			5: icon = "✦✦✦"
+			_: icon = "⚠"
+		
+		_tier_label.text = "%s TIER %d" % [icon, tier]
+		_tier_label.add_theme_color_override("font_color", tier_color)
 
 func _ready() -> void:
 	_build_ui()
@@ -354,6 +379,20 @@ func _build_ui() -> void:
 	_wave_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_wave_label.text = "Wave: 1"
 	add_child(_wave_label)
+
+	# Difficulty tier label (wave'ın altında)
+	_tier_label = Label.new()
+	_tier_label.name = "TierLabel"
+	_tier_label.position = Vector2(vp.x - 200, 85)
+	_tier_label.size = Vector2(150, 22)
+	_tier_label.add_theme_font_size_override("font_size", 14)
+	_tier_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	_tier_label.add_theme_constant_override("shadow_outline_size", 2)
+	_tier_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_tier_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_tier_label.text = "☆ TIER 1"
+	_tier_label.add_theme_color_override("font_color", Color(0.5, 0.9, 0.5))
+	add_child(_tier_label)
 	
 	# Status Effects UI (top-left)
 	_build_status_effects_ui()

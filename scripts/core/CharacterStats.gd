@@ -80,6 +80,18 @@ var projectile_damage_increased: float
 var area_damage_increased: float
 var chain_count: int = 0  ## Flat chain count (aura + passive tree)
 
+## Yeni Support Gem Stats
+var last_breath_trigger: bool = false  ## Son Nefes trigger aktif mi
+var last_breath_cooldown: float = 30.0 ## Son Nefes cooldown (sn)
+var momentum_stacks: int = 0      ## Momentum yığın sayısı
+var momentum_damage_per_stack: float = 8.0  ## Her yığındaki hasar artışı
+var momentum_max_stacks: int = 5   ## Maksimum momentum yığını
+var momentum_timeout: float = 2.0  ## Momentum timeout (sn)
+var kill_bonus_damage: float = 0.0 ## Ölüm sonrası bonus hasar
+var kill_bonus_timer: float = 3.0 ## Ölüm bonusu geçerlilik süresi
+var stunned_bonus: float = 0.0    ## Sabitlenmiş düşmanlara bonus
+var stunned_threshold: float = 0.0 ## Düşmanın sabitlenme eşiği (pixel/sn)
+
 # --- Computed defense stats ---
 var attack_block_chance: float
 var spell_block_chance: float

@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="SupportData" format=3]
+
+[ext_resource type="Script" uid="uid://bgvgabasayfa8" path="res://scripts/core/SupportData.gd" id="1"]
+[ext_resource type="Script" uid="uid://dwdtrcc4a6y56" path="res://scripts/core/StatModifier.gd" id="2"]
+
+[sub_resource type="Resource" id="mod_dmg"]
+script = ExtResource("2")
+stat = "damage"
+modifier_type = 1
+value = -15.0
+damage_type_filter = ""
+skill_tag_filter = ""
+
+[sub_resource type="Resource" id="mod_trigger"]
+script = ExtResource("2")
+stat = "last_breath_trigger"
+modifier_type = 0
+value = 1.0
+damage_type_filter = ""
+skill_tag_filter = ""
+
+[resource]
+script = ExtResource("1")
+id = "last_breath"
+display_name = "Son Nefes Desteği"
+gem_description = "Canın %20'nin altına düştüğünde otomatik olarak büyük bir patlama gerçekleştirir ve çevredeki düşmanlara hasar verir. Bu destek her 30 saniyede bir tetiklenir."
+icon_path = "res://assets/generated/support_last_breath_frame_0.png"
+required_level = 12
+damage_multiplier = 0.85
+mana_multiplier = 1.0
+allowed_tags = Array[String](["Attack", "Spell"])
+added_tags = Array[String](["last_breath"])
+modifiers = Array[Resource]([SubResource("mod_dmg"), SubResource("mod_trigger")])

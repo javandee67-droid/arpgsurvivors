@@ -143,6 +143,22 @@ func _create_tooltip(border_color: Color) -> void:
 	tooltip_label.z_index = 1000
 	world_ui.add_child(tooltip_label)
 
+func _process(_delta: float) -> void:
+	if _picked_up: return
+	var player := get_tree().get_first_node_in_group("player")
+	if not player:
+		return
+	
+	# Otomatik pickup — pickup_radius'a göre
+	var pickup_range := 50.0
+	if player.has_node("CharacterStats"):
+		var stats := player.get_node("CharacterStats") as CharacterStats
+		pickup_range += stats.pickup_radius
+	
+	var dist := global_position.distance_to(player.global_position)
+	if dist < pickup_range:
+		_pickup_mouse()
+
 func _input_event(_vp: Node, event: InputEvent, _sid: int) -> void:
 	if _picked_up: return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:

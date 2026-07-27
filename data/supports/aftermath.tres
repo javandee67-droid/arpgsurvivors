@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="SupportData" format=3]
+
+[ext_resource type="Script" uid="uid://bgvgabasayfa8" path="res://scripts/core/SupportData.gd" id="1"]
+[ext_resource type="Script" uid="uid://dwdtrcc4a6y56" path="res://scripts/core/StatModifier.gd" id="2"]
+
+[sub_resource type="Resource" id="mod_dmg"]
+script = ExtResource("2")
+stat = "damage"
+modifier_type = 1
+value = -5.0
+damage_type_filter = ""
+skill_tag_filter = ""
+
+[sub_resource type="Resource" id="mod_aftermath"]
+script = ExtResource("2")
+stat = "kill_bonus_damage"
+modifier_type = 0
+value = 25.0
+damage_type_filter = ""
+skill_tag_filter = ""
+
+[resource]
+script = ExtResource("1")
+id = "aftermath"
+display_name = "Ölüm Sonrası Desteği"
+gem_description = "Bir düşmanı öldürdükten sonraki ilk saldırın %25 bonus hasar verir. Bu bonus 3 saniye içinde kullanılmazsa kaybolur. Saldırı ve Büyü skill'lerine takılır."
+icon_path = "res://assets/generated/support_aftermath_frame_0.png"
+required_level = 10
+damage_multiplier = 0.95
+mana_multiplier = 1.0
+allowed_tags = Array[String](["Attack", "Spell"])
+added_tags = Array[String](["aftermath"])
+modifiers = Array[Resource]([SubResource("mod_dmg"), SubResource("mod_aftermath")])

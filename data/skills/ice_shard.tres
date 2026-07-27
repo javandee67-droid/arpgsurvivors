@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "ice_shard"
 display_name = "Buz Mızrağı (Delici)"
-icon_path = "res://assets/generated/skill_ice_nova_frame_0.png"
+icon_path = "res://assets/generated/icon_frostbolt_frame_0.png"
 skill_type = 0
 tags = Array[String](["Spell", "Cold", "Projectile"])
 base_damage = 10.0

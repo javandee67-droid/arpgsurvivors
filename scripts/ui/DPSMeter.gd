@@ -101,6 +101,9 @@ func _shorten_name(id: String) -> String:
 	return names.get(id, id)
 
 func _fmt_num(val: float) -> String:
+	# NaN ve sonsuzluk koruması
+	if not isFinite(val):
+		return "ERR"
 	if abs(val) >= 1000000.0:
 		return "%.1fM" % (val / 1000000.0)
 	elif abs(val) >= 1000.0:

@@ -199,6 +199,9 @@ func _setup_passive_tree_player() -> void:
 	# Pasif node açıldığında stat değişikliklerini uygula
 	var unlocked_signal: Signal = passive_tree.get("passive_unlocked") as Signal
 	unlocked_signal.connect(_on_passive_node_unlocked)
+	# Panel kapatildiginda
+	var close_signal: Signal = panel.get("closed") as Signal
+	close_signal.connect(_on_passive_panel_closed)
 
 func _on_passive_node_unlocked(node_id: String) -> void:
 	"""Bir pasif node açıldığında oyuncunun statlarına uygula."""
@@ -290,6 +293,11 @@ func _on_passive_node_unlocked(node_id: String) -> void:
 		var get_points_func: Callable = Callable(passive_tree, "get_remaining_points")
 		player.stats.passive_points = get_points_func.call()
 
+
+func _on_passive_panel_closed() -> void:
+	# Pasif ağaç UI kapatıldığında değişkeni senkronize et
+	_passive_tree_visible = false
+	get_tree().paused = false
 func _spawn_player() -> void:
 	if not player_scene:
 		return
@@ -361,6 +369,10 @@ func _process(delta: float) -> void:
 			_enemies_per_spawn = mini(6 + _difficulty_tier * 2, 30)
 			_spawn_interval = maxf(0.6, 1.5 - _difficulty_tier * 0.04)
 			print("VS: Zaman bazli zorluk %d -> %d! (%.0f saniye)" % [_time_difficulty_tier - 1, _time_difficulty_tier, _game_time])
+			# HUD'da tier göstergesini güncelle
+			var hud: HUD = get_node_or_null("CanvasLayer2") as HUD
+			if hud:
+				hud.set_tier(_difficulty_tier)
 	
 	if _game_camera and player:
 		_game_camera.global_position = player.global_position

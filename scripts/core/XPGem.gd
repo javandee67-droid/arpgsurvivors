@@ -4,8 +4,8 @@ class_name XPGem
 ## Düşman ölünce düşer, oyuncuya doğru çekilir (magnet), toplanınca XP verir.
 
 var xp_value: float = 10.0
-var _magnet_speed: float = 240.0
-var _magnet_range: float = 120.0
+var _magnet_speed: float = 280.0
+var _base_magnet_range: float = 60.0
 var _player_ref: Node = null
 var _being_attracted: bool = false
 var _lifetime: float = 15.0
@@ -56,6 +56,14 @@ func _create_fallback_texture() -> Texture2D:
 				img.set_pixel(x, y, Color(0.3, 1.0, 0.2, 0.3))
 	return ImageTexture.create_from_image(img)
 
+func _get_magnet_range() -> float:
+	# Oyuncunun pickup_radius stat'ını kullan
+	var base_range := _base_magnet_range
+	if is_instance_valid(_player_ref) and _player_ref.has_node("CharacterStats"):
+		var stats := _player_ref.get_node("CharacterStats") as CharacterStats
+		base_range += stats.pickup_radius
+	return base_range
+
 func _process(delta: float) -> void:
 	_alive_time += delta
 	
@@ -80,16 +88,20 @@ func _process(delta: float) -> void:
 			return
 	
 	var dist := global_position.distance_to(_player_ref.global_position)
+	var magnet_range := _get_magnet_range()
 	
-	if dist < _magnet_range:
+	# Otomatik çekim - pickup_radius'a göre
+	if dist < magnet_range:
 		_being_attracted = true
 	
 	if _being_attracted:
 		var dir: Vector2 = (_player_ref.global_position - global_position).normalized()
-		var speed: float = _magnet_speed * (1.0 + (_magnet_range - minf(dist, _magnet_range)) / _magnet_range * 1.5)
+		# Yakınlık arttıkça hızlan
+		var speed_mult := 1.0 + (magnet_range - minf(dist, magnet_range)) / magnet_range * 2.0
+		var speed := _magnet_speed * speed_mult
 		global_position += dir * speed * delta
 		
-		if dist < 25.0:
+		if dist < 20.0:
 			_collect()
 
 func _collect() -> void:
