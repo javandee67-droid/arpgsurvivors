@@ -98,6 +98,10 @@ func _ready() -> void:
 		_rebuild_skill_instance()
 		_verify_support_system()
 	
+        # Skill Gem Panel toggle (K tusu)
+        if InputMap.has_action("toggle_skill_gem_panel"):
+                if not InputMap.action_get_events("toggle_skill_gem_panel").is_empty():
+                        InputMap.action_add_event("toggle_skill_gem_panel", InputEventKey.new())
 	# Lit aydınlatma: AnimatedSprite2D'ye alıcı materyali ata
 	_setup_lit_receiver()
 	
@@ -299,6 +303,8 @@ func _input(event: InputEvent) -> void:
 				pass
 			KEY_P:
 				pass  # Skill tree kapali
+			KEY_K:
+				_toggle_skill_gem_panel()
 	
 	# VS modunda mouse tiklamalari pasif
 	if event is InputEventMouseButton and event.pressed:

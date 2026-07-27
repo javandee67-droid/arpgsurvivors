@@ -128,6 +128,62 @@ func _create_world_ui() -> void:
 		# Pasif Ağaç paneli ve butonu ekle
 		_setup_passive_tree_ui(wui)
 
+		# Skill Gem Panel ekle (K tusu ile acilir)
+		_setup_skill_gem_panel(wui)
+
+func _setup_skill_gem_panel(parent: CanvasLayer) -> void:
+	var gem_panel_script: Script = load('res://scripts/ui/SkillGemPanel.gd')
+	var gem_panel: CanvasLayer = gem_panel_script.new()
+	gem_panel.name = 'SkillGemPanelLayer'
+	gem_panel.visible = false
+	parent.add_child(gem_panel)
+
+	# Skill Gem Panel butonu (sag ust)
+	var btn := Button.new()
+	btn.name = 'SkillGemPanelButton'
+	btn.text = '💎 GEMLER'
+	btn.anchor_left = 1.0
+	btn.anchor_right = 1.0
+	btn.position = Vector2(-310, 10)
+	btn.size = Vector2(140, 40)
+	btn.add_theme_color_override('font_color', Color(0.6, 0.9, 1.0))
+	btn.add_theme_font_size_override('font_size', 12)
+	btn.pressed.connect(_toggle_skill_gem_panel)
+	parent.add_child(btn)
+
+var _gem_panel_visible: bool = false
+
+func _toggle_skill_gem_panel() -> void:
+	var wui := get_tree().root.get_node_or_null('WorldUI') as CanvasLayer
+	if not wui:
+		return
+
+	var panel: CanvasLayer = wui.get_node_or_null('SkillGemPanelLayer') as CanvasLayer
+	var btn: Button = wui.get_node_or_null('SkillGemPanelButton') as Button
+
+	if not panel:
+		return
+
+	_gem_panel_visible = not _gem_panel_visible
+	panel.visible = _gem_panel_visible
+
+	if _gem_panel_visible:
+		var player = get_tree().get_first_node_in_group('player')
+		if player and panel.has_method('open_ui'):
+			panel.player = player
+			panel.open_ui()
+	else:
+		if panel.has_method('close_ui'):
+			panel.close_ui()
+
+	if btn:
+		if _gem_panel_visible:
+			btn.text = '✕ KAPAT'
+			btn.add_theme_color_override('font_color', Color(1.0, 0.4, 0.4))
+		else:
+			btn.text = '💎 GEMLER'
+			btn.add_theme_color_override('font_color', Color(0.6, 0.9, 1.0))
+
 func _setup_passive_tree_ui(parent: CanvasLayer) -> void:
 	# Pasif Ağaç paneli (başlangıçta gizli) - dinamik yükleme
 	var panel_script: Script = load(PASSIVE_PANEL_SCRIPT_PATH)
