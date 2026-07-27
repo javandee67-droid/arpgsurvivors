@@ -448,12 +448,12 @@ func _configure_vs_enemy(enemy: Node) -> void:
 		health_node.max_health = base_hp * diff_mult * 2.0
 		health_node.current_health = health_node.max_health
 	
-	var base_dmg: float = etype.get("contact_damage", 5.0)
-	if enemy.get("contact_damage", null) != null:
+	var base_dmg: float = etype.get("contact_damage") if etype.get("contact_damage") != null else 5.0
+	if enemy.get("contact_damage") != null:
 		enemy.contact_damage = base_dmg * diff_mult * 0.5
 	
-	if enemy.get("speed", null) != null:
-		enemy.speed = etype.get("speed", 40.0) * 0.4
+	if enemy.get("speed") != null:
+		enemy.speed = (etype.get("speed") if etype.get("speed") != null else 40.0) * 0.4
 	
 	var stats_node := enemy.get_node_or_null("CharacterStats") as CharacterStats
 	if stats_node and health_node:
@@ -557,7 +557,7 @@ func _spawn_boss() -> void:
 		boss.contact_damage = base_dmg * diff_mult
 	
 	if boss.get("speed", null) != null:
-		boss.speed = etype.get("speed", 40.0) * 0.5
+		boss.speed = (etype.get("speed") if etype.get("speed") != null else 40.0) * 0.5
 	
 	var stats_node := boss.get_node_or_null("CharacterStats") as CharacterStats
 	if stats_node and health_node:
