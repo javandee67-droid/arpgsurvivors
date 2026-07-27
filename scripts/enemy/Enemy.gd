@@ -194,6 +194,24 @@ func _draw() -> void:
 		# Parlama efekti (üst kenar)
 		draw_rect(Rect2(-bar_w / 2.0 + 1, bar_y + 1, (bar_w - 2) * pct, 1), Color(1.0, 0.5, 0.5, 0.3))
 
+	# Status effect glow efekti
+	if ailment_ctrl:
+		# Zehirlenme (yeşil pulse)
+		if ailment_ctrl.has_effect(StatusEffect.Type.IGNITE):
+			var ignite_alpha := 0.3 + 0.2 * sin(Time.get_ticks_msec() / 100.0)
+			draw_circle(Vector2.ZERO, 20.0, Color(1.0, 0.4, 0.0, ignite_alpha))
+		# Donma (mavi kristal)
+		if ailment_ctrl.has_effect(StatusEffect.Type.FREEZE):
+			draw_circle(Vector2.ZERO, 18.0, Color(0.3, 0.6, 1.0, 0.35))
+			for k in range(6):
+				var angle := k * PI / 3.0
+				var p1 := Vector2(cos(angle) * 14, sin(angle) * 14)
+				var p2 := Vector2(cos(angle + 0.2) * 20, sin(angle + 0.2) * 20)
+				draw_line(p1, p2, Color(0.5, 0.8, 1.0, 0.5), 2.0)
+		# Elektriklenme (sarı parıltı)
+		if ailment_ctrl.has_effect(StatusEffect.Type.SHOCK):
+			draw_circle(Vector2.ZERO, 22.0, Color(1.0, 0.95, 0.2, 0.25))
+
 
 	# Rarity glow efekti (haritanın altında)
 	if rarity != EnemyRarity.NORMAL:
