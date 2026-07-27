@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://scripts/core/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "arcane_orb"
+display_name = "Gizem Küresi (Bumerang)"
+icon_path = "res://assets/generated/skill_fireball_frame_0.png"
+skill_type = 1
+tags = Array[String](["Spell", "Arcane", "Area"])
+base_damage = 15.0
+mana_cost = 0.0
+cooldown = 3.5
+damage_type = "physical"
+damage_buckets = {
+	"physical": 15
+}
+damage_effectiveness = 1.0
+aoe_radius = 80.0
+cast_time = 0.4

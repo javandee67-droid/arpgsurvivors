@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" uid="uid://c8cwd6fk2o0q3" path="res://scripts/core/ItemData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "base_bow_silver"
+display_name = "Gümüş Yay"
+item_type = "weapon"
+weapon_type = "bow"
+equip_slot = "weapon"
+required_level = 35
+base_physical_damage_min = 33.0
+base_physical_damage_max = 60.0
+base_attack_speed = 1.25
+required_dexterity = 68

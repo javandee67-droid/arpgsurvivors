@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://scripts/core/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "thunder_strike"
+display_name = "Gök Gürültüsü (Fırtına)"
+icon_path = "res://assets/generated/skill_fireball_frame_0.png"
+skill_type = 1
+tags = Array[String](["Spell", "Lightning", "Area"])
+base_damage = 22.0
+mana_cost = 0.0
+cooldown = 4.0
+damage_type = "lightning"
+damage_buckets = {
+	"lightning": 22
+}
+damage_effectiveness = 1.0
+aoe_radius = 70.0
+cast_time = 0.6

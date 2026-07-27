@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://clfqsrjsfwy2f"]
+
+[ext_resource type="Texture2D" uid="uid://b342j8l6oru5s" path="res://assets/generated/icon_shield_frame_0.png" id="1_7m3hq"]
+[ext_resource type="Script" uid="uid://c8cwd6fk2o0q3" path="res://scripts/core/ItemData.gd" id="2_t7hya"]
+
+[resource]
+script = ExtResource("2_t7hya")
+id = "base_shield"
+display_name = "Kalkan"
+item_type = "offhand"
+equip_slot = "offhand"
+required_level = 1
+icon = ExtResource("1_7m3hq")
+base_armour = 8.0
+base_block_chance = 15.0
+required_strength = 15

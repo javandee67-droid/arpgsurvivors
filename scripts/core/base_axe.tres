@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://b4f2v6pny1xxk"]
+
+[ext_resource type="Texture2D" uid="uid://dbvt0oxk178bk" path="res://assets/generated/icon_axe_frame_0.png" id="1_axe"]
+[ext_resource type="Script" uid="uid://c8cwd6fk2o0q3" path="res://scripts/core/ItemData.gd" id="2_3c812"]
+
+[resource]
+script = ExtResource("2_3c812")
+id = "base_axe"
+display_name = "Balta"
+item_type = "weapon"
+weapon_type = "axe"
+equip_slot = "weapon"
+required_level = 1
+base_physical_damage_min = 7.0
+base_physical_damage_max = 15.0
+base_attack_speed = 1.0
+required_strength = 20
+required_dexterity = 5
+icon = ExtResource("1_axe")

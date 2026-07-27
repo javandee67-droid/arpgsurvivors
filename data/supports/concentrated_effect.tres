@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="SupportData" format=3]
+
+[ext_resource type="Script" uid="uid://bgvgabasayfa8" path="res://scripts/core/SupportData.gd" id="1"]
+[ext_resource type="Script" uid="uid://dwdtrcc4a6y56" path="res://scripts/core/StatModifier.gd" id="2"]
+
+[sub_resource type="Resource" id="mod_1"]
+script = ExtResource("2")
+stat = "damage"
+modifier_type = 2
+value = 25.0
+damage_type_filter = ""
+skill_tag_filter = ""
+
+[resource]
+script = ExtResource("1")
+id = "concentrated_effect"
+display_name = "Yoğun Etki Desteği"
+gem_description = "Skill'in alanını daraltır ama hasarını %25 ÇARPAN (More) artırır. Tek hedefe odaklanan build'ler için idealdir. Alan etkili skill'lere takılır."
+icon_path = "res://assets/generated/support_concentrated_effect_frame_0.png"
+required_level = 10
+damage_multiplier = 1.25
+mana_multiplier = 1.0
+allowed_tags = Array[String](["Spell", "Attack"])
+added_tags = Array[String](["aoe"])
+modifiers = Array[Resource]([SubResource("mod_1")])

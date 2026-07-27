@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://htcslrivccwr"]
+
+[ext_resource type="Script" uid="uid://c8cwd6fk2o0q3" path="res://scripts/core/ItemData.gd" id="2_7a3qs"]
+
+[resource]
+script = ExtResource("2_7a3qs")
+id = "base_helmet"
+display_name = "Miğfer"
+item_type = "helmet"
+equip_slot = "helmet"
+required_level = 1
+base_armour = 6.0
+required_strength = 12

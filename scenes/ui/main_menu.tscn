@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://c0qln4mnflt7a"]
+
+[node name="MainMenu" type="Control" unique_id=1625401456]
+layout_mode = 3
+anchors_preset = 0

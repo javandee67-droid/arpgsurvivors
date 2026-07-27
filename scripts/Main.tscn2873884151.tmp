@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://cesncnqxw0qi4"]
+
+[ext_resource type="Script" uid="uid://bxq30nea7dlhi" path="res://scripts/world/Main.gd" id="1_i8f85"]
+[ext_resource type="Script" uid="uid://cjk725pth30ub" path="res://scripts/world/MapGenerator.gd" id="2_fhm1o"]
+[ext_resource type="Script" uid="uid://dceoe4tt5fga2" path="res://scripts/ui/GameUI.gd" id="6_nxldc"]
+[ext_resource type="Script" uid="uid://vmicockrtvl8" path="res://scripts/ui/HUD.gd" id="7_teb4g"]
+[ext_resource type="PackedScene" uid="uid://csoqfibfi12va" path="res://scripts/Player.tscn" id="9_player"]
+[ext_resource type="PackedScene" uid="uid://dbxu5whsku0vk" path="res://scripts/Enemy.tscn" id="10_enemy"]
+
+[node name="Node2D" type="Node2D" unique_id=1873682943]
+script = ExtResource("1_i8f85")
+player_scene = ExtResource("9_player")
+enemy_scene = ExtResource("10_enemy")
+
+[node name="MapGenerator" type="Node2D" parent="." unique_id=959043728]
+script = ExtResource("2_fhm1o")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1453917072]
+script = ExtResource("6_nxldc")
+
+[node name="CanvasLayer2" type="CanvasLayer" parent="." unique_id=1680195220]
+script = ExtResource("7_teb4g")

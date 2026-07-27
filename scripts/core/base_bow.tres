@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/core/ItemData.gd" id="2_5957d"]
+
+[resource]
+script = ExtResource("2_5957d")
+id = "base_bow"
+display_name = "Yay"
+item_type = "weapon"
+weapon_type = "bow"
+equip_slot = "weapon"
+required_level = 1
+base_physical_damage_min = 4.0
+base_physical_damage_max = 10.0
+base_attack_speed = 1.2
+required_dexterity = 20

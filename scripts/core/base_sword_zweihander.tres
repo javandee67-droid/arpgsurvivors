@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" uid="uid://c8cwd6fk2o0q3" path="res://scripts/core/ItemData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "base_sword_zweihander"
+display_name = "Zweihander"
+item_type = "weapon"
+weapon_type = "sword"
+equip_slot = "weapon"
+required_level = 55
+base_physical_damage_min = 50.0
+base_physical_damage_max = 95.0
+base_attack_speed = 0.95
+required_strength = 85
+required_dexterity = 28

@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://c0p41lnhciqk5"]
+
+[ext_resource type="Script" path="res://addons/yggdrasil/scripts/shared/yggdrasil_connection.gd" id="1"]
+
+[node name="YggdrasilConnectionPoE" type="Line2D"]
+width = 4.0
+default_color = Color(0.3, 0.3, 0.4, 0.6)
+joint_mode = 1
+begin_cap_mode = 0
+end_cap_mode = 0
+script = ExtResource("1")

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="SupportData" format=3]
+
+[ext_resource type="Script" uid="uid://bgvgabasayfa8" path="res://scripts/core/SupportData.gd" id="1"]
+[ext_resource type="Script" uid="uid://dwdtrcc4a6y56" path="res://scripts/core/StatModifier.gd" id="2"]
+
+[sub_resource type="Resource" id="mod_1"]
+script = ExtResource("2")
+stat = "cast_speed"
+modifier_type = 1
+value = 20.0
+damage_type_filter = ""
+skill_tag_filter = ""
+
+[resource]
+script = ExtResource("1")
+id = "cast_speed"
+display_name = "Büyü Hızı Desteği"
+gem_description = "Büyülerini %20 daha hızlı atmanı sağlar (Increased Cast Speed). Hasarı doğrudan artırmaz ama daha hızlı cast edersin. Sadece Büyü skill'lerine takılır."
+icon_path = "res://assets/generated/support_cast_speed_frame_0.png"
+required_level = 6
+damage_multiplier = 1.0
+mana_multiplier = 1.0
+allowed_tags = Array[String](["Spell"])
+modifiers = Array[Resource]([SubResource("mod_1")])

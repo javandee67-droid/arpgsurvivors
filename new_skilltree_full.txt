@@ -1,0 +1,1015 @@
+extends Control
+class_name SkillTreeUI
+## Pasif skill ağacı — YETENEKLER sekmesinde gösterilir.
+## Yuvarlak düğümler, her biri bir pasif bonus verir.
+## Sınıfa göre filtreleme, mouse tekeri ile zoom, sürükle-pan.
+
+var player: Player = null
+var _embedded_mode: bool = false
+var _current_embed_parent: Control = null
+var _node_btns: Dictionary = {}  # id → Button
+var _zoom_level: float = 1.0
+var _is_dragging: bool = false
+var _drag_start_mouse: Vector2
+var _drag_start_scroll: Vector2
+var _tree_pan_offset: Vector2 = Vector2.ZERO
+## Tüm pasif skill tanımları (264 adet - diyagonal wheel cluster)
+## class: warrior/mage/rogue/any
+## row/col: grid pozisyonu
+## connects: bağlı olduğu node id'leri
+## required_level: gereken oyuncu seviyesi
+## modifiers: CharacterStats'a uygulanacak bonuslar
+## NOT: Tüm modifier key'leri _apply_node_bonus ve _describe_bonus ile eşlenmiştir.
+const ALL_PASSIVE_SKILLS := [
+	{"id": "center", "name": "Baslangic", "desc": "Pasif yetenek agacinin merkezi", "row": 0.0, "col": 0.0, "connects": ["w1", "w1_s0", "w1_s1", "w1_s2", "w1_s3", "w2", "w2_s0", "w2_s1", "w2_s2", "w2_s3", "w3", "w3_s0", "w3_s1", "w3_s2", "w3_s3", "w4", "w4_s0", "w4_s1", "w4_s2", "w4_s3", "w5", "w5_s0", "w5_s1", "w5_s2", "w5_s3", "w6", "w6_s0", "w6_s1", "w6_s2", "w6_s3", "w7", "w7_s0", "w7_s1", "w7_s2", "w7_s3", "w8", "w8_s0", "w8_s1", "w8_s2", "w8_s3", "w9", "w9_s0", "w9_s1", "w9_s2", "w9_s3", "w10", "w10_s0", "w10_s1", "w10_s2", "w10_s3", "w11", "w11_s0", "w11_s1", "w11_s2", "w11_s3", "w12", "w12_s0", "w12_s1", "w12_s2", "w12_s3", "w13", "w13_s0", "w13_s1", "w13_s2", "w13_s3", "w14", "w14_s0", "w14_s1", "w14_s2", "w14_s3", "w15", "w15_s0", "w15_s1", "w15_s2", "w15_s3", "w16", "w16_s0", "w16_s1", "w16_s2", "w16_s3"], "required_level": 1, "class": "any", "modifiers": {"base_life": 10, "mana": 10}, "icon_emoji": "★"},
+	{"id": "w1_s0", "name": "Guclu", "desc": "+15 base_life", "row": 2.0618, "col": -0.55, "connects": ["w1", "center"], "required_level": 1, "class": "any", "modifiers": {"base_life": 15}, "icon_emoji": "❤"},
+	{"id": "w1_s1", "name": "Guc", "desc": "+20 base_life", "row": 2.0618, "col": 0.45, "connects": ["w1", "center"], "required_level": 1, "class": "any", "modifiers": {"base_life": 20}, "icon_emoji": "❤"},
+	{"id": "w1_s2", "name": "Vurus", "desc": "+2 life_regen", "row": 3.0618, "col": -0.55, "connects": ["w1", "center"], "required_level": 1, "class": "any", "modifiers": {"life_regen": 2}, "icon_emoji": "💚"},
+	{"id": "w1_s3", "name": "Hizli", "desc": "+10 base_life, +1 life_regen", "row": 3.0618, "col": 0.45, "connects": ["w1", "center"], "required_level": 1, "class": "any", "modifiers": {"base_life": 10, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w1", "name": "Savasci", "desc": "+50 base_life, +5 life_regen, +12 physical_damage", "row": 2.5618, "col": -0.05, "connects": ["w1_s0", "w1_s1", "w1_s2", "w1_s3", "center", "w4", "w7", "w11", "w12", "w19"], "required_level": 2, "class": "any", "modifiers": {"base_life": 50, "life_regen": 5, "physical_damage": 12}, "icon_emoji": "⚔"},
+	{"id": "w2_s0", "name": "Bilgin", "desc": "+8 spell_damage", "row": -0.6082, "col": -3.1437, "connects": ["w2", "center"], "required_level": 1, "class": "any", "modifiers": {"spell_damage": 8}, "icon_emoji": "🔮"},
+	{"id": "w2_s1", "name": "Zeki", "desc": "+15 mana", "row": -0.6082, "col": -2.1437, "connects": ["w2", "center"], "required_level": 1, "class": "any", "modifiers": {"mana": 15}, "icon_emoji": "💧"},
+	{"id": "w2_s2", "name": "Ruhani", "desc": "+8 energy_shield", "row": 0.3918, "col": -3.1437, "connects": ["w2", "center"], "required_level": 1, "class": "any", "modifiers": {"energy_shield": 8}, "icon_emoji": "🛡"},
+	{"id": "w2_s3", "name": "Hizli", "desc": "+3 cast_speed", "row": 0.3918, "col": -2.1437, "connects": ["w2", "center"], "required_level": 1, "class": "any", "modifiers": {"cast_speed": 3}, "icon_emoji": "✨"},
+	{"id": "w2", "name": "Buyucu", "desc": "+20 spell_damage, +50 mana, +8 cast_speed", "row": -0.1082, "col": -2.6437, "connects": ["w2_s0", "w2_s1", "w2_s2", "w2_s3", "center", "w4", "w5", "w15"], "required_level": 2, "class": "any", "modifiers": {"spell_damage": 20, "mana": 50, "cast_speed": 8}, "icon_emoji": "🔮"},
+	{"id": "w3_s0", "name": "Bilgin", "desc": "+8 spell_damage", "row": -0.8821, "col": 2.2555, "connects": ["w3", "center"], "required_level": 1, "class": "any", "modifiers": {"spell_damage": 8}, "icon_emoji": "🔮"},
+	{"id": "w3_s1", "name": "Zeki", "desc": "+15 mana", "row": -0.8821, "col": 3.2555, "connects": ["w3", "center"], "required_level": 1, "class": "any", "modifiers": {"mana": 15}, "icon_emoji": "💧"},
+	{"id": "w3_s2", "name": "Ruhani", "desc": "+8 energy_shield", "row": 0.1179, "col": 2.2555, "connects": ["w3", "center"], "required_level": 1, "class": "any", "modifiers": {"energy_shield": 8}, "icon_emoji": "🛡"},
+	{"id": "w3_s3", "name": "Hizli", "desc": "+3 cast_speed", "row": 0.1179, "col": 3.2555, "connects": ["w3", "center"], "required_level": 1, "class": "any", "modifiers": {"cast_speed": 3}, "icon_emoji": "✨"},
+	{"id": "w3", "name": "Buyucu", "desc": "+20 spell_damage, +50 mana, +8 cast_speed", "row": -0.3821, "col": 2.7555, "connects": ["w3_s0", "w3_s1", "w3_s2", "w3_s3", "center", "w7", "w17"], "required_level": 2, "class": "any", "modifiers": {"spell_damage": 20, "mana": 50, "cast_speed": 8}, "icon_emoji": "🔮"},
+	{"id": "w4_s0", "name": "Zirhli", "desc": "+8 armour", "row": 1.4618, "col": -2.5884, "connects": ["w4", "center"], "required_level": 1, "class": "any", "modifiers": {"armour": 8}, "icon_emoji": "🏸"},
+	{"id": "w4_s1", "name": "Direncli", "desc": "+4 all_resistance", "row": 1.4618, "col": -1.5884, "connects": ["w4", "center"], "required_level": 1, "class": "any", "modifiers": {"all_resistance": 4}, "icon_emoji": "🌟"},
+	{"id": "w4_s2", "name": "Engelleyici", "desc": "+2 block_chance", "row": 2.4618, "col": -2.5884, "connects": ["w4", "center"], "required_level": 1, "class": "any", "modifiers": {"block_chance": 2}, "icon_emoji": "⛛"},
+	{"id": "w4_s3", "name": "Dayanikli", "desc": "+15 base_life", "row": 2.4618, "col": -1.5884, "connects": ["w4", "center"], "required_level": 1, "class": "any", "modifiers": {"base_life": 15}, "icon_emoji": "❤"},
+	{"id": "w4", "name": "Koruyucu", "desc": "+30 armour, +10 all_resistance, +8 block_chance", "row": 1.9618, "col": -2.0884, "connects": ["w4_s0", "w4_s1", "w4_s2", "w4_s3", "center", "w1", "w2", "w11", "w18"], "required_level": 2, "class": "any", "modifiers": {"armour": 30, "all_resistance": 10, "block_chance": 8}, "icon_emoji": "🛡"},
+	{"id": "w5_s0", "name": "Cevik", "desc": "+3 attack_speed", "row": -2.6054, "col": -2.4495, "connects": ["w5", "center"], "required_level": 1, "class": "any", "modifiers": {"attack_speed": 3}, "icon_emoji": "⚡"},
+	{"id": "w5_s1", "name": "Keskin", "desc": "+3 dodge", "row": -2.6054, "col": -1.4495, "connects": ["w5", "center"], "required_level": 1, "class": "any", "modifiers": {"dodge": 3}, "icon_emoji": "💨"},
+	{"id": "w5_s2", "name": "Kritik", "desc": "+5 crit_chance", "row": -1.6054, "col": -2.4495, "connects": ["w5", "center"], "required_level": 1, "class": "any", "modifiers": {"crit_chance": 5}, "icon_emoji": "🎯"},
+	{"id": "w5_s3", "name": "Kacak", "desc": "+8 evasion", "row": -1.6054, "col": -1.4495, "connects": ["w5", "center"], "required_level": 1, "class": "any", "modifiers": {"evasion": 8}, "icon_emoji": "👟"},
+	{"id": "w5", "name": "Haydut", "desc": "+10 attack_speed, +15 crit_chance, +20 evasion", "row": -2.1054, "col": -1.9495, "connects": ["w5_s0", "w5_s1", "w5_s2", "w5_s3", "center", "w2", "w8", "w15", "w20"], "required_level": 2, "class": "any", "modifiers": {"attack_speed": 10, "crit_chance": 15, "evasion": 20}, "icon_emoji": "💨"},
+	{"id": "w6_s0", "name": "Zirhli", "desc": "+8 armour", "row": -2.4662, "col": 1.6258, "connects": ["w6", "center"], "required_level": 1, "class": "any", "modifiers": {"armour": 8}, "icon_emoji": "🏸"},
+	{"id": "w6_s1", "name": "Direncli", "desc": "+4 all_resistance", "row": -2.4662, "col": 2.6258, "connects": ["w6", "center"], "required_level": 1, "class": "any", "modifiers": {"all_resistance": 4}, "icon_emoji": "🌟"},
+	{"id": "w6_s2", "name": "Engelleyici", "desc": "+2 block_chance", "row": -1.4662, "col": 1.6258, "connects": ["w6", "center"], "required_level": 1, "class": "any", "modifiers": {"block_chance": 2}, "icon_emoji": "⛛"},
+	{"id": "w6_s3", "name": "Dayanikli", "desc": "+15 base_life", "row": -1.4662, "col": 2.6258, "connects": ["w6", "center"], "required_level": 1, "class": "any", "modifiers": {"base_life": 15}, "icon_emoji": "❤"},
+	{"id": "w6", "name": "Koruyucu", "desc": "+30 armour, +10 all_resistance, +8 block_chance", "row": -1.9662, "col": 2.1258, "connects": ["w6_s0", "w6_s1", "w6_s2", "w6_s3", "center", "w8", "w10", "w17"], "required_level": 2, "class": "any", "modifiers": {"armour": 30, "all_resistance": 10, "block_chance": 8}, "icon_emoji": "🛡"},
+	{"id": "w7_s0", "name": "Cevik", "desc": "+3 attack_speed", "row": 1.6838, "col": 1.4787, "connects": ["w7", "center"], "required_level": 1, "class": "any", "modifiers": {"attack_speed": 3}, "icon_emoji": "⚡"},
+	{"id": "w7_s1", "name": "Keskin", "desc": "+3 dodge", "row": 1.6838, "col": 2.4787, "connects": ["w7", "center"], "required_level": 1, "class": "any", "modifiers": {"dodge": 3}, "icon_emoji": "💨"},
+	{"id": "w7_s2", "name": "Kritik", "desc": "+5 crit_chance", "row": 2.6838, "col": 1.4787, "connects": ["w7", "center"], "required_level": 1, "class": "any", "modifiers": {"crit_chance": 5}, "icon_emoji": "🎯"},
+	{"id": "w7_s3", "name": "Kacak", "desc": "+8 evasion", "row": 2.6838, "col": 2.4787, "connects": ["w7", "center"], "required_level": 1, "class": "any", "modifiers": {"evasion": 8}, "icon_emoji": "👟"},
+	{"id": "w7", "name": "Haydut", "desc": "+10 attack_speed, +15 crit_chance, +20 evasion", "row": 2.1838, "col": 1.9787, "connects": ["w7_s0", "w7_s1", "w7_s2", "w7_s3", "center", "w1", "w3", "w14", "w19"], "required_level": 2, "class": "any", "modifiers": {"attack_speed": 10, "crit_chance": 15, "evasion": 20}, "icon_emoji": "💨"},
+	{"id": "w8_s0", "name": "Guclu", "desc": "+15 base_life", "row": -3.4426, "col": -0.2131, "connects": ["w8", "center"], "required_level": 1, "class": "any", "modifiers": {"base_life": 15}, "icon_emoji": "❤"},
+	{"id": "w8_s1", "name": "Guc", "desc": "+20 base_life", "row": -3.4426, "col": 0.7869, "connects": ["w8", "center"], "required_level": 1, "class": "any", "modifiers": {"base_life": 20}, "icon_emoji": "❤"},
+	{"id": "w8_s2", "name": "Vurus", "desc": "+2 life_regen", "row": -2.4426, "col": -0.2131, "connects": ["w8", "center"], "required_level": 1, "class": "any", "modifiers": {"life_regen": 2}, "icon_emoji": "💚"},
+	{"id": "w8_s3", "name": "Hizli", "desc": "+10 base_life, +1 life_regen", "row": -2.4426, "col": 0.7869, "connects": ["w8", "center"], "required_level": 1, "class": "any", "modifiers": {"base_life": 10, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w8", "name": "Savasci", "desc": "+50 base_life, +5 life_regen, +12 physical_damage", "row": -2.9426, "col": 0.2869, "connects": ["w8_s0", "w8_s1", "w8_s2", "w8_s3", "center", "w5", "w6", "w10", "w20"], "required_level": 2, "class": "any", "modifiers": {"base_life": 50, "life_regen": 5, "physical_damage": 12}, "icon_emoji": "⚔"},
+	{"id": "w9_s0", "name": "Cevik", "desc": "+3 attack_speed", "row": -0.8256, "col": -4.7768, "connects": ["w9", "center"], "required_level": 2, "class": "any", "modifiers": {"attack_speed": 3}, "icon_emoji": "⚡"},
+	{"id": "w9_s1", "name": "Keskin", "desc": "+3 dodge", "row": -0.8256, "col": -3.7768, "connects": ["w9", "center"], "required_level": 2, "class": "any", "modifiers": {"dodge": 3}, "icon_emoji": "💨"},
+	{"id": "w9_s2", "name": "Kritik", "desc": "+5 crit_chance", "row": 0.1744, "col": -4.7768, "connects": ["w9", "center"], "required_level": 2, "class": "any", "modifiers": {"crit_chance": 5}, "icon_emoji": "🎯"},
+	{"id": "w9_s3", "name": "Kacak", "desc": "+8 evasion", "row": 0.1744, "col": -3.7768, "connects": ["w9", "center"], "required_level": 2, "class": "any", "modifiers": {"evasion": 8}, "icon_emoji": "👟"},
+	{"id": "w9", "name": "Usta Haydut", "desc": "+10 attack_speed, +15 crit_chance, +20 evasion", "row": -0.3256, "col": -4.2768, "connects": ["w9_s0", "w9_s1", "w9_s2", "w9_s3", "center", "w15", "w18", "w22"], "required_level": 2, "class": "any", "modifiers": {"attack_speed": 10, "crit_chance": 15, "evasion": 20}, "icon_emoji": "💨"},
+	{"id": "w10_s0", "name": "Cevik", "desc": "+3 attack_speed", "row": -4.3224, "col": 1.4745, "connects": ["w10", "center"], "required_level": 2, "class": "any", "modifiers": {"attack_speed": 3}, "icon_emoji": "⚡"},
+	{"id": "w10_s1", "name": "Keskin", "desc": "+3 dodge", "row": -4.3224, "col": 2.4745, "connects": ["w10", "center"], "required_level": 2, "class": "any", "modifiers": {"dodge": 3}, "icon_emoji": "💨"},
+	{"id": "w10_s2", "name": "Kritik", "desc": "+5 crit_chance", "row": -3.3224, "col": 1.4745, "connects": ["w10", "center"], "required_level": 2, "class": "any", "modifiers": {"crit_chance": 5}, "icon_emoji": "🎯"},
+	{"id": "w10_s3", "name": "Kacak", "desc": "+8 evasion", "row": -3.3224, "col": 2.4745, "connects": ["w10", "center"], "required_level": 2, "class": "any", "modifiers": {"evasion": 8}, "icon_emoji": "👟"},
+	{"id": "w10", "name": "Usta Haydut", "desc": "+10 attack_speed, +15 crit_chance, +20 evasion", "row": -3.8224, "col": 1.9745, "connects": ["w10_s0", "w10_s1", "w10_s2", "w10_s3", "center", "w6", "w8", "w16", "w17", "w27"], "required_level": 2, "class": "any", "modifiers": {"attack_speed": 10, "crit_chance": 15, "evasion": 20}, "icon_emoji": "💨"},
+	{"id": "w11_s0", "name": "Zirhli", "desc": "+8 armour", "row": 3.3087, "col": -2.6659, "connects": ["w11", "center"], "required_level": 2, "class": "any", "modifiers": {"armour": 8}, "icon_emoji": "🏸"},
+	{"id": "w11_s1", "name": "Direncli", "desc": "+4 all_resistance", "row": 3.3087, "col": -1.6659, "connects": ["w11", "center"], "required_level": 2, "class": "any", "modifiers": {"all_resistance": 4}, "icon_emoji": "🌟"},
+	{"id": "w11_s2", "name": "Engelleyici", "desc": "+2 block_chance", "row": 4.3087, "col": -2.6659, "connects": ["w11", "center"], "required_level": 2, "class": "any", "modifiers": {"block_chance": 2}, "icon_emoji": "⛛"},
+	{"id": "w11_s3", "name": "Dayanikli", "desc": "+15 base_life", "row": 4.3087, "col": -1.6659, "connects": ["w11", "center"], "required_level": 2, "class": "any", "modifiers": {"base_life": 15}, "icon_emoji": "❤"},
+	{"id": "w11", "name": "Usta Koruyucu", "desc": "+30 armour, +10 all_resistance, +8 block_chance", "row": 3.8087, "col": -2.1659, "connects": ["w11_s0", "w11_s1", "w11_s2", "w11_s3", "center", "w1", "w4", "w12", "w18", "w24", "w30"], "required_level": 2, "class": "any", "modifiers": {"armour": 30, "all_resistance": 10, "block_chance": 8}, "icon_emoji": "🛡"},
+	{"id": "w12_s0", "name": "Guclu", "desc": "+15 base_life", "row": 3.9063, "col": -0.3747, "connects": ["w12", "center"], "required_level": 2, "class": "any", "modifiers": {"base_life": 15}, "icon_emoji": "❤"},
+	{"id": "w12_s1", "name": "Guc", "desc": "+20 base_life", "row": 3.9063, "col": 0.6253, "connects": ["w12", "center"], "required_level": 2, "class": "any", "modifiers": {"base_life": 20}, "icon_emoji": "❤"},
+	{"id": "w12_s2", "name": "Vurus", "desc": "+2 life_regen", "row": 4.9063, "col": -0.3747, "connects": ["w12", "center"], "required_level": 2, "class": "any", "modifiers": {"life_regen": 2}, "icon_emoji": "💚"},
+	{"id": "w12_s3", "name": "Hizli", "desc": "+10 base_life, +1 life_regen", "row": 4.9063, "col": 0.6253, "connects": ["w12", "center"], "required_level": 2, "class": "any", "modifiers": {"base_life": 10, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w12", "name": "Usta Savasci", "desc": "+50 base_life, +5 life_regen, +12 physical_damage", "row": 4.4063, "col": 0.1253, "connects": ["w12_s0", "w12_s1", "w12_s2", "w12_s3", "center", "w1", "w11", "w19", "w28"], "required_level": 2, "class": "any", "modifiers": {"base_life": 50, "life_regen": 5, "physical_damage": 12}, "icon_emoji": "⚔"},
+	{"id": "w13_s0", "name": "Zirhli", "desc": "+8 armour", "row": -0.9011, "col": 4.0131, "connects": ["w13", "center"], "required_level": 2, "class": "any", "modifiers": {"armour": 8}, "icon_emoji": "🏸"},
+	{"id": "w13_s1", "name": "Direncli", "desc": "+4 all_resistance", "row": -0.9011, "col": 5.0131, "connects": ["w13", "center"], "required_level": 2, "class": "any", "modifiers": {"all_resistance": 4}, "icon_emoji": "🌟"},
+	{"id": "w13_s2", "name": "Engelleyici", "desc": "+2 block_chance", "row": 0.0989, "col": 4.0131, "connects": ["w13", "center"], "required_level": 2, "class": "any", "modifiers": {"block_chance": 2}, "icon_emoji": "⛛"},
+	{"id": "w13_s3", "name": "Dayanikli", "desc": "+15 base_life", "row": 0.0989, "col": 5.0131, "connects": ["w13", "center"], "required_level": 2, "class": "any", "modifiers": {"base_life": 15}, "icon_emoji": "❤"},
+	{"id": "w13", "name": "Usta Koruyucu", "desc": "+30 armour, +10 all_resistance, +8 block_chance", "row": -0.4011, "col": 4.5131, "connects": ["w13_s0", "w13_s1", "w13_s2", "w13_s3", "center", "w14", "w17", "w26", "w29"], "required_level": 2, "class": "any", "modifiers": {"armour": 30, "all_resistance": 10, "block_chance": 8}, "icon_emoji": "🛡"},
+	{"id": "w14_s0", "name": "Bilgin", "desc": "+8 spell_damage", "row": 1.6707, "col": 3.521, "connects": ["w14", "center"], "required_level": 2, "class": "any", "modifiers": {"spell_damage": 8}, "icon_emoji": "🔮"},
+	{"id": "w14_s1", "name": "Zeki", "desc": "+15 mana", "row": 1.6707, "col": 4.521, "connects": ["w14", "center"], "required_level": 2, "class": "any", "modifiers": {"mana": 15}, "icon_emoji": "💧"},
+	{"id": "w14_s2", "name": "Ruhani", "desc": "+8 energy_shield", "row": 2.6707, "col": 3.521, "connects": ["w14", "center"], "required_level": 2, "class": "any", "modifiers": {"energy_shield": 8}, "icon_emoji": "🛡"},
+	{"id": "w14_s3", "name": "Hizli", "desc": "+3 cast_speed", "row": 2.6707, "col": 4.521, "connects": ["w14", "center"], "required_level": 2, "class": "any", "modifiers": {"cast_speed": 3}, "icon_emoji": "✨"},
+	{"id": "w14", "name": "Usta Buyucu", "desc": "+20 spell_damage, +50 mana, +8 cast_speed", "row": 2.1707, "col": 4.021, "connects": ["w14_s0", "w14_s1", "w14_s2", "w14_s3", "center", "w7", "w13", "w21", "w33"], "required_level": 2, "class": "any", "modifiers": {"spell_damage": 20, "mana": 50, "cast_speed": 8}, "icon_emoji": "🔮"},
+	{"id": "w15_s0", "name": "Guclu", "desc": "+15 base_life", "row": -2.7325, "col": -4.5099, "connects": ["w15", "center"], "required_level": 2, "class": "any", "modifiers": {"base_life": 15}, "icon_emoji": "❤"},
+	{"id": "w15_s1", "name": "Guc", "desc": "+20 base_life", "row": -2.7325, "col": -3.5099, "connects": ["w15", "center"], "required_level": 2, "class": "any", "modifiers": {"base_life": 20}, "icon_emoji": "❤"},
+	{"id": "w15_s2", "name": "Vurus", "desc": "+2 life_regen", "row": -1.7325, "col": -4.5099, "connects": ["w15", "center"], "required_level": 2, "class": "any", "modifiers": {"life_regen": 2}, "icon_emoji": "💚"},
+	{"id": "w15_s3", "name": "Hizli", "desc": "+10 base_life, +1 life_regen", "row": -1.7325, "col": -3.5099, "connects": ["w15", "center"], "required_level": 2, "class": "any", "modifiers": {"base_life": 10, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w15", "name": "Usta Savasci", "desc": "+50 base_life, +5 life_regen, +12 physical_damage", "row": -2.2325, "col": -4.0099, "connects": ["w15_s0", "w15_s1", "w15_s2", "w15_s3", "center", "w2", "w5", "w9", "w20", "w25", "w32"], "required_level": 2, "class": "any", "modifiers": {"base_life": 50, "life_regen": 5, "physical_damage": 12}, "icon_emoji": "⚔"},
+	{"id": "w16_s0", "name": "Bilgin", "desc": "+8 spell_damage", "row": -5.101, "col": -0.5143, "connects": ["w16", "center"], "required_level": 2, "class": "any", "modifiers": {"spell_damage": 8}, "icon_emoji": "🔮"},
+	{"id": "w16_s1", "name": "Zeki", "desc": "+15 mana", "row": -5.101, "col": 0.4857, "connects": ["w16", "center"], "required_level": 2, "class": "any", "modifiers": {"mana": 15}, "icon_emoji": "💧"},
+	{"id": "w16_s2", "name": "Ruhani", "desc": "+8 energy_shield", "row": -4.101, "col": -0.5143, "connects": ["w16", "center"], "required_level": 2, "class": "any", "modifiers": {"energy_shield": 8}, "icon_emoji": "🛡"},
+	{"id": "w16_s3", "name": "Hizli", "desc": "+3 cast_speed", "row": -4.101, "col": 0.4857, "connects": ["w16", "center"], "required_level": 2, "class": "any", "modifiers": {"cast_speed": 3}, "icon_emoji": "✨"},
+	{"id": "w16", "name": "Usta Buyucu", "desc": "+20 spell_damage, +50 mana, +8 cast_speed", "row": -4.601, "col": -0.0143, "connects": ["w16_s0", "w16_s1", "w16_s2", "w16_s3", "center", "w10", "w20", "w34"], "required_level": 2, "class": "any", "modifiers": {"spell_damage": 20, "mana": 50, "cast_speed": 8}, "icon_emoji": "🔮"},
+	{"id": "w17_s0", "name": "Guclu", "desc": "+15 base_life", "row": -2.8929, "col": 3.454, "connects": ["w17"], "required_level": 2, "class": "any", "modifiers": {"base_life": 15}, "icon_emoji": "❤"},
+	{"id": "w17_s1", "name": "Guc", "desc": "+20 base_life", "row": -2.8929, "col": 4.454, "connects": ["w17"], "required_level": 2, "class": "any", "modifiers": {"base_life": 20}, "icon_emoji": "❤"},
+	{"id": "w17_s2", "name": "Vurus", "desc": "+2 life_regen", "row": -1.8929, "col": 3.454, "connects": ["w17"], "required_level": 2, "class": "any", "modifiers": {"life_regen": 2}, "icon_emoji": "💚"},
+	{"id": "w17_s3", "name": "Hizli", "desc": "+10 base_life, +1 life_regen", "row": -1.8929, "col": 4.454, "connects": ["w17"], "required_level": 2, "class": "any", "modifiers": {"base_life": 10, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w17", "name": "Usta Savasci", "desc": "+50 base_life, +5 life_regen, +12 physical_damage", "row": -2.3929, "col": 3.954, "connects": ["w17_s0", "w17_s1", "w17_s2", "w17_s3", "w3", "w6", "w10", "w13", "w26", "w31"], "required_level": 2, "class": "any", "modifiers": {"base_life": 50, "life_regen": 5, "physical_damage": 12}, "icon_emoji": "⚔"},
+	{"id": "w18_s0", "name": "Bilgin", "desc": "+8 spell_damage", "row": 1.8962, "col": -4.5072, "connects": ["w18"], "required_level": 2, "class": "any", "modifiers": {"spell_damage": 8}, "icon_emoji": "🔮"},
+	{"id": "w18_s1", "name": "Zeki", "desc": "+15 mana", "row": 1.8962, "col": -3.5072, "connects": ["w18"], "required_level": 2, "class": "any", "modifiers": {"mana": 15}, "icon_emoji": "💧"},
+	{"id": "w18_s2", "name": "Ruhani", "desc": "+8 energy_shield", "row": 2.8962, "col": -4.5072, "connects": ["w18"], "required_level": 2, "class": "any", "modifiers": {"energy_shield": 8}, "icon_emoji": "🛡"},
+	{"id": "w18_s3", "name": "Hizli", "desc": "+3 cast_speed", "row": 2.8962, "col": -3.5072, "connects": ["w18"], "required_level": 2, "class": "any", "modifiers": {"cast_speed": 3}, "icon_emoji": "✨"},
+	{"id": "w18", "name": "Usta Buyucu", "desc": "+20 spell_damage, +50 mana, +8 cast_speed", "row": 2.3962, "col": -4.0072, "connects": ["w18_s0", "w18_s1", "w18_s2", "w18_s3", "w4", "w9", "w11", "w30"], "required_level": 2, "class": "any", "modifiers": {"spell_damage": 20, "mana": 50, "cast_speed": 8}, "icon_emoji": "🔮"},
+	{"id": "w19_s0", "name": "Cevik", "desc": "+3 attack_speed", "row": 3.7078, "col": 1.5459, "connects": ["w19"], "required_level": 2, "class": "any", "modifiers": {"attack_speed": 3}, "icon_emoji": "⚡"},
+	{"id": "w19_s1", "name": "Keskin", "desc": "+3 dodge", "row": 3.7078, "col": 2.5459, "connects": ["w19"], "required_level": 2, "class": "any", "modifiers": {"dodge": 3}, "icon_emoji": "💨"},
+	{"id": "w19_s2", "name": "Kritik", "desc": "+5 crit_chance", "row": 4.7078, "col": 1.5459, "connects": ["w19"], "required_level": 2, "class": "any", "modifiers": {"crit_chance": 5}, "icon_emoji": "🎯"},
+	{"id": "w19_s3", "name": "Kacak", "desc": "+8 evasion", "row": 4.7078, "col": 2.5459, "connects": ["w19"], "required_level": 2, "class": "any", "modifiers": {"evasion": 8}, "icon_emoji": "👟"},
+	{"id": "w19", "name": "Usta Haydut", "desc": "+10 attack_speed, +15 crit_chance, +20 evasion", "row": 4.2078, "col": 2.0459, "connects": ["w19_s0", "w19_s1", "w19_s2", "w19_s3", "w1", "w7", "w12", "w21", "w28", "w35"], "required_level": 2, "class": "any", "modifiers": {"attack_speed": 10, "crit_chance": 15, "evasion": 20}, "icon_emoji": "💨"},
+	{"id": "w20_s0", "name": "Zirhli", "desc": "+8 armour", "row": -4.6892, "col": -2.6924, "connects": ["w20"], "required_level": 2, "class": "any", "modifiers": {"armour": 8}, "icon_emoji": "🏸"},
+	{"id": "w20_s1", "name": "Direncli", "desc": "+4 all_resistance", "row": -4.6892, "col": -1.6924, "connects": ["w20"], "required_level": 2, "class": "any", "modifiers": {"all_resistance": 4}, "icon_emoji": "🌟"},
+	{"id": "w20_s2", "name": "Engelleyici", "desc": "+2 block_chance", "row": -3.6892, "col": -2.6924, "connects": ["w20"], "required_level": 2, "class": "any", "modifiers": {"block_chance": 2}, "icon_emoji": "⛛"},
+	{"id": "w20_s3", "name": "Dayanikli", "desc": "+15 base_life", "row": -3.6892, "col": -1.6924, "connects": ["w20"], "required_level": 2, "class": "any", "modifiers": {"base_life": 15}, "icon_emoji": "❤"},
+	{"id": "w20", "name": "Usta Koruyucu", "desc": "+30 armour, +10 all_resistance, +8 block_chance", "row": -4.1892, "col": -2.1924, "connects": ["w20_s0", "w20_s1", "w20_s2", "w20_s3", "w5", "w8", "w15", "w16", "w25", "w36"], "required_level": 2, "class": "any", "modifiers": {"armour": 30, "all_resistance": 10, "block_chance": 8}, "icon_emoji": "🛡"},
+	{"id": "w21_s0", "name": "Bilgin", "desc": "+8 spell_damage", "row": 4.0571, "col": 3.8004, "connects": ["w21"], "required_level": 3, "class": "any", "modifiers": {"spell_damage": 8}, "icon_emoji": "🔮"},
+	{"id": "w21_s1", "name": "Zeki", "desc": "+16 mana", "row": 4.0571, "col": 4.8004, "connects": ["w21"], "required_level": 3, "class": "any", "modifiers": {"mana": 16}, "icon_emoji": "💧"},
+	{"id": "w21_s2", "name": "Ruhani", "desc": "+8 energy_shield", "row": 5.0571, "col": 3.8004, "connects": ["w21"], "required_level": 3, "class": "any", "modifiers": {"energy_shield": 8}, "icon_emoji": "🛡"},
+	{"id": "w21_s3", "name": "Hizli", "desc": "+3 cast_speed", "row": 5.0571, "col": 4.8004, "connects": ["w21"], "required_level": 3, "class": "any", "modifiers": {"cast_speed": 3}, "icon_emoji": "✨"},
+	{"id": "w21", "name": "Usta Buyucu", "desc": "+22 spell_damage, +55 mana, +8 cast_speed", "row": 4.5571, "col": 4.3004, "connects": ["w21_s0", "w21_s1", "w21_s2", "w21_s3", "w14", "w19", "w33", "w35", "w41", "w47"], "required_level": 3, "class": "any", "modifiers": {"spell_damage": 22, "mana": 55, "cast_speed": 8}, "icon_emoji": "🔮"},
+	{"id": "w22_s0", "name": "Guclu", "desc": "+16 base_life", "row": 0.03, "col": -6.744, "connects": ["w22"], "required_level": 3, "class": "any", "modifiers": {"base_life": 16}, "icon_emoji": "❤"},
+	{"id": "w22_s1", "name": "Guc", "desc": "+22 base_life", "row": 0.03, "col": -5.744, "connects": ["w22"], "required_level": 3, "class": "any", "modifiers": {"base_life": 22}, "icon_emoji": "❤"},
+	{"id": "w22_s2", "name": "Vurus", "desc": "+2 life_regen", "row": 1.03, "col": -6.744, "connects": ["w22"], "required_level": 3, "class": "any", "modifiers": {"life_regen": 2}, "icon_emoji": "💚"},
+	{"id": "w22_s3", "name": "Hizli", "desc": "+11 base_life, +1 life_regen", "row": 1.03, "col": -5.744, "connects": ["w22"], "required_level": 3, "class": "any", "modifiers": {"base_life": 11, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w22", "name": "Usta Savasci", "desc": "+55 base_life, +5 life_regen, +13 physical_damage", "row": 0.53, "col": -6.244, "connects": ["w22_s0", "w22_s1", "w22_s2", "w22_s3", "w9", "w23", "w43"], "required_level": 3, "class": "any", "modifiers": {"base_life": 55, "life_regen": 5, "physical_damage": 13}, "icon_emoji": "⚔"},
+	{"id": "w23_s0", "name": "Cevik", "desc": "+3 attack_speed", "row": 2.0855, "col": -6.2413, "connects": ["w23"], "required_level": 3, "class": "any", "modifiers": {"attack_speed": 3}, "icon_emoji": "⚡"},
+	{"id": "w23_s1", "name": "Keskin", "desc": "+3 dodge", "row": 2.0855, "col": -5.2413, "connects": ["w23"], "required_level": 3, "class": "any", "modifiers": {"dodge": 3}, "icon_emoji": "💨"},
+	{"id": "w23_s2", "name": "Kritik", "desc": "+5 crit_chance", "row": 3.0855, "col": -6.2413, "connects": ["w23"], "required_level": 3, "class": "any", "modifiers": {"crit_chance": 5}, "icon_emoji": "🎯"},
+	{"id": "w23_s3", "name": "Kacak", "desc": "+8 evasion", "row": 3.0855, "col": -5.2413, "connects": ["w23"], "required_level": 3, "class": "any", "modifiers": {"evasion": 8}, "icon_emoji": "👟"},
+	{"id": "w23", "name": "Usta Haydut", "desc": "+11 attack_speed, +16 crit_chance, +22 evasion", "row": 2.5855, "col": -5.7413, "connects": ["w23_s0", "w23_s1", "w23_s2", "w23_s3", "w22", "w30", "w39", "w42"], "required_level": 3, "class": "any", "modifiers": {"attack_speed": 11, "crit_chance": 16, "evasion": 22}, "icon_emoji": "💨"},
+	{"id": "w24_s0", "name": "Zirhli", "desc": "+8 armour", "row": 5.3656, "col": -2.884, "connects": ["w24"], "required_level": 3, "class": "any", "modifiers": {"armour": 8}, "icon_emoji": "🏸"},
+	{"id": "w24_s1", "name": "Direncli", "desc": "+4 all_resistance", "row": 5.3656, "col": -1.884, "connects": ["w24"], "required_level": 3, "class": "any", "modifiers": {"all_resistance": 4}, "icon_emoji": "🌟"},
+	{"id": "w24_s2", "name": "Engelleyici", "desc": "+2 block_chance", "row": 6.3656, "col": -2.884, "connects": ["w24"], "required_level": 3, "class": "any", "modifiers": {"block_chance": 2}, "icon_emoji": "⛛"},
+	{"id": "w24_s3", "name": "Dayanikli", "desc": "+16 base_life", "row": 6.3656, "col": -1.884, "connects": ["w24"], "required_level": 3, "class": "any", "modifiers": {"base_life": 16}, "icon_emoji": "❤"},
+	{"id": "w24", "name": "Usta Koruyucu", "desc": "+33 armour, +11 all_resistance, +8 block_chance", "row": 5.8656, "col": -2.384, "connects": ["w24_s0", "w24_s1", "w24_s2", "w24_s3", "w11", "w30", "w37", "w44"], "required_level": 3, "class": "any", "modifiers": {"armour": 33, "all_resistance": 11, "block_chance": 8}, "icon_emoji": "🛡"},
+	{"id": "w25_s0", "name": "Bilgin", "desc": "+8 spell_damage", "row": -5.3104, "col": -4.6543, "connects": ["w25"], "required_level": 3, "class": "any", "modifiers": {"spell_damage": 8}, "icon_emoji": "🔮"},
+	{"id": "w25_s1", "name": "Zeki", "desc": "+16 mana", "row": -5.3104, "col": -3.6543, "connects": ["w25"], "required_level": 3, "class": "any", "modifiers": {"mana": 16}, "icon_emoji": "💧"},
+	{"id": "w25_s2", "name": "Ruhani", "desc": "+8 energy_shield", "row": -4.3104, "col": -4.6543, "connects": ["w25"], "required_level": 3, "class": "any", "modifiers": {"energy_shield": 8}, "icon_emoji": "🛡"},
+	{"id": "w25_s3", "name": "Hizli", "desc": "+3 cast_speed", "row": -4.3104, "col": -3.6543, "connects": ["w25"], "required_level": 3, "class": "any", "modifiers": {"cast_speed": 3}, "icon_emoji": "✨"},
+	{"id": "w25", "name": "Usta Buyucu", "desc": "+22 spell_damage, +55 mana, +8 cast_speed", "row": -4.8104, "col": -4.1543, "connects": ["w25_s0", "w25_s1", "w25_s2", "w25_s3", "w15", "w20", "w32", "w36", "w46", "w52"], "required_level": 3, "class": "any", "modifiers": {"spell_damage": 22, "mana": 55, "cast_speed": 8}, "icon_emoji": "🔮"},
+	{"id": "w26_s0", "name": "Cevik", "desc": "+3 attack_speed", "row": -2.6795, "col": 5.5253, "connects": ["w26"], "required_level": 3, "class": "any", "modifiers": {"attack_speed": 3}, "icon_emoji": "⚡"},
+	{"id": "w26_s1", "name": "Keskin", "desc": "+3 dodge", "row": -2.6795, "col": 6.5253, "connects": ["w26"], "required_level": 3, "class": "any", "modifiers": {"dodge": 3}, "icon_emoji": "💨"},
+	{"id": "w26_s2", "name": "Kritik", "desc": "+5 crit_chance", "row": -1.6795, "col": 5.5253, "connects": ["w26"], "required_level": 3, "class": "any", "modifiers": {"crit_chance": 5}, "icon_emoji": "🎯"},
+	{"id": "w26_s3", "name": "Kacak", "desc": "+8 evasion", "row": -1.6795, "col": 6.5253, "connects": ["w26"], "required_level": 3, "class": "any", "modifiers": {"evasion": 8}, "icon_emoji": "👟"},
+	{"id": "w26", "name": "Usta Haydut", "desc": "+11 attack_speed, +16 crit_chance, +22 evasion", "row": -2.1795, "col": 6.0253, "connects": ["w26_s0", "w26_s1", "w26_s2", "w26_s3", "w13", "w17", "w31", "w38"], "required_level": 3, "class": "any", "modifiers": {"attack_speed": 11, "crit_chance": 16, "evasion": 22}, "icon_emoji": "💨"},
+	{"id": "w27_s0", "name": "Zirhli", "desc": "+8 armour", "row": -6.3642, "col": 2.4125, "connects": ["w27"], "required_level": 3, "class": "any", "modifiers": {"armour": 8}, "icon_emoji": "🏸"},
+	{"id": "w27_s1", "name": "Direncli", "desc": "+4 all_resistance", "row": -6.3642, "col": 3.4125, "connects": ["w27"], "required_level": 3, "class": "any", "modifiers": {"all_resistance": 4}, "icon_emoji": "🌟"},
+	{"id": "w27_s2", "name": "Engelleyici", "desc": "+2 block_chance", "row": -5.3642, "col": 2.4125, "connects": ["w27"], "required_level": 3, "class": "any", "modifiers": {"block_chance": 2}, "icon_emoji": "⛛"},
+	{"id": "w27_s3", "name": "Dayanikli", "desc": "+16 base_life", "row": -5.3642, "col": 3.4125, "connects": ["w27"], "required_level": 3, "class": "any", "modifiers": {"base_life": 16}, "icon_emoji": "❤"},
+	{"id": "w27", "name": "Efsane Koruyucu", "desc": "+33 armour, +11 all_resistance, +8 block_chance", "row": -5.8642, "col": 2.9125, "connects": ["w27_s0", "w27_s1", "w27_s2", "w27_s3", "w10", "w31", "w34", "w53", "w56"], "required_level": 3, "class": "any", "modifiers": {"armour": 33, "all_resistance": 11, "block_chance": 8}, "icon_emoji": "🛡"},
+	{"id": "w28_s0", "name": "Guclu", "desc": "+16 base_life", "row": 6.0501, "col": 0.0371, "connects": ["w28"], "required_level": 3, "class": "any", "modifiers": {"base_life": 16}, "icon_emoji": "❤"},
+	{"id": "w28_s1", "name": "Guc", "desc": "+22 base_life", "row": 6.0501, "col": 1.0371, "connects": ["w28"], "required_level": 3, "class": "any", "modifiers": {"base_life": 22}, "icon_emoji": "❤"},
+	{"id": "w28_s2", "name": "Vurus", "desc": "+2 life_regen", "row": 7.0501, "col": 0.0371, "connects": ["w28"], "required_level": 3, "class": "any", "modifiers": {"life_regen": 2}, "icon_emoji": "💚"},
+	{"id": "w28_s3", "name": "Hizli", "desc": "+11 base_life, +1 life_regen", "row": 7.0501, "col": 1.0371, "connects": ["w28"], "required_level": 3, "class": "any", "modifiers": {"base_life": 11, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w28", "name": "Efsane Savasci", "desc": "+56 base_life, +5 life_regen, +13 physical_damage", "row": 6.5501, "col": 0.5371, "connects": ["w28_s0", "w28_s1", "w28_s2", "w28_s3", "w12", "w19", "w35", "w45", "w55"], "required_level": 3, "class": "any", "modifiers": {"base_life": 56, "life_regen": 5, "physical_damage": 13}, "icon_emoji": "⚔"},
+	{"id": "w29_s0", "name": "Guclu", "desc": "+16 base_life", "row": -0.9838, "col": 6.0659, "connects": ["w29"], "required_level": 3, "class": "any", "modifiers": {"base_life": 16}, "icon_emoji": "❤"},
+	{"id": "w29_s1", "name": "Guc", "desc": "+22 base_life", "row": -0.9838, "col": 7.0659, "connects": ["w29"], "required_level": 3, "class": "any", "modifiers": {"base_life": 22}, "icon_emoji": "❤"},
+	{"id": "w29_s2", "name": "Vurus", "desc": "+2 life_regen", "row": 0.0162, "col": 6.0659, "connects": ["w29"], "required_level": 3, "class": "any", "modifiers": {"life_regen": 2}, "icon_emoji": "💚"},
+	{"id": "w29_s3", "name": "Hizli", "desc": "+11 base_life, +1 life_regen", "row": 0.0162, "col": 7.0659, "connects": ["w29"], "required_level": 3, "class": "any", "modifiers": {"base_life": 11, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w29", "name": "Efsane Savasci", "desc": "+56 base_life, +5 life_regen, +13 physical_damage", "row": -0.4838, "col": 6.5659, "connects": ["w29_s0", "w29_s1", "w29_s2", "w29_s3", "w13", "w40"], "required_level": 3, "class": "any", "modifiers": {"base_life": 56, "life_regen": 5, "physical_damage": 13}, "icon_emoji": "⚔"},
+	{"id": "w30_s0", "name": "Bilgin", "desc": "+9 spell_damage", "row": 4.2463, "col": -5.0772, "connects": ["w30"], "required_level": 3, "class": "any", "modifiers": {"spell_damage": 9}, "icon_emoji": "🔮"},
+	{"id": "w30_s1", "name": "Zeki", "desc": "+16 mana", "row": 4.2463, "col": -4.0772, "connects": ["w30"], "required_level": 3, "class": "any", "modifiers": {"mana": 16}, "icon_emoji": "💧"},
+	{"id": "w30_s2", "name": "Ruhani", "desc": "+9 energy_shield", "row": 5.2463, "col": -5.0772, "connects": ["w30"], "required_level": 3, "class": "any", "modifiers": {"energy_shield": 9}, "icon_emoji": "🛡"},
+	{"id": "w30_s3", "name": "Hizli", "desc": "+3 cast_speed", "row": 5.2463, "col": -4.0772, "connects": ["w30"], "required_level": 3, "class": "any", "modifiers": {"cast_speed": 3}, "icon_emoji": "✨"},
+	{"id": "w30", "name": "Efsane Buyucu", "desc": "+22 spell_damage, +56 mana, +9 cast_speed", "row": 4.7463, "col": -4.5772, "connects": ["w30_s0", "w30_s1", "w30_s2", "w30_s3", "w11", "w18", "w23", "w24", "w37", "w39"], "required_level": 3, "class": "any", "modifiers": {"spell_damage": 22, "mana": 56, "cast_speed": 9}, "icon_emoji": "🔮"},
+	{"id": "w31_s0", "name": "Bilgin", "desc": "+9 spell_damage", "row": -5.0468, "col": 4.2965, "connects": ["w31"], "required_level": 3, "class": "any", "modifiers": {"spell_damage": 9}, "icon_emoji": "🔮"},
+	{"id": "w31_s1", "name": "Zeki", "desc": "+16 mana", "row": -5.0468, "col": 5.2965, "connects": ["w31"], "required_level": 3, "class": "any", "modifiers": {"mana": 16}, "icon_emoji": "💧"},
+	{"id": "w31_s2", "name": "Ruhani", "desc": "+9 energy_shield", "row": -4.0468, "col": 4.2965, "connects": ["w31"], "required_level": 3, "class": "any", "modifiers": {"energy_shield": 9}, "icon_emoji": "🛡"},
+	{"id": "w31_s3", "name": "Hizli", "desc": "+3 cast_speed", "row": -4.0468, "col": 5.2965, "connects": ["w31"], "required_level": 3, "class": "any", "modifiers": {"cast_speed": 3}, "icon_emoji": "✨"},
+	{"id": "w31", "name": "Efsane Buyucu", "desc": "+22 spell_damage, +56 mana, +9 cast_speed", "row": -4.5468, "col": 4.7965, "connects": ["w31_s0", "w31_s1", "w31_s2", "w31_s3", "w17", "w26", "w27", "w38"], "required_level": 3, "class": "any", "modifiers": {"spell_damage": 22, "mana": 56, "cast_speed": 9}, "icon_emoji": "🔮"},
+	{"id": "w32_s0", "name": "Zirhli", "desc": "+9 armour", "row": -3.2803, "col": -6.533, "connects": ["w32"], "required_level": 3, "class": "any", "modifiers": {"armour": 9}, "icon_emoji": "🏸"},
+	{"id": "w32_s1", "name": "Direncli", "desc": "+4 all_resistance", "row": -3.2803, "col": -5.533, "connects": ["w32"], "required_level": 3, "class": "any", "modifiers": {"all_resistance": 4}, "icon_emoji": "🌟"},
+	{"id": "w32_s2", "name": "Engelleyici", "desc": "+2 block_chance", "row": -2.2803, "col": -6.533, "connects": ["w32"], "required_level": 3, "class": "any", "modifiers": {"block_chance": 2}, "icon_emoji": "⛛"},
+	{"id": "w32_s3", "name": "Dayanikli", "desc": "+16 base_life", "row": -2.2803, "col": -5.533, "connects": ["w32"], "required_level": 3, "class": "any", "modifiers": {"base_life": 16}, "icon_emoji": "❤"},
+	{"id": "w32", "name": "Efsane Koruyucu", "desc": "+33 armour, +11 all_resistance, +9 block_chance", "row": -2.7803, "col": -6.033, "connects": ["w32_s0", "w32_s1", "w32_s2", "w32_s3", "w15", "w25", "w46", "w54"], "required_level": 3, "class": "any", "modifiers": {"armour": 33, "all_resistance": 11, "block_chance": 9}, "icon_emoji": "🛡"},
+	{"id": "w33_s0", "name": "Zirhli", "desc": "+9 armour", "row": 2.0643, "col": 5.6301, "connects": ["w33"], "required_level": 3, "class": "any", "modifiers": {"armour": 9}, "icon_emoji": "🏸"},
+	{"id": "w33_s1", "name": "Direncli", "desc": "+4 all_resistance", "row": 2.0643, "col": 6.6301, "connects": ["w33"], "required_level": 3, "class": "any", "modifiers": {"all_resistance": 4}, "icon_emoji": "🌟"},
+	{"id": "w33_s2", "name": "Engelleyici", "desc": "+2 block_chance", "row": 3.0643, "col": 5.6301, "connects": ["w33"], "required_level": 3, "class": "any", "modifiers": {"block_chance": 2}, "icon_emoji": "⛛"},
+	{"id": "w33_s3", "name": "Dayanikli", "desc": "+16 base_life", "row": 3.0643, "col": 6.6301, "connects": ["w33"], "required_level": 3, "class": "any", "modifiers": {"base_life": 16}, "icon_emoji": "❤"},
+	{"id": "w33", "name": "Efsane Koruyucu", "desc": "+33 armour, +11 all_resistance, +9 block_chance", "row": 2.5643, "col": 6.1301, "connects": ["w33_s0", "w33_s1", "w33_s2", "w33_s3", "w14", "w21", "w40", "w51"], "required_level": 3, "class": "any", "modifiers": {"armour": 33, "all_resistance": 11, "block_chance": 9}, "icon_emoji": "🛡"},
+	{"id": "w34_s0", "name": "Guclu", "desc": "+16 base_life", "row": -7.1395, "col": -0.1466, "connects": ["w34"], "required_level": 3, "class": "any", "modifiers": {"base_life": 16}, "icon_emoji": "❤"},
+	{"id": "w34_s1", "name": "Guc", "desc": "+22 base_life", "row": -7.1395, "col": 0.8534, "connects": ["w34"], "required_level": 3, "class": "any", "modifiers": {"base_life": 22}, "icon_emoji": "❤"},
+	{"id": "w34_s2", "name": "Vurus", "desc": "+2 life_regen", "row": -6.1395, "col": -0.1466, "connects": ["w34"], "required_level": 3, "class": "any", "modifiers": {"life_regen": 2}, "icon_emoji": "💚"},
+	{"id": "w34_s3", "name": "Hizli", "desc": "+11 base_life, +1 life_regen", "row": -6.1395, "col": 0.8534, "connects": ["w34"], "required_level": 3, "class": "any", "modifiers": {"base_life": 11, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w34", "name": "Efsane Savasci", "desc": "+56 base_life, +5 life_regen, +13 physical_damage", "row": -6.6395, "col": 0.3534, "connects": ["w34_s0", "w34_s1", "w34_s2", "w34_s3", "w16", "w27", "w48", "w53"], "required_level": 3, "class": "any", "modifiers": {"base_life": 56, "life_regen": 5, "physical_damage": 13}, "icon_emoji": "⚔"},
+	{"id": "w35_s0", "name": "Cevik", "desc": "+3 attack_speed", "row": 5.6006, "col": 2.3017, "connects": ["w35"], "required_level": 3, "class": "any", "modifiers": {"attack_speed": 3}, "icon_emoji": "⚡"},
+	{"id": "w35_s1", "name": "Keskin", "desc": "+3 dodge", "row": 5.6006, "col": 3.3017, "connects": ["w35"], "required_level": 3, "class": "any", "modifiers": {"dodge": 3}, "icon_emoji": "💨"},
+	{"id": "w35_s2", "name": "Kritik", "desc": "+5 crit_chance", "row": 6.6006, "col": 2.3017, "connects": ["w35"], "required_level": 3, "class": "any", "modifiers": {"crit_chance": 5}, "icon_emoji": "🎯"},
+	{"id": "w35_s3", "name": "Kacak", "desc": "+9 evasion", "row": 6.6006, "col": 3.3017, "connects": ["w35"], "required_level": 3, "class": "any", "modifiers": {"evasion": 9}, "icon_emoji": "👟"},
+	{"id": "w35", "name": "Efsane Haydut", "desc": "+11 attack_speed, +17 crit_chance, +22 evasion", "row": 6.1006, "col": 2.8017, "connects": ["w35_s0", "w35_s1", "w35_s2", "w35_s3", "w19", "w21", "w28", "w45", "w47"], "required_level": 4, "class": "any", "modifiers": {"attack_speed": 11, "crit_chance": 17, "evasion": 22}, "icon_emoji": "💨"},
+	{"id": "w36_s0", "name": "Cevik", "desc": "+3 attack_speed", "row": -6.706, "col": -3.223, "connects": ["w36"], "required_level": 3, "class": "any", "modifiers": {"attack_speed": 3}, "icon_emoji": "⚡"},
+	{"id": "w36_s1", "name": "Keskin", "desc": "+3 dodge", "row": -6.706, "col": -2.223, "connects": ["w36"], "required_level": 3, "class": "any", "modifiers": {"dodge": 3}, "icon_emoji": "💨"},
+	{"id": "w36_s2", "name": "Kritik", "desc": "+5 crit_chance", "row": -5.706, "col": -3.223, "connects": ["w36"], "required_level": 3, "class": "any", "modifiers": {"crit_chance": 5}, "icon_emoji": "🎯"},
+	{"id": "w36_s3", "name": "Kacak", "desc": "+9 evasion", "row": -5.706, "col": -2.223, "connects": ["w36"], "required_level": 3, "class": "any", "modifiers": {"evasion": 9}, "icon_emoji": "👟"},
+	{"id": "w36", "name": "Efsane Haydut", "desc": "+11 attack_speed, +17 crit_chance, +22 evasion", "row": -6.206, "col": -2.723, "connects": ["w36_s0", "w36_s1", "w36_s2", "w36_s3", "w20", "w25", "w50", "w52"], "required_level": 4, "class": "any", "modifiers": {"attack_speed": 11, "crit_chance": 17, "evasion": 22}, "icon_emoji": "💨"},
+	{"id": "w37_s0", "name": "Guclu", "desc": "+18 base_life", "row": 6.2493, "col": -5.1997, "connects": ["w37"], "required_level": 4, "class": "any", "modifiers": {"base_life": 18}, "icon_emoji": "❤"},
+	{"id": "w37_s1", "name": "Guc", "desc": "+25 base_life", "row": 6.2493, "col": -4.1997, "connects": ["w37"], "required_level": 4, "class": "any", "modifiers": {"base_life": 25}, "icon_emoji": "❤"},
+	{"id": "w37_s2", "name": "Vurus", "desc": "+2 life_regen", "row": 7.2493, "col": -5.1997, "connects": ["w37"], "required_level": 4, "class": "any", "modifiers": {"life_regen": 2}, "icon_emoji": "💚"},
+	{"id": "w37_s3", "name": "Hizli", "desc": "+12 base_life, +1 life_regen", "row": 7.2493, "col": -4.1997, "connects": ["w37"], "required_level": 4, "class": "any", "modifiers": {"base_life": 12, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w37", "name": "Efsane Savasci", "desc": "+62 base_life, +6 life_regen, +15 physical_damage", "row": 6.7493, "col": -4.6997, "connects": ["w37_s0", "w37_s1", "w37_s2", "w37_s3", "w24", "w30", "w39", "w61", "w62"], "required_level": 4, "class": "any", "modifiers": {"base_life": 62, "life_regen": 6, "physical_damage": 15}, "icon_emoji": "⚔"},
+	{"id": "w38_s0", "name": "Zirhli", "desc": "+10 armour", "row": -4.5324, "col": 6.8127, "connects": ["w38"], "required_level": 4, "class": "any", "modifiers": {"armour": 10}, "icon_emoji": "🏸"},
+	{"id": "w38_s1", "name": "Direncli", "desc": "+5 all_resistance", "row": -4.5324, "col": 7.8127, "connects": ["w38"], "required_level": 4, "class": "any", "modifiers": {"all_resistance": 5}, "icon_emoji": "🌟"},
+	{"id": "w38_s2", "name": "Engelleyici", "desc": "+2 block_chance", "row": -3.5324, "col": 6.8127, "connects": ["w38"], "required_level": 4, "class": "any", "modifiers": {"block_chance": 2}, "icon_emoji": "⛛"},
+	{"id": "w38_s3", "name": "Dayanikli", "desc": "+19 base_life", "row": -3.5324, "col": 7.8127, "connects": ["w38"], "required_level": 4, "class": "any", "modifiers": {"base_life": 19}, "icon_emoji": "❤"},
+	{"id": "w38", "name": "Efsane Koruyucu", "desc": "+38 armour, +12 all_resistance, +10 block_chance", "row": -4.0324, "col": 7.3127, "connects": ["w38_s0", "w38_s1", "w38_s2", "w38_s3", "w26", "w31", "w69", "w70"], "required_level": 5, "class": "any", "modifiers": {"armour": 38, "all_resistance": 12, "block_chance": 10}, "icon_emoji": "🛡"},
+	{"id": "w39_s0", "name": "Zirhli", "desc": "+10 armour", "row": 4.4815, "col": -7.2061, "connects": ["w39"], "required_level": 4, "class": "any", "modifiers": {"armour": 10}, "icon_emoji": "🏸"},
+	{"id": "w39_s1", "name": "Direncli", "desc": "+5 all_resistance", "row": 4.4815, "col": -6.2061, "connects": ["w39"], "required_level": 4, "class": "any", "modifiers": {"all_resistance": 5}, "icon_emoji": "🌟"},
+	{"id": "w39_s2", "name": "Engelleyici", "desc": "+2 block_chance", "row": 5.4815, "col": -7.2061, "connects": ["w39"], "required_level": 4, "class": "any", "modifiers": {"block_chance": 2}, "icon_emoji": "⛛"},
+	{"id": "w39_s3", "name": "Dayanikli", "desc": "+19 base_life", "row": 5.4815, "col": -6.2061, "connects": ["w39"], "required_level": 4, "class": "any", "modifiers": {"base_life": 19}, "icon_emoji": "❤"},
+	{"id": "w39", "name": "Efsane Koruyucu", "desc": "+38 armour, +12 all_resistance, +10 block_chance", "row": 4.9815, "col": -6.7061, "connects": ["w39_s0", "w39_s1", "w39_s2", "w39_s3", "w23", "w30", "w37", "w42", "w60", "w61"], "required_level": 5, "class": "any", "modifiers": {"armour": 38, "all_resistance": 12, "block_chance": 10}, "icon_emoji": "🛡"},
+	{"id": "w40_s0", "name": "Cevik", "desc": "+3 attack_speed", "row": 0.4191, "col": 7.8313, "connects": ["w40"], "required_level": 4, "class": "any", "modifiers": {"attack_speed": 3}, "icon_emoji": "⚡"},
+	{"id": "w40_s1", "name": "Keskin", "desc": "+3 dodge", "row": 0.4191, "col": 8.8313, "connects": ["w40"], "required_level": 4, "class": "any", "modifiers": {"dodge": 3}, "icon_emoji": "💨"},
+	{"id": "w40_s2", "name": "Kritik", "desc": "+6 crit_chance", "row": 1.4191, "col": 7.8313, "connects": ["w40"], "required_level": 4, "class": "any", "modifiers": {"crit_chance": 6}, "icon_emoji": "🎯"},
+	{"id": "w40_s3", "name": "Kacak", "desc": "+10 evasion", "row": 1.4191, "col": 8.8313, "connects": ["w40"], "required_level": 4, "class": "any", "modifiers": {"evasion": 10}, "icon_emoji": "👟"},
+	{"id": "w40", "name": "Efsane Haydut", "desc": "+12 attack_speed, +19 crit_chance, +25 evasion", "row": 0.9191, "col": 8.3313, "connects": ["w40_s0", "w40_s1", "w40_s2", "w40_s3", "w29", "w33", "w51", "w57", "w68"], "required_level": 5, "class": "any", "modifiers": {"attack_speed": 12, "crit_chance": 19, "evasion": 25}, "icon_emoji": "💨"},
+	{"id": "w41_s0", "name": "Zirhli", "desc": "+10 armour", "row": 4.9766, "col": 5.8724, "connects": ["w41"], "required_level": 4, "class": "any", "modifiers": {"armour": 10}, "icon_emoji": "🏸"},
+	{"id": "w41_s1", "name": "Direncli", "desc": "+5 all_resistance", "row": 4.9766, "col": 6.8724, "connects": ["w41"], "required_level": 4, "class": "any", "modifiers": {"all_resistance": 5}, "icon_emoji": "🌟"},
+	{"id": "w41_s2", "name": "Engelleyici", "desc": "+2 block_chance", "row": 5.9766, "col": 5.8724, "connects": ["w41"], "required_level": 4, "class": "any", "modifiers": {"block_chance": 2}, "icon_emoji": "⛛"},
+	{"id": "w41_s3", "name": "Dayanikli", "desc": "+19 base_life", "row": 5.9766, "col": 6.8724, "connects": ["w41"], "required_level": 4, "class": "any", "modifiers": {"base_life": 19}, "icon_emoji": "❤"},
+	{"id": "w41", "name": "Efsane Koruyucu", "desc": "+38 armour, +12 all_resistance, +10 block_chance", "row": 5.4766, "col": 6.3724, "connects": ["w41_s0", "w41_s1", "w41_s2", "w41_s3", "w21", "w47", "w51"], "required_level": 5, "class": "any", "modifiers": {"armour": 38, "all_resistance": 12, "block_chance": 10}, "icon_emoji": "🛡"},
+	{"id": "w42_s0", "name": "Bilgin", "desc": "+10 spell_damage", "row": 2.8952, "col": -8.1979, "connects": ["w42"], "required_level": 4, "class": "any", "modifiers": {"spell_damage": 10}, "icon_emoji": "🔮"},
+	{"id": "w42_s1", "name": "Zeki", "desc": "+19 mana", "row": 2.8952, "col": -7.1979, "connects": ["w42"], "required_level": 4, "class": "any", "modifiers": {"mana": 19}, "icon_emoji": "💧"},
+	{"id": "w42_s2", "name": "Ruhani", "desc": "+10 energy_shield", "row": 3.8952, "col": -8.1979, "connects": ["w42"], "required_level": 4, "class": "any", "modifiers": {"energy_shield": 10}, "icon_emoji": "🛡"},
+	{"id": "w42_s3", "name": "Hizli", "desc": "+3 cast_speed", "row": 3.8952, "col": -7.1979, "connects": ["w42"], "required_level": 4, "class": "any", "modifiers": {"cast_speed": 3}, "icon_emoji": "✨"},
+	{"id": "w42", "name": "Efsane Buyucu", "desc": "+25 spell_damage, +63 mana, +10 cast_speed", "row": 3.3952, "col": -7.6979, "connects": ["w42_s0", "w42_s1", "w42_s2", "w42_s3", "w23", "w39", "w66"], "required_level": 5, "class": "any", "modifiers": {"spell_damage": 25, "mana": 63, "cast_speed": 10}, "icon_emoji": "🔮"},
+	{"id": "w43_s0", "name": "Cevik", "desc": "+3 attack_speed", "row": 0.1175, "col": -8.8936, "connects": ["w43"], "required_level": 4, "class": "any", "modifiers": {"attack_speed": 3}, "icon_emoji": "⚡"},
+	{"id": "w43_s1", "name": "Keskin", "desc": "+3 dodge", "row": 0.1175, "col": -7.8936, "connects": ["w43"], "required_level": 4, "class": "any", "modifiers": {"dodge": 3}, "icon_emoji": "💨"},
+	{"id": "w43_s2", "name": "Kritik", "desc": "+6 crit_chance", "row": 1.1175, "col": -8.8936, "connects": ["w43"], "required_level": 4, "class": "any", "modifiers": {"crit_chance": 6}, "icon_emoji": "🎯"},
+	{"id": "w43_s3", "name": "Kacak", "desc": "+10 evasion", "row": 1.1175, "col": -7.8936, "connects": ["w43"], "required_level": 4, "class": "any", "modifiers": {"evasion": 10}, "icon_emoji": "👟"},
+	{"id": "w43", "name": "Efsane Haydut", "desc": "+12 attack_speed, +19 crit_chance, +25 evasion", "row": 0.6175, "col": -8.3936, "connects": ["w43_s0", "w43_s1", "w43_s2", "w43_s3", "w22", "w49", "w64", "w66"], "required_level": 5, "class": "any", "modifiers": {"attack_speed": 12, "crit_chance": 19, "evasion": 25}, "icon_emoji": "💨"},
+	{"id": "w44_s0", "name": "Cevik", "desc": "+3 attack_speed", "row": 7.6687, "col": -2.6596, "connects": ["w44"], "required_level": 4, "class": "any", "modifiers": {"attack_speed": 3}, "icon_emoji": "⚡"},
+	{"id": "w44_s1", "name": "Keskin", "desc": "+3 dodge", "row": 7.6687, "col": -1.6596, "connects": ["w44"], "required_level": 4, "class": "any", "modifiers": {"dodge": 3}, "icon_emoji": "💨"},
+	{"id": "w44_s2", "name": "Kritik", "desc": "+6 crit_chance", "row": 8.6687, "col": -2.6596, "connects": ["w44"], "required_level": 4, "class": "any", "modifiers": {"crit_chance": 6}, "icon_emoji": "🎯"},
+	{"id": "w44_s3", "name": "Kacak", "desc": "+10 evasion", "row": 8.6687, "col": -1.6596, "connects": ["w44"], "required_level": 4, "class": "any", "modifiers": {"evasion": 10}, "icon_emoji": "👟"},
+	{"id": "w44", "name": "Efsane Haydut", "desc": "+12 attack_speed, +19 crit_chance, +25 evasion", "row": 8.1687, "col": -2.1596, "connects": ["w44_s0", "w44_s1", "w44_s2", "w44_s3", "w24", "w55", "w62"], "required_level": 5, "class": "any", "modifiers": {"attack_speed": 12, "crit_chance": 19, "evasion": 25}, "icon_emoji": "💨"},
+	{"id": "w45_s0", "name": "Cevik", "desc": "+3 attack_speed", "row": 7.7408, "col": 1.4237, "connects": ["w45"], "required_level": 4, "class": "any", "modifiers": {"attack_speed": 3}, "icon_emoji": "⚡"},
+	{"id": "w45_s1", "name": "Keskin", "desc": "+3 dodge", "row": 7.7408, "col": 2.4237, "connects": ["w45"], "required_level": 4, "class": "any", "modifiers": {"dodge": 3}, "icon_emoji": "💨"},
+	{"id": "w45_s2", "name": "Kritik", "desc": "+6 crit_chance", "row": 8.7408, "col": 1.4237, "connects": ["w45"], "required_level": 4, "class": "any", "modifiers": {"crit_chance": 6}, "icon_emoji": "🎯"},
+	{"id": "w45_s3", "name": "Kacak", "desc": "+10 evasion", "row": 8.7408, "col": 2.4237, "connects": ["w45"], "required_level": 4, "class": "any", "modifiers": {"evasion": 10}, "icon_emoji": "👟"},
+	{"id": "w45", "name": "Efsane Haydut", "desc": "+12 attack_speed, +19 crit_chance, +25 evasion", "row": 8.2408, "col": 1.9237, "connects": ["w45_s0", "w45_s1", "w45_s2", "w45_s3", "w28", "w35", "w55"], "required_level": 5, "class": "any", "modifiers": {"attack_speed": 12, "crit_chance": 19, "evasion": 25}, "icon_emoji": "💨"},
+	{"id": "w46_s0", "name": "Bilgin", "desc": "+10 spell_damage", "row": -5.4655, "col": -7.3752, "connects": ["w46"], "required_level": 4, "class": "any", "modifiers": {"spell_damage": 10}, "icon_emoji": "🔮"},
+	{"id": "w46_s1", "name": "Zeki", "desc": "+19 mana", "row": -5.4655, "col": -6.3752, "connects": ["w46"], "required_level": 4, "class": "any", "modifiers": {"mana": 19}, "icon_emoji": "💧"},
+	{"id": "w46_s2", "name": "Ruhani", "desc": "+10 energy_shield", "row": -4.4655, "col": -7.3752, "connects": ["w46"], "required_level": 4, "class": "any", "modifiers": {"energy_shield": 10}, "icon_emoji": "🛡"},
+	{"id": "w46_s3", "name": "Hizli", "desc": "+3 cast_speed", "row": -4.4655, "col": -6.3752, "connects": ["w46"], "required_level": 4, "class": "any", "modifiers": {"cast_speed": 3}, "icon_emoji": "✨"},
+	{"id": "w46", "name": "Efsane Buyucu", "desc": "+25 spell_damage, +63 mana, +10 cast_speed", "row": -4.9655, "col": -6.8752, "connects": ["w46_s0", "w46_s1", "w46_s2", "w46_s3", "w25", "w32"], "required_level": 5, "class": "any", "modifiers": {"spell_damage": 25, "mana": 63, "cast_speed": 10}, "icon_emoji": "🔮"},
+	{"id": "w47_s0", "name": "Bilgin", "desc": "+10 spell_damage", "row": 6.5172, "col": 4.4564, "connects": ["w47"], "required_level": 4, "class": "any", "modifiers": {"spell_damage": 10}, "icon_emoji": "🔮"},
+	{"id": "w47_s1", "name": "Zeki", "desc": "+19 mana", "row": 6.5172, "col": 5.4564, "connects": ["w47"], "required_level": 4, "class": "any", "modifiers": {"mana": 19}, "icon_emoji": "💧"},
+	{"id": "w47_s2", "name": "Ruhani", "desc": "+10 energy_shield", "row": 7.5172, "col": 4.4564, "connects": ["w47"], "required_level": 4, "class": "any", "modifiers": {"energy_shield": 10}, "icon_emoji": "🛡"},
+	{"id": "w47_s3", "name": "Hizli", "desc": "+3 cast_speed", "row": 7.5172, "col": 5.4564, "connects": ["w47"], "required_level": 4, "class": "any", "modifiers": {"cast_speed": 3}, "icon_emoji": "✨"},
+	{"id": "w47", "name": "Efsane Buyucu", "desc": "+25 spell_damage, +64 mana, +10 cast_speed", "row": 7.0172, "col": 4.9564, "connects": ["w47_s0", "w47_s1", "w47_s2", "w47_s3", "w21", "w35", "w41", "w71"], "required_level": 5, "class": "any", "modifiers": {"spell_damage": 25, "mana": 64, "cast_speed": 10}, "icon_emoji": "🔮"},
+	{"id": "w48_s0", "name": "Zirhli", "desc": "+10 armour", "row": -9.1172, "col": -0.3815, "connects": ["w48"], "required_level": 4, "class": "any", "modifiers": {"armour": 10}, "icon_emoji": "🏸"},
+	{"id": "w48_s1", "name": "Direncli", "desc": "+5 all_resistance", "row": -9.1172, "col": 0.6185, "connects": ["w48"], "required_level": 4, "class": "any", "modifiers": {"all_resistance": 5}, "icon_emoji": "🌟"},
+	{"id": "w48_s2", "name": "Engelleyici", "desc": "+2 block_chance", "row": -8.1172, "col": -0.3815, "connects": ["w48"], "required_level": 4, "class": "any", "modifiers": {"block_chance": 2}, "icon_emoji": "⛛"},
+	{"id": "w48_s3", "name": "Dayanikli", "desc": "+19 base_life", "row": -8.1172, "col": 0.6185, "connects": ["w48"], "required_level": 4, "class": "any", "modifiers": {"base_life": 19}, "icon_emoji": "❤"},
+	{"id": "w48", "name": "Efsane Koruyucu", "desc": "+38 armour, +12 all_resistance, +10 block_chance", "row": -8.6172, "col": 0.1185, "connects": ["w48_s0", "w48_s1", "w48_s2", "w48_s3", "w34", "w50", "w53"], "required_level": 5, "class": "any", "modifiers": {"armour": 38, "all_resistance": 12, "block_chance": 10}, "icon_emoji": "🛡"},
+	{"id": "w49_s0", "name": "Guclu", "desc": "+19 base_life", "row": -1.8831, "col": -9.0143, "connects": ["w49"], "required_level": 4, "class": "any", "modifiers": {"base_life": 19}, "icon_emoji": "❤"},
+	{"id": "w49_s1", "name": "Guc", "desc": "+25 base_life", "row": -1.8831, "col": -8.0143, "connects": ["w49"], "required_level": 4, "class": "any", "modifiers": {"base_life": 25}, "icon_emoji": "❤"},
+	{"id": "w49_s2", "name": "Vurus", "desc": "+2 life_regen", "row": -0.8831, "col": -9.0143, "connects": ["w49"], "required_level": 4, "class": "any", "modifiers": {"life_regen": 2}, "icon_emoji": "💚"},
+	{"id": "w49_s3", "name": "Hizli", "desc": "+12 base_life, +1 life_regen", "row": -0.8831, "col": -8.0143, "connects": ["w49"], "required_level": 4, "class": "any", "modifiers": {"base_life": 12, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w49", "name": "Efsane Savasci", "desc": "+64 base_life, +6 life_regen, +15 physical_damage", "row": -1.3831, "col": -8.5143, "connects": ["w49_s0", "w49_s1", "w49_s2", "w49_s3", "w43", "w54", "w74"], "required_level": 5, "class": "any", "modifiers": {"base_life": 64, "life_regen": 6, "physical_damage": 15}, "icon_emoji": "⚔"},
+	{"id": "w50_s0", "name": "Guclu", "desc": "+19 base_life", "row": -8.8286, "col": -2.7746, "connects": ["w50"], "required_level": 4, "class": "any", "modifiers": {"base_life": 19}, "icon_emoji": "❤"},
+	{"id": "w50_s1", "name": "Guc", "desc": "+25 base_life", "row": -8.8286, "col": -1.7746, "connects": ["w50"], "required_level": 4, "class": "any", "modifiers": {"base_life": 25}, "icon_emoji": "❤"},
+	{"id": "w50_s2", "name": "Vurus", "desc": "+2 life_regen", "row": -7.8286, "col": -2.7746, "connects": ["w50"], "required_level": 4, "class": "any", "modifiers": {"life_regen": 2}, "icon_emoji": "💚"},
+	{"id": "w50_s3", "name": "Hizli", "desc": "+12 base_life, +1 life_regen", "row": -7.8286, "col": -1.7746, "connects": ["w50"], "required_level": 4, "class": "any", "modifiers": {"base_life": 12, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w50", "name": "Efsane Savasci", "desc": "+64 base_life, +6 life_regen, +15 physical_damage", "row": -8.3286, "col": -2.2746, "connects": ["w50_s0", "w50_s1", "w50_s2", "w50_s3", "w36", "w48", "w65", "w76"], "required_level": 5, "class": "any", "modifiers": {"base_life": 64, "life_regen": 6, "physical_damage": 15}, "icon_emoji": "⚔"},
+	{"id": "w51_s0", "name": "Guclu", "desc": "+19 base_life", "row": 2.7229, "col": 7.5126, "connects": ["w51"], "required_level": 4, "class": "any", "modifiers": {"base_life": 19}, "icon_emoji": "❤"},
+	{"id": "w51_s1", "name": "Guc", "desc": "+25 base_life", "row": 2.7229, "col": 8.5126, "connects": ["w51"], "required_level": 4, "class": "any", "modifiers": {"base_life": 25}, "icon_emoji": "❤"},
+	{"id": "w51_s2", "name": "Vurus", "desc": "+2 life_regen", "row": 3.7229, "col": 7.5126, "connects": ["w51"], "required_level": 4, "class": "any", "modifiers": {"life_regen": 2}, "icon_emoji": "💚"},
+	{"id": "w51_s3", "name": "Hizli", "desc": "+12 base_life, +1 life_regen", "row": 3.7229, "col": 8.5126, "connects": ["w51"], "required_level": 4, "class": "any", "modifiers": {"base_life": 12, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w51", "name": "Efsane Savasci", "desc": "+64 base_life, +6 life_regen, +15 physical_damage", "row": 3.2229, "col": 8.0126, "connects": ["w51_s0", "w51_s1", "w51_s2", "w51_s3", "w33", "w40", "w41", "w58"], "required_level": 5, "class": "any", "modifiers": {"base_life": 64, "life_regen": 6, "physical_damage": 15}, "icon_emoji": "⚔"},
+	{"id": "w52_s0", "name": "Cevik", "desc": "+3 attack_speed", "row": -7.6262, "col": -5.4495, "connects": ["w52"], "required_level": 4, "class": "any", "modifiers": {"attack_speed": 3}, "icon_emoji": "⚡"},
+	{"id": "w52_s1", "name": "Keskin", "desc": "+3 dodge", "row": -7.6262, "col": -4.4495, "connects": ["w52"], "required_level": 4, "class": "any", "modifiers": {"dodge": 3}, "icon_emoji": "💨"},
+	{"id": "w52_s2", "name": "Kritik", "desc": "+6 crit_chance", "row": -6.6262, "col": -5.4495, "connects": ["w52"], "required_level": 4, "class": "any", "modifiers": {"crit_chance": 6}, "icon_emoji": "🎯"},
+	{"id": "w52_s3", "name": "Kacak", "desc": "+10 evasion", "row": -6.6262, "col": -4.4495, "connects": ["w52"], "required_level": 4, "class": "any", "modifiers": {"evasion": 10}, "icon_emoji": "👟"},
+	{"id": "w52", "name": "Efsane Haydut", "desc": "+12 attack_speed, +19 crit_chance, +25 evasion", "row": -7.1262, "col": -4.9495, "connects": ["w52_s0", "w52_s1", "w52_s2", "w52_s3", "w25", "w36"], "required_level": 5, "class": "any", "modifiers": {"attack_speed": 12, "crit_chance": 19, "evasion": 25}, "icon_emoji": "💨"},
+	{"id": "w53_s0", "name": "Bilgin", "desc": "+10 spell_damage", "row": -8.9359, "col": 1.5334, "connects": ["w53"], "required_level": 4, "class": "any", "modifiers": {"spell_damage": 10}, "icon_emoji": "🔮"},
+	{"id": "w53_s1", "name": "Zeki", "desc": "+19 mana", "row": -8.9359, "col": 2.5334, "connects": ["w53"], "required_level": 4, "class": "any", "modifiers": {"mana": 19}, "icon_emoji": "💧"},
+	{"id": "w53_s2", "name": "Ruhani", "desc": "+10 energy_shield", "row": -7.9359, "col": 1.5334, "connects": ["w53"], "required_level": 4, "class": "any", "modifiers": {"energy_shield": 10}, "icon_emoji": "🛡"},
+	{"id": "w53_s3", "name": "Hizli", "desc": "+3 cast_speed", "row": -7.9359, "col": 2.5334, "connects": ["w53"], "required_level": 4, "class": "any", "modifiers": {"cast_speed": 3}, "icon_emoji": "✨"},
+	{"id": "w53", "name": "Efsane Buyucu", "desc": "+25 spell_damage, +64 mana, +10 cast_speed", "row": -8.4359, "col": 2.0334, "connects": ["w53_s0", "w53_s1", "w53_s2", "w53_s3", "w27", "w34", "w48"], "required_level": 5, "class": "any", "modifiers": {"spell_damage": 25, "mana": 64, "cast_speed": 10}, "icon_emoji": "🔮"},
+	{"id": "w54_s0", "name": "Zirhli", "desc": "+10 armour", "row": -4.1988, "col": -8.3794, "connects": ["w54"], "required_level": 4, "class": "any", "modifiers": {"armour": 10}, "icon_emoji": "🏸"},
+	{"id": "w54_s1", "name": "Direncli", "desc": "+5 all_resistance", "row": -4.1988, "col": -7.3794, "connects": ["w54"], "required_level": 4, "class": "any", "modifiers": {"all_resistance": 5}, "icon_emoji": "🌟"},
+	{"id": "w54_s2", "name": "Engelleyici", "desc": "+2 block_chance", "row": -3.1988, "col": -8.3794, "connects": ["w54"], "required_level": 4, "class": "any", "modifiers": {"block_chance": 2}, "icon_emoji": "⛛"},
+	{"id": "w54_s3", "name": "Dayanikli", "desc": "+19 base_life", "row": -3.1988, "col": -7.3794, "connects": ["w54"], "required_level": 4, "class": "any", "modifiers": {"base_life": 19}, "icon_emoji": "❤"},
+	{"id": "w54", "name": "Efsane Koruyucu", "desc": "+38 armour, +12 all_resistance, +10 block_chance", "row": -3.6988, "col": -7.8794, "connects": ["w54_s0", "w54_s1", "w54_s2", "w54_s3", "w32", "w49", "w67", "w73"], "required_level": 5, "class": "any", "modifiers": {"armour": 38, "all_resistance": 12, "block_chance": 10}, "icon_emoji": "🛡"},
+	{"id": "w55_s0", "name": "Guclu", "desc": "+19 base_life", "row": 8.2267, "col": -0.375, "connects": ["w55"], "required_level": 4, "class": "any", "modifiers": {"base_life": 19}, "icon_emoji": "❤"},
+	{"id": "w55_s1", "name": "Guc", "desc": "+25 base_life", "row": 8.2267, "col": 0.625, "connects": ["w55"], "required_level": 4, "class": "any", "modifiers": {"base_life": 25}, "icon_emoji": "❤"},
+	{"id": "w55_s2", "name": "Vurus", "desc": "+2 life_regen", "row": 9.2267, "col": -0.375, "connects": ["w55"], "required_level": 4, "class": "any", "modifiers": {"life_regen": 2}, "icon_emoji": "💚"},
+	{"id": "w55_s3", "name": "Hizli", "desc": "+12 base_life, +1 life_regen", "row": 9.2267, "col": 0.625, "connects": ["w55"], "required_level": 4, "class": "any", "modifiers": {"base_life": 12, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w55", "name": "Efsane Savasci", "desc": "+64 base_life, +6 life_regen, +15 physical_damage", "row": 8.7267, "col": 0.125, "connects": ["w55_s0", "w55_s1", "w55_s2", "w55_s3", "w28", "w44", "w45", "w59"], "required_level": 5, "class": "any", "modifiers": {"base_life": 64, "life_regen": 6, "physical_damage": 15}, "icon_emoji": "⚔"},
+	{"id": "w56_s0", "name": "Cevik", "desc": "+3 attack_speed", "row": -7.8557, "col": 4.2418, "connects": ["w56"], "required_level": 4, "class": "any", "modifiers": {"attack_speed": 3}, "icon_emoji": "⚡"},
+	{"id": "w56_s1", "name": "Keskin", "desc": "+3 dodge", "row": -7.8557, "col": 5.2418, "connects": ["w56"], "required_level": 4, "class": "any", "modifiers": {"dodge": 3}, "icon_emoji": "💨"},
+	{"id": "w56_s2", "name": "Kritik", "desc": "+6 crit_chance", "row": -6.8557, "col": 4.2418, "connects": ["w56"], "required_level": 4, "class": "any", "modifiers": {"crit_chance": 6}, "icon_emoji": "🎯"},
+	{"id": "w56_s3", "name": "Kacak", "desc": "+10 evasion", "row": -6.8557, "col": 5.2418, "connects": ["w56"], "required_level": 4, "class": "any", "modifiers": {"evasion": 10}, "icon_emoji": "👟"},
+	{"id": "w56", "name": "Efsane Haydut", "desc": "+13 attack_speed, +19 crit_chance, +26 evasion", "row": -7.3557, "col": 4.7418, "connects": ["w56_s0", "w56_s1", "w56_s2", "w56_s3", "w27"], "required_level": 5, "class": "any", "modifiers": {"attack_speed": 13, "crit_chance": 19, "evasion": 26}, "icon_emoji": "💨"},
+	{"id": "w57_s0", "name": "Zirhli", "desc": "+11 armour", "row": -1.0527, "col": 9.2586, "connects": ["w57"], "required_level": 4, "class": "any", "modifiers": {"armour": 11}, "icon_emoji": "🏸"},
+	{"id": "w57_s1", "name": "Direncli", "desc": "+5 all_resistance", "row": -1.0527, "col": 10.2586, "connects": ["w57"], "required_level": 4, "class": "any", "modifiers": {"all_resistance": 5}, "icon_emoji": "🌟"},
+	{"id": "w57_s2", "name": "Engelleyici", "desc": "+2 block_chance", "row": -0.0527, "col": 9.2586, "connects": ["w57"], "required_level": 4, "class": "any", "modifiers": {"block_chance": 2}, "icon_emoji": "⛛"},
+	{"id": "w57_s3", "name": "Dayanikli", "desc": "+20 base_life", "row": -0.0527, "col": 10.2586, "connects": ["w57"], "required_level": 4, "class": "any", "modifiers": {"base_life": 20}, "icon_emoji": "❤"},
+	{"id": "w57", "name": "Efsane Koruyucu", "desc": "+41 armour, +13 all_resistance, +11 block_chance", "row": -0.5527, "col": 9.7586, "connects": ["w57_s0", "w57_s1", "w57_s2", "w57_s3", "w40", "w70"], "required_level": 5, "class": "any", "modifiers": {"armour": 41, "all_resistance": 13, "block_chance": 11}, "icon_emoji": "🛡"},
+	{"id": "w58_s0", "name": "Guclu", "desc": "+20 base_life", "row": 5.1466, "col": 7.5109, "connects": ["w58"], "required_level": 4, "class": "any", "modifiers": {"base_life": 20}, "icon_emoji": "❤"},
+	{"id": "w58_s1", "name": "Guc", "desc": "+27 base_life", "row": 5.1466, "col": 8.5109, "connects": ["w58"], "required_level": 4, "class": "any", "modifiers": {"base_life": 27}, "icon_emoji": "❤"},
+	{"id": "w58_s2", "name": "Vurus", "desc": "+2 life_regen", "row": 6.1466, "col": 7.5109, "connects": ["w58"], "required_level": 4, "class": "any", "modifiers": {"life_regen": 2}, "icon_emoji": "💚"},
+	{"id": "w58_s3", "name": "Hizli", "desc": "+13 base_life, +1 life_regen", "row": 6.1466, "col": 8.5109, "connects": ["w58"], "required_level": 4, "class": "any", "modifiers": {"base_life": 13, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w58", "name": "Efsane Savasci", "desc": "+69 base_life, +6 life_regen, +16 physical_damage", "row": 5.6466, "col": 8.0109, "connects": ["w58_s0", "w58_s1", "w58_s2", "w58_s3", "w51", "w83"], "required_level": 5, "class": "any", "modifiers": {"base_life": 69, "life_regen": 6, "physical_damage": 16}, "icon_emoji": "⚔"},
+	{"id": "w59_s0", "name": "Zirhli", "desc": "+11 armour", "row": 9.1817, "col": -2.0886, "connects": ["w59"], "required_level": 4, "class": "any", "modifiers": {"armour": 11}, "icon_emoji": "🏸"},
+	{"id": "w59_s1", "name": "Direncli", "desc": "+5 all_resistance", "row": 9.1817, "col": -1.0886, "connects": ["w59"], "required_level": 4, "class": "any", "modifiers": {"all_resistance": 5}, "icon_emoji": "🌟"},
+	{"id": "w59_s2", "name": "Engelleyici", "desc": "+2 block_chance", "row": 10.1817, "col": -2.0886, "connects": ["w59"], "required_level": 4, "class": "any", "modifiers": {"block_chance": 2}, "icon_emoji": "⛛"},
+	{"id": "w59_s3", "name": "Dayanikli", "desc": "+20 base_life", "row": 10.1817, "col": -1.0886, "connects": ["w59"], "required_level": 4, "class": "any", "modifiers": {"base_life": 20}, "icon_emoji": "❤"},
+	{"id": "w59", "name": "Efsane Koruyucu", "desc": "+41 armour, +13 all_resistance, +11 block_chance", "row": 9.6817, "col": -1.5886, "connects": ["w59_s0", "w59_s1", "w59_s2", "w59_s3", "w55", "w78", "w90", "w91"], "required_level": 5, "class": "any", "modifiers": {"armour": 41, "all_resistance": 13, "block_chance": 11}, "icon_emoji": "🛡"},
+	{"id": "w60_s0", "name": "Zirhli", "desc": "+11 armour", "row": 4.3066, "col": -9.0783, "connects": ["w60"], "required_level": 4, "class": "any", "modifiers": {"armour": 11}, "icon_emoji": "🏸"},
+	{"id": "w60_s1", "name": "Direncli", "desc": "+5 all_resistance", "row": 4.3066, "col": -8.0783, "connects": ["w60"], "required_level": 4, "class": "any", "modifiers": {"all_resistance": 5}, "icon_emoji": "🌟"},
+	{"id": "w60_s2", "name": "Engelleyici", "desc": "+2 block_chance", "row": 5.3066, "col": -9.0783, "connects": ["w60"], "required_level": 4, "class": "any", "modifiers": {"block_chance": 2}, "icon_emoji": "⛛"},
+	{"id": "w60_s3", "name": "Dayanikli", "desc": "+20 base_life", "row": 5.3066, "col": -8.0783, "connects": ["w60"], "required_level": 4, "class": "any", "modifiers": {"base_life": 20}, "icon_emoji": "❤"},
+	{"id": "w60", "name": "Efsane Koruyucu", "desc": "+41 armour, +13 all_resistance, +11 block_chance", "row": 4.8066, "col": -8.5783, "connects": ["w60_s0", "w60_s1", "w60_s2", "w60_s3", "w39", "w87", "w89"], "required_level": 5, "class": "any", "modifiers": {"armour": 41, "all_resistance": 13, "block_chance": 11}, "icon_emoji": "🛡"},
+	{"id": "w61_s0", "name": "Cevik", "desc": "+4 attack_speed", "row": 7.0229, "col": -6.8559, "connects": ["w61"], "required_level": 4, "class": "any", "modifiers": {"attack_speed": 4}, "icon_emoji": "⚡"},
+	{"id": "w61_s1", "name": "Keskin", "desc": "+4 dodge", "row": 7.0229, "col": -5.8559, "connects": ["w61"], "required_level": 4, "class": "any", "modifiers": {"dodge": 4}, "icon_emoji": "💨"},
+	{"id": "w61_s2", "name": "Kritik", "desc": "+6 crit_chance", "row": 8.0229, "col": -6.8559, "connects": ["w61"], "required_level": 4, "class": "any", "modifiers": {"crit_chance": 6}, "icon_emoji": "🎯"},
+	{"id": "w61_s3", "name": "Kacak", "desc": "+11 evasion", "row": 8.0229, "col": -5.8559, "connects": ["w61"], "required_level": 4, "class": "any", "modifiers": {"evasion": 11}, "icon_emoji": "👟"},
+	{"id": "w61", "name": "Efsane Haydut", "desc": "+13 attack_speed, +20 crit_chance, +27 evasion", "row": 7.5229, "col": -6.3559, "connects": ["w61_s0", "w61_s1", "w61_s2", "w61_s3", "w37", "w39", "w62", "w92"], "required_level": 5, "class": "any", "modifiers": {"attack_speed": 13, "crit_chance": 20, "evasion": 27}, "icon_emoji": "💨"},
+	{"id": "w62_s0", "name": "Bilgin", "desc": "+11 spell_damage", "row": 8.1713, "col": -5.1952, "connects": ["w62"], "required_level": 4, "class": "any", "modifiers": {"spell_damage": 11}, "icon_emoji": "🔮"},
+	{"id": "w62_s1", "name": "Zeki", "desc": "+20 mana", "row": 8.1713, "col": -4.1952, "connects": ["w62"], "required_level": 4, "class": "any", "modifiers": {"mana": 20}, "icon_emoji": "💧"},
+	{"id": "w62_s2", "name": "Ruhani", "desc": "+11 energy_shield", "row": 9.1713, "col": -5.1952, "connects": ["w62"], "required_level": 4, "class": "any", "modifiers": {"energy_shield": 11}, "icon_emoji": "🛡"},
+	{"id": "w62_s3", "name": "Hizli", "desc": "+4 cast_speed", "row": 9.1713, "col": -4.1952, "connects": ["w62"], "required_level": 4, "class": "any", "modifiers": {"cast_speed": 4}, "icon_emoji": "✨"},
+	{"id": "w62", "name": "Efsane Buyucu", "desc": "+27 spell_damage, +69 mana, +11 cast_speed", "row": 8.6713, "col": -4.6952, "connects": ["w62_s0", "w62_s1", "w62_s2", "w62_s3", "w37", "w44", "w61", "w78", "w92"], "required_level": 5, "class": "any", "modifiers": {"spell_damage": 27, "mana": 69, "cast_speed": 11}, "icon_emoji": "🔮"},
+	{"id": "w63_s0", "name": "Guclu", "desc": "+20 base_life", "row": -3.3262, "col": -9.9511, "connects": ["w63"], "required_level": 4, "class": "any", "modifiers": {"base_life": 20}, "icon_emoji": "❤"},
+	{"id": "w63_s1", "name": "Guc", "desc": "+27 base_life", "row": -3.3262, "col": -8.9511, "connects": ["w63"], "required_level": 4, "class": "any", "modifiers": {"base_life": 27}, "icon_emoji": "❤"},
+	{"id": "w63_s2", "name": "Vurus", "desc": "+2 life_regen", "row": -2.3262, "col": -9.9511, "connects": ["w63"], "required_level": 4, "class": "any", "modifiers": {"life_regen": 2}, "icon_emoji": "💚"},
+	{"id": "w63_s3", "name": "Hizli", "desc": "+13 base_life, +1 life_regen", "row": -2.3262, "col": -8.9511, "connects": ["w63"], "required_level": 4, "class": "any", "modifiers": {"base_life": 13, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w63", "name": "Efsane Savasci", "desc": "+69 base_life, +6 life_regen, +16 physical_damage", "row": -2.8262, "col": -9.4511, "connects": ["w63_s0", "w63_s1", "w63_s2", "w63_s3", "w64", "w73", "w74"], "required_level": 5, "class": "any", "modifiers": {"base_life": 69, "life_regen": 6, "physical_damage": 16}, "icon_emoji": "⚔"},
+	{"id": "w64_s0", "name": "Cevik", "desc": "+4 attack_speed", "row": -0.8587, "col": -10.4321, "connects": ["w64"], "required_level": 4, "class": "any", "modifiers": {"attack_speed": 4}, "icon_emoji": "⚡"},
+	{"id": "w64_s1", "name": "Keskin", "desc": "+4 dodge", "row": -0.8587, "col": -9.4321, "connects": ["w64"], "required_level": 4, "class": "any", "modifiers": {"dodge": 4}, "icon_emoji": "💨"},
+	{"id": "w64_s2", "name": "Kritik", "desc": "+6 crit_chance", "row": 0.1413, "col": -10.4321, "connects": ["w64"], "required_level": 4, "class": "any", "modifiers": {"crit_chance": 6}, "icon_emoji": "🎯"},
+	{"id": "w64_s3", "name": "Kacak", "desc": "+11 evasion", "row": 0.1413, "col": -9.4321, "connects": ["w64"], "required_level": 4, "class": "any", "modifiers": {"evasion": 11}, "icon_emoji": "👟"},
+	{"id": "w64", "name": "Efsane Haydut", "desc": "+13 attack_speed, +20 crit_chance, +27 evasion", "row": -0.3587, "col": -9.9321, "connects": ["w64_s0", "w64_s1", "w64_s2", "w64_s3", "w43", "w63", "w66"], "required_level": 5, "class": "any", "modifiers": {"attack_speed": 13, "crit_chance": 20, "evasion": 27}, "icon_emoji": "💨"},
+	{"id": "w65_s0", "name": "Guclu", "desc": "+20 base_life", "row": -9.3562, "col": -5.121, "connects": ["w65"], "required_level": 4, "class": "any", "modifiers": {"base_life": 20}, "icon_emoji": "❤"},
+	{"id": "w65_s1", "name": "Guc", "desc": "+27 base_life", "row": -9.3562, "col": -4.121, "connects": ["w65"], "required_level": 4, "class": "any", "modifiers": {"base_life": 27}, "icon_emoji": "❤"},
+	{"id": "w65_s2", "name": "Vurus", "desc": "+2 life_regen", "row": -8.3562, "col": -5.121, "connects": ["w65"], "required_level": 4, "class": "any", "modifiers": {"life_regen": 2}, "icon_emoji": "💚"},
+	{"id": "w65_s3", "name": "Hizli", "desc": "+13 base_life, +1 life_regen", "row": -8.3562, "col": -4.121, "connects": ["w65"], "required_level": 4, "class": "any", "modifiers": {"base_life": 13, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w65", "name": "Efsane Savasci", "desc": "+69 base_life, +6 life_regen, +16 physical_damage", "row": -8.8562, "col": -4.621, "connects": ["w65_s0", "w65_s1", "w65_s2", "w65_s3", "w50", "w76", "w85"], "required_level": 5, "class": "any", "modifiers": {"base_life": 69, "life_regen": 6, "physical_damage": 16}, "icon_emoji": "⚔"},
+	{"id": "w66_s0", "name": "Bilgin", "desc": "+11 spell_damage", "row": 1.6409, "col": -10.2658, "connects": ["w66"], "required_level": 4, "class": "any", "modifiers": {"spell_damage": 11}, "icon_emoji": "🔮"},
+	{"id": "w66_s1", "name": "Zeki", "desc": "+20 mana", "row": 1.6409, "col": -9.2658, "connects": ["w66"], "required_level": 4, "class": "any", "modifiers": {"mana": 20}, "icon_emoji": "💧"},
+	{"id": "w66_s2", "name": "Ruhani", "desc": "+11 energy_shield", "row": 2.6409, "col": -10.2658, "connects": ["w66"], "required_level": 4, "class": "any", "modifiers": {"energy_shield": 11}, "icon_emoji": "🛡"},
+	{"id": "w66_s3", "name": "Hizli", "desc": "+4 cast_speed", "row": 2.6409, "col": -9.2658, "connects": ["w66"], "required_level": 4, "class": "any", "modifiers": {"cast_speed": 4}, "icon_emoji": "✨"},
+	{"id": "w66", "name": "Efsane Buyucu", "desc": "+27 spell_damage, +69 mana, +11 cast_speed", "row": 2.1409, "col": -9.7658, "connects": ["w66_s0", "w66_s1", "w66_s2", "w66_s3", "w42", "w43", "w64", "w77", "w87"], "required_level": 5, "class": "any", "modifiers": {"spell_damage": 27, "mana": 69, "cast_speed": 11}, "icon_emoji": "🔮"},
+	{"id": "w67_s0", "name": "Bilgin", "desc": "+11 spell_damage", "row": -6.9235, "col": -8.1749, "connects": ["w67"], "required_level": 5, "class": "any", "modifiers": {"spell_damage": 11}, "icon_emoji": "🔮"},
+	{"id": "w67_s1", "name": "Zeki", "desc": "+21 mana", "row": -6.9235, "col": -7.1749, "connects": ["w67"], "required_level": 5, "class": "any", "modifiers": {"mana": 21}, "icon_emoji": "💧"},
+	{"id": "w67_s2", "name": "Ruhani", "desc": "+11 energy_shield", "row": -5.9235, "col": -8.1749, "connects": ["w67"], "required_level": 5, "class": "any", "modifiers": {"energy_shield": 11}, "icon_emoji": "🛡"},
+	{"id": "w67_s3", "name": "Hizli", "desc": "+4 cast_speed", "row": -5.9235, "col": -7.1749, "connects": ["w67"], "required_level": 5, "class": "any", "modifiers": {"cast_speed": 4}, "icon_emoji": "✨"},
+	{"id": "w67", "name": "Efsane Buyucu", "desc": "+28 spell_damage, +70 mana, +11 cast_speed", "row": -6.4235, "col": -7.6749, "connects": ["w67_s0", "w67_s1", "w67_s2", "w67_s3", "w54", "w73"], "required_level": 6, "class": "any", "modifiers": {"spell_damage": 28, "mana": 70, "cast_speed": 11}, "icon_emoji": "🔮"},
+	{"id": "w68_s0", "name": "Bilgin", "desc": "+11 spell_damage", "row": 2.3252, "col": 9.124, "connects": ["w68"], "required_level": 5, "class": "any", "modifiers": {"spell_damage": 11}, "icon_emoji": "🔮"},
+	{"id": "w68_s1", "name": "Zeki", "desc": "+21 mana", "row": 2.3252, "col": 10.124, "connects": ["w68"], "required_level": 5, "class": "any", "modifiers": {"mana": 21}, "icon_emoji": "💧"},
+	{"id": "w68_s2", "name": "Ruhani", "desc": "+11 energy_shield", "row": 3.3252, "col": 9.124, "connects": ["w68"], "required_level": 5, "class": "any", "modifiers": {"energy_shield": 11}, "icon_emoji": "🛡"},
+	{"id": "w68_s3", "name": "Hizli", "desc": "+4 cast_speed", "row": 3.3252, "col": 10.124, "connects": ["w68"], "required_level": 5, "class": "any", "modifiers": {"cast_speed": 4}, "icon_emoji": "✨"},
+	{"id": "w68", "name": "Efsane Buyucu", "desc": "+28 spell_damage, +70 mana, +11 cast_speed", "row": 2.8252, "col": 9.624, "connects": ["w68_s0", "w68_s1", "w68_s2", "w68_s3", "w40", "w72"], "required_level": 6, "class": "any", "modifiers": {"spell_damage": 28, "mana": 70, "cast_speed": 11}, "icon_emoji": "🔮"},
+	{"id": "w69_s0", "name": "Bilgin", "desc": "+11 spell_damage", "row": -6.86, "col": 7.2831, "connects": ["w69"], "required_level": 5, "class": "any", "modifiers": {"spell_damage": 11}, "icon_emoji": "🔮"},
+	{"id": "w69_s1", "name": "Zeki", "desc": "+21 mana", "row": -6.86, "col": 8.2831, "connects": ["w69"], "required_level": 5, "class": "any", "modifiers": {"mana": 21}, "icon_emoji": "💧"},
+	{"id": "w69_s2", "name": "Ruhani", "desc": "+11 energy_shield", "row": -5.86, "col": 7.2831, "connects": ["w69"], "required_level": 5, "class": "any", "modifiers": {"energy_shield": 11}, "icon_emoji": "🛡"},
+	{"id": "w69_s3", "name": "Hizli", "desc": "+4 cast_speed", "row": -5.86, "col": 8.2831, "connects": ["w69"], "required_level": 5, "class": "any", "modifiers": {"cast_speed": 4}, "icon_emoji": "✨"},
+	{"id": "w69", "name": "Efsane Buyucu", "desc": "+28 spell_damage, +70 mana, +11 cast_speed", "row": -6.36, "col": 7.7831, "connects": ["w69_s0", "w69_s1", "w69_s2", "w69_s3", "w38", "w82"], "required_level": 6, "class": "any", "modifiers": {"spell_damage": 28, "mana": 70, "cast_speed": 11}, "icon_emoji": "🔮"},
+	{"id": "w70_s0", "name": "Guclu", "desc": "+21 base_life", "row": -3.3281, "col": 9.2751, "connects": ["w70"], "required_level": 5, "class": "any", "modifiers": {"base_life": 21}, "icon_emoji": "❤"},
+	{"id": "w70_s1", "name": "Guc", "desc": "+28 base_life", "row": -3.3281, "col": 10.2751, "connects": ["w70"], "required_level": 5, "class": "any", "modifiers": {"base_life": 28}, "icon_emoji": "❤"},
+	{"id": "w70_s2", "name": "Vurus", "desc": "+2 life_regen", "row": -2.3281, "col": 9.2751, "connects": ["w70"], "required_level": 5, "class": "any", "modifiers": {"life_regen": 2}, "icon_emoji": "💚"},
+	{"id": "w70_s3", "name": "Hizli", "desc": "+14 base_life, +1 life_regen", "row": -2.3281, "col": 10.2751, "connects": ["w70"], "required_level": 5, "class": "any", "modifiers": {"base_life": 14, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w70", "name": "Efsane Savasci", "desc": "+70 base_life, +7 life_regen, +16 physical_damage", "row": -2.8281, "col": 9.7751, "connects": ["w70_s0", "w70_s1", "w70_s2", "w70_s3", "w38", "w57"], "required_level": 6, "class": "any", "modifiers": {"base_life": 70, "life_regen": 7, "physical_damage": 16}, "icon_emoji": "⚔"},
+	{"id": "w71_s0", "name": "Bilgin", "desc": "+11 spell_damage", "row": 8.4313, "col": 4.4082, "connects": ["w71"], "required_level": 5, "class": "any", "modifiers": {"spell_damage": 11}, "icon_emoji": "🔮"},
+	{"id": "w71_s1", "name": "Zeki", "desc": "+21 mana", "row": 8.4313, "col": 5.4082, "connects": ["w71"], "required_level": 5, "class": "any", "modifiers": {"mana": 21}, "icon_emoji": "💧"},
+	{"id": "w71_s2", "name": "Ruhani", "desc": "+11 energy_shield", "row": 9.4313, "col": 4.4082, "connects": ["w71"], "required_level": 5, "class": "any", "modifiers": {"energy_shield": 11}, "icon_emoji": "🛡"},
+	{"id": "w71_s3", "name": "Hizli", "desc": "+4 cast_speed", "row": 9.4313, "col": 5.4082, "connects": ["w71"], "required_level": 5, "class": "any", "modifiers": {"cast_speed": 4}, "icon_emoji": "✨"},
+	{"id": "w71", "name": "Efsane Buyucu", "desc": "+28 spell_damage, +70 mana, +11 cast_speed", "row": 8.9313, "col": 4.9082, "connects": ["w71_s0", "w71_s1", "w71_s2", "w71_s3", "w47", "w81"], "required_level": 6, "class": "any", "modifiers": {"spell_damage": 28, "mana": 70, "cast_speed": 11}, "icon_emoji": "🔮"},
+	{"id": "w72_s0", "name": "Cevik", "desc": "+4 attack_speed", "row": 5.0195, "col": 9.2944, "connects": ["w72"], "required_level": 5, "class": "any", "modifiers": {"attack_speed": 4}, "icon_emoji": "⚡"},
+	{"id": "w72_s1", "name": "Keskin", "desc": "+4 dodge", "row": 5.0195, "col": 10.2944, "connects": ["w72"], "required_level": 5, "class": "any", "modifiers": {"dodge": 4}, "icon_emoji": "💨"},
+	{"id": "w72_s2", "name": "Kritik", "desc": "+7 crit_chance", "row": 6.0195, "col": 9.2944, "connects": ["w72"], "required_level": 5, "class": "any", "modifiers": {"crit_chance": 7}, "icon_emoji": "🎯"},
+	{"id": "w72_s3", "name": "Kacak", "desc": "+11 evasion", "row": 6.0195, "col": 10.2944, "connects": ["w72"], "required_level": 5, "class": "any", "modifiers": {"evasion": 11}, "icon_emoji": "👟"},
+	{"id": "w72", "name": "Efsane Haydut", "desc": "+14 attack_speed, +22 crit_chance, +29 evasion", "row": 5.5195, "col": 9.7944, "connects": ["w72_s0", "w72_s1", "w72_s2", "w72_s3", "w68", "w83"], "required_level": 6, "class": "any", "modifiers": {"attack_speed": 14, "crit_chance": 22, "evasion": 29}, "icon_emoji": "💨"},
+	{"id": "w73_s0", "name": "Cevik", "desc": "+4 attack_speed", "row": -5.9873, "col": -10.3298, "connects": ["w73"], "required_level": 5, "class": "any", "modifiers": {"attack_speed": 4}, "icon_emoji": "⚡"},
+	{"id": "w73_s1", "name": "Keskin", "desc": "+4 dodge", "row": -5.9873, "col": -9.3298, "connects": ["w73"], "required_level": 5, "class": "any", "modifiers": {"dodge": 4}, "icon_emoji": "💨"},
+	{"id": "w73_s2", "name": "Kritik", "desc": "+7 crit_chance", "row": -4.9873, "col": -10.3298, "connects": ["w73"], "required_level": 5, "class": "any", "modifiers": {"crit_chance": 7}, "icon_emoji": "🎯"},
+	{"id": "w73_s3", "name": "Kacak", "desc": "+12 evasion", "row": -4.9873, "col": -9.3298, "connects": ["w73"], "required_level": 5, "class": "any", "modifiers": {"evasion": 12}, "icon_emoji": "👟"},
+	{"id": "w73", "name": "Efsane Haydut", "desc": "+15 attack_speed, +22 crit_chance, +30 evasion", "row": -5.4873, "col": -9.8298, "connects": ["w73_s0", "w73_s1", "w73_s2", "w73_s3", "w54", "w63", "w67"], "required_level": 6, "class": "any", "modifiers": {"attack_speed": 15, "crit_chance": 22, "evasion": 30}, "icon_emoji": "💨"},
+	{"id": "w74_s0", "name": "Zirhli", "desc": "+12 armour", "row": -1.8102, "col": -11.7247, "connects": ["w74"], "required_level": 5, "class": "any", "modifiers": {"armour": 12}, "icon_emoji": "🏸"},
+	{"id": "w74_s1", "name": "Direncli", "desc": "+6 all_resistance", "row": -1.8102, "col": -10.7247, "connects": ["w74"], "required_level": 5, "class": "any", "modifiers": {"all_resistance": 6}, "icon_emoji": "🌟"},
+	{"id": "w74_s2", "name": "Engelleyici", "desc": "+3 block_chance", "row": -0.8102, "col": -11.7247, "connects": ["w74"], "required_level": 5, "class": "any", "modifiers": {"block_chance": 3}, "icon_emoji": "⛛"},
+	{"id": "w74_s3", "name": "Dayanikli", "desc": "+22 base_life", "row": -0.8102, "col": -10.7247, "connects": ["w74"], "required_level": 5, "class": "any", "modifiers": {"base_life": 22}, "icon_emoji": "❤"},
+	{"id": "w74", "name": "Efsane Koruyucu", "desc": "+45 armour, +15 all_resistance, +12 block_chance", "row": -1.3102, "col": -11.2247, "connects": ["w74_s0", "w74_s1", "w74_s2", "w74_s3", "w49", "w63"], "required_level": 6, "class": "any", "modifiers": {"armour": 45, "all_resistance": 15, "block_chance": 12}, "icon_emoji": "🛡"},
+	{"id": "w75_s0", "name": "Bilgin", "desc": "+12 spell_damage", "row": -4.8823, "col": 9.9294, "connects": ["w75"], "required_level": 5, "class": "any", "modifiers": {"spell_damage": 12}, "icon_emoji": "🔮"},
+	{"id": "w75_s1", "name": "Zeki", "desc": "+22 mana", "row": -4.8823, "col": 10.9294, "connects": ["w75"], "required_level": 5, "class": "any", "modifiers": {"mana": 22}, "icon_emoji": "💧"},
+	{"id": "w75_s2", "name": "Ruhani", "desc": "+12 energy_shield", "row": -3.8823, "col": 9.9294, "connects": ["w75"], "required_level": 5, "class": "any", "modifiers": {"energy_shield": 12}, "icon_emoji": "🛡"},
+	{"id": "w75_s3", "name": "Hizli", "desc": "+4 cast_speed", "row": -3.8823, "col": 10.9294, "connects": ["w75"], "required_level": 5, "class": "any", "modifiers": {"cast_speed": 4}, "icon_emoji": "✨"},
+	{"id": "w75", "name": "Efsane Buyucu", "desc": "+30 spell_damage, +75 mana, +12 cast_speed", "row": -4.3823, "col": 10.4294, "connects": ["w75_s0", "w75_s1", "w75_s2", "w75_s3"], "required_level": 6, "class": "any", "modifiers": {"spell_damage": 30, "mana": 75, "cast_speed": 12}, "icon_emoji": "🔮"},
+	{"id": "w76_s0", "name": "Cevik", "desc": "+4 attack_speed", "row": -11.4314, "col": -3.5353, "connects": ["w76"], "required_level": 5, "class": "any", "modifiers": {"attack_speed": 4}, "icon_emoji": "⚡"},
+	{"id": "w76_s1", "name": "Keskin", "desc": "+4 dodge", "row": -11.4314, "col": -2.5353, "connects": ["w76"], "required_level": 5, "class": "any", "modifiers": {"dodge": 4}, "icon_emoji": "💨"},
+	{"id": "w76_s2", "name": "Kritik", "desc": "+7 crit_chance", "row": -10.4314, "col": -3.5353, "connects": ["w76"], "required_level": 5, "class": "any", "modifiers": {"crit_chance": 7}, "icon_emoji": "🎯"},
+	{"id": "w76_s3", "name": "Kacak", "desc": "+12 evasion", "row": -10.4314, "col": -2.5353, "connects": ["w76"], "required_level": 5, "class": "any", "modifiers": {"evasion": 12}, "icon_emoji": "👟"},
+	{"id": "w76", "name": "Efsane Haydut", "desc": "+15 attack_speed, +22 crit_chance, +30 evasion", "row": -10.9314, "col": -3.0353, "connects": ["w76_s0", "w76_s1", "w76_s2", "w76_s3", "w50", "w65"], "required_level": 6, "class": "any", "modifiers": {"attack_speed": 15, "crit_chance": 22, "evasion": 30}, "icon_emoji": "💨"},
+	{"id": "w77_s0", "name": "Guclu", "desc": "+22 base_life", "row": -0.0451, "col": -11.8421, "connects": ["w77"], "required_level": 5, "class": "any", "modifiers": {"base_life": 22}, "icon_emoji": "❤"},
+	{"id": "w77_s1", "name": "Guc", "desc": "+30 base_life", "row": -0.0451, "col": -10.8421, "connects": ["w77"], "required_level": 5, "class": "any", "modifiers": {"base_life": 30}, "icon_emoji": "❤"},
+	{"id": "w77_s2", "name": "Vurus", "desc": "+3 life_regen", "row": 0.9549, "col": -11.8421, "connects": ["w77"], "required_level": 5, "class": "any", "modifiers": {"life_regen": 3}, "icon_emoji": "💚"},
+	{"id": "w77_s3", "name": "Hizli", "desc": "+15 base_life, +1 life_regen", "row": 0.9549, "col": -10.8421, "connects": ["w77"], "required_level": 5, "class": "any", "modifiers": {"base_life": 15, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w77", "name": "Efsane Savasci", "desc": "+75 base_life, +7 life_regen, +18 physical_damage", "row": 0.4549, "col": -11.3421, "connects": ["w77_s0", "w77_s1", "w77_s2", "w77_s3", "w66"], "required_level": 6, "class": "any", "modifiers": {"base_life": 75, "life_regen": 7, "physical_damage": 18}, "icon_emoji": "⚔"},
+	{"id": "w78_s0", "name": "Bilgin", "desc": "+12 spell_damage", "row": 10.1713, "col": -4.4187, "connects": ["w78"], "required_level": 5, "class": "any", "modifiers": {"spell_damage": 12}, "icon_emoji": "🔮"},
+	{"id": "w78_s1", "name": "Zeki", "desc": "+22 mana", "row": 10.1713, "col": -3.4187, "connects": ["w78"], "required_level": 5, "class": "any", "modifiers": {"mana": 22}, "icon_emoji": "💧"},
+	{"id": "w78_s2", "name": "Ruhani", "desc": "+12 energy_shield", "row": 11.1713, "col": -4.4187, "connects": ["w78"], "required_level": 5, "class": "any", "modifiers": {"energy_shield": 12}, "icon_emoji": "🛡"},
+	{"id": "w78_s3", "name": "Hizli", "desc": "+4 cast_speed", "row": 11.1713, "col": -3.4187, "connects": ["w78"], "required_level": 5, "class": "any", "modifiers": {"cast_speed": 4}, "icon_emoji": "✨"},
+	{"id": "w78", "name": "Efsane Buyucu", "desc": "+30 spell_damage, +75 mana, +12 cast_speed", "row": 10.6713, "col": -3.9187, "connects": ["w78_s0", "w78_s1", "w78_s2", "w78_s3", "w59", "w62", "w92"], "required_level": 6, "class": "any", "modifiers": {"spell_damage": 30, "mana": 75, "cast_speed": 12}, "icon_emoji": "🔮"},
+	{"id": "w79_s0", "name": "Zirhli", "desc": "+12 armour", "row": 1.6629, "col": 10.6669, "connects": ["w79"], "required_level": 5, "class": "any", "modifiers": {"armour": 12}, "icon_emoji": "🏸"},
+	{"id": "w79_s1", "name": "Direncli", "desc": "+6 all_resistance", "row": 1.6629, "col": 11.6669, "connects": ["w79"], "required_level": 5, "class": "any", "modifiers": {"all_resistance": 6}, "icon_emoji": "🌟"},
+	{"id": "w79_s2", "name": "Engelleyici", "desc": "+3 block_chance", "row": 2.6629, "col": 10.6669, "connects": ["w79"], "required_level": 5, "class": "any", "modifiers": {"block_chance": 3}, "icon_emoji": "⛛"},
+	{"id": "w79_s3", "name": "Dayanikli", "desc": "+22 base_life", "row": 2.6629, "col": 11.6669, "connects": ["w79"], "required_level": 5, "class": "any", "modifiers": {"base_life": 22}, "icon_emoji": "❤"},
+	{"id": "w79", "name": "Efsane Koruyucu", "desc": "+45 armour, +15 all_resistance, +12 block_chance", "row": 2.1629, "col": 11.1669, "connects": ["w79_s0", "w79_s1", "w79_s2", "w79_s3", "w84"], "required_level": 6, "class": "any", "modifiers": {"armour": 45, "all_resistance": 15, "block_chance": 12}, "icon_emoji": "🛡"},
+	{"id": "w80_s0", "name": "Cevik", "desc": "+4 attack_speed", "row": 10.557, "col": 2.2523, "connects": ["w80"], "required_level": 5, "class": "any", "modifiers": {"attack_speed": 4}, "icon_emoji": "⚡"},
+	{"id": "w80_s1", "name": "Keskin", "desc": "+4 dodge", "row": 10.557, "col": 3.2523, "connects": ["w80"], "required_level": 5, "class": "any", "modifiers": {"dodge": 4}, "icon_emoji": "💨"},
+	{"id": "w80_s2", "name": "Kritik", "desc": "+7 crit_chance", "row": 11.557, "col": 2.2523, "connects": ["w80"], "required_level": 5, "class": "any", "modifiers": {"crit_chance": 7}, "icon_emoji": "🎯"},
+	{"id": "w80_s3", "name": "Kacak", "desc": "+12 evasion", "row": 11.557, "col": 3.2523, "connects": ["w80"], "required_level": 5, "class": "any", "modifiers": {"evasion": 12}, "icon_emoji": "👟"},
+	{"id": "w80", "name": "Efsane Haydut", "desc": "+15 attack_speed, +22 crit_chance, +30 evasion", "row": 11.057, "col": 2.7523, "connects": ["w80_s0", "w80_s1", "w80_s2", "w80_s3"], "required_level": 6, "class": "any", "modifiers": {"attack_speed": 15, "crit_chance": 22, "evasion": 30}, "icon_emoji": "💨"},
+	{"id": "w81_s0", "name": "Zirhli", "desc": "+12 armour", "row": 8.6123, "col": 6.3682, "connects": ["w81"], "required_level": 5, "class": "any", "modifiers": {"armour": 12}, "icon_emoji": "🏸"},
+	{"id": "w81_s1", "name": "Direncli", "desc": "+6 all_resistance", "row": 8.6123, "col": 7.3682, "connects": ["w81"], "required_level": 5, "class": "any", "modifiers": {"all_resistance": 6}, "icon_emoji": "🌟"},
+	{"id": "w81_s2", "name": "Engelleyici", "desc": "+3 block_chance", "row": 9.6123, "col": 6.3682, "connects": ["w81"], "required_level": 5, "class": "any", "modifiers": {"block_chance": 3}, "icon_emoji": "⛛"},
+	{"id": "w81_s3", "name": "Dayanikli", "desc": "+22 base_life", "row": 9.6123, "col": 7.3682, "connects": ["w81"], "required_level": 5, "class": "any", "modifiers": {"base_life": 22}, "icon_emoji": "❤"},
+	{"id": "w81", "name": "Efsane Koruyucu", "desc": "+45 armour, +15 all_resistance, +12 block_chance", "row": 9.1123, "col": 6.8682, "connects": ["w81_s0", "w81_s1", "w81_s2", "w81_s3", "w71", "w83"], "required_level": 6, "class": "any", "modifiers": {"armour": 45, "all_resistance": 15, "block_chance": 12}, "icon_emoji": "🛡"},
+	{"id": "w82_s0", "name": "Guclu", "desc": "+22 base_life", "row": -8.9136, "col": 7.2757, "connects": ["w82"], "required_level": 5, "class": "any", "modifiers": {"base_life": 22}, "icon_emoji": "❤"},
+	{"id": "w82_s1", "name": "Guc", "desc": "+30 base_life", "row": -8.9136, "col": 8.2757, "connects": ["w82"], "required_level": 5, "class": "any", "modifiers": {"base_life": 30}, "icon_emoji": "❤"},
+	{"id": "w82_s2", "name": "Vurus", "desc": "+3 life_regen", "row": -7.9136, "col": 7.2757, "connects": ["w82"], "required_level": 5, "class": "any", "modifiers": {"life_regen": 3}, "icon_emoji": "💚"},
+	{"id": "w82_s3", "name": "Hizli", "desc": "+15 base_life, +1 life_regen", "row": -7.9136, "col": 8.2757, "connects": ["w82"], "required_level": 5, "class": "any", "modifiers": {"base_life": 15, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w82", "name": "Efsane Savasci", "desc": "+75 base_life, +7 life_regen, +18 physical_damage", "row": -8.4136, "col": 7.7757, "connects": ["w82_s0", "w82_s1", "w82_s2", "w82_s3", "w69"], "required_level": 6, "class": "any", "modifiers": {"base_life": 75, "life_regen": 7, "physical_damage": 18}, "icon_emoji": "⚔"},
+	{"id": "w83_s0", "name": "Guclu", "desc": "+22 base_life", "row": 7.1086, "col": 8.1154, "connects": ["w83"], "required_level": 5, "class": "any", "modifiers": {"base_life": 22}, "icon_emoji": "❤"},
+	{"id": "w83_s1", "name": "Guc", "desc": "+30 base_life", "row": 7.1086, "col": 9.1154, "connects": ["w83"], "required_level": 5, "class": "any", "modifiers": {"base_life": 30}, "icon_emoji": "❤"},
+	{"id": "w83_s2", "name": "Vurus", "desc": "+3 life_regen", "row": 8.1086, "col": 8.1154, "connects": ["w83"], "required_level": 5, "class": "any", "modifiers": {"life_regen": 3}, "icon_emoji": "💚"},
+	{"id": "w83_s3", "name": "Hizli", "desc": "+15 base_life, +1 life_regen", "row": 8.1086, "col": 9.1154, "connects": ["w83"], "required_level": 5, "class": "any", "modifiers": {"base_life": 15, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w83", "name": "Efsane Savasci", "desc": "+75 base_life, +7 life_regen, +18 physical_damage", "row": 7.6086, "col": 8.6154, "connects": ["w83_s0", "w83_s1", "w83_s2", "w83_s3", "w58", "w72", "w81"], "required_level": 6, "class": "any", "modifiers": {"base_life": 75, "life_regen": 7, "physical_damage": 18}, "icon_emoji": "⚔"},
+	{"id": "w84_s0", "name": "Guclu", "desc": "+22 base_life", "row": -0.865, "col": 10.9916, "connects": ["w84"], "required_level": 5, "class": "any", "modifiers": {"base_life": 22}, "icon_emoji": "❤"},
+	{"id": "w84_s1", "name": "Guc", "desc": "+30 base_life", "row": -0.865, "col": 11.9916, "connects": ["w84"], "required_level": 5, "class": "any", "modifiers": {"base_life": 30}, "icon_emoji": "❤"},
+	{"id": "w84_s2", "name": "Vurus", "desc": "+3 life_regen", "row": 0.135, "col": 10.9916, "connects": ["w84"], "required_level": 5, "class": "any", "modifiers": {"life_regen": 3}, "icon_emoji": "💚"},
+	{"id": "w84_s3", "name": "Hizli", "desc": "+15 base_life, +1 life_regen", "row": 0.135, "col": 11.9916, "connects": ["w84"], "required_level": 5, "class": "any", "modifiers": {"base_life": 15, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w84", "name": "Efsane Savasci", "desc": "+75 base_life, +7 life_regen, +18 physical_damage", "row": -0.365, "col": 11.4916, "connects": ["w84_s0", "w84_s1", "w84_s2", "w84_s3", "w79"], "required_level": 6, "class": "any", "modifiers": {"base_life": 75, "life_regen": 7, "physical_damage": 18}, "icon_emoji": "⚔"},
+	{"id": "w85_s0", "name": "Zirhli", "desc": "+12 armour", "row": -9.6982, "col": -7.404, "connects": ["w85"], "required_level": 5, "class": "any", "modifiers": {"armour": 12}, "icon_emoji": "🏸"},
+	{"id": "w85_s1", "name": "Direncli", "desc": "+6 all_resistance", "row": -9.6982, "col": -6.404, "connects": ["w85"], "required_level": 5, "class": "any", "modifiers": {"all_resistance": 6}, "icon_emoji": "🌟"},
+	{"id": "w85_s2", "name": "Engelleyici", "desc": "+3 block_chance", "row": -8.6982, "col": -7.404, "connects": ["w85"], "required_level": 5, "class": "any", "modifiers": {"block_chance": 3}, "icon_emoji": "⛛"},
+	{"id": "w85_s3", "name": "Dayanikli", "desc": "+22 base_life", "row": -8.6982, "col": -6.404, "connects": ["w85"], "required_level": 5, "class": "any", "modifiers": {"base_life": 22}, "icon_emoji": "❤"},
+	{"id": "w85", "name": "Efsane Koruyucu", "desc": "+45 armour, +15 all_resistance, +12 block_chance", "row": -9.1982, "col": -6.904, "connects": ["w85_s0", "w85_s1", "w85_s2", "w85_s3", "w65"], "required_level": 6, "class": "any", "modifiers": {"armour": 45, "all_resistance": 15, "block_chance": 12}, "icon_emoji": "🛡"},
+	{"id": "w86_s0", "name": "Bilgin", "desc": "+12 spell_damage", "row": -11.3639, "col": 3.3728, "connects": ["w86"], "required_level": 5, "class": "any", "modifiers": {"spell_damage": 12}, "icon_emoji": "🔮"},
+	{"id": "w86_s1", "name": "Zeki", "desc": "+22 mana", "row": -11.3639, "col": 4.3728, "connects": ["w86"], "required_level": 5, "class": "any", "modifiers": {"mana": 22}, "icon_emoji": "💧"},
+	{"id": "w86_s2", "name": "Ruhani", "desc": "+12 energy_shield", "row": -10.3639, "col": 3.3728, "connects": ["w86"], "required_level": 5, "class": "any", "modifiers": {"energy_shield": 12}, "icon_emoji": "🛡"},
+	{"id": "w86_s3", "name": "Hizli", "desc": "+4 cast_speed", "row": -10.3639, "col": 4.3728, "connects": ["w86"], "required_level": 5, "class": "any", "modifiers": {"cast_speed": 4}, "icon_emoji": "✨"},
+	{"id": "w86", "name": "Efsane Buyucu", "desc": "+30 spell_damage, +76 mana, +12 cast_speed", "row": -10.8639, "col": 3.8728, "connects": ["w86_s0", "w86_s1", "w86_s2", "w86_s3", "w88"], "required_level": 6, "class": "any", "modifiers": {"spell_damage": 30, "mana": 76, "cast_speed": 12}, "icon_emoji": "🔮"},
+	{"id": "w87_s0", "name": "Bilgin", "desc": "+12 spell_damage", "row": 3.5831, "col": -11.3294, "connects": ["w87"], "required_level": 5, "class": "any", "modifiers": {"spell_damage": 12}, "icon_emoji": "🔮"},
+	{"id": "w87_s1", "name": "Zeki", "desc": "+22 mana", "row": 3.5831, "col": -10.3294, "connects": ["w87"], "required_level": 5, "class": "any", "modifiers": {"mana": 22}, "icon_emoji": "💧"},
+	{"id": "w87_s2", "name": "Ruhani", "desc": "+12 energy_shield", "row": 4.5831, "col": -11.3294, "connects": ["w87"], "required_level": 5, "class": "any", "modifiers": {"energy_shield": 12}, "icon_emoji": "🛡"},
+	{"id": "w87_s3", "name": "Hizli", "desc": "+4 cast_speed", "row": 4.5831, "col": -10.3294, "connects": ["w87"], "required_level": 5, "class": "any", "modifiers": {"cast_speed": 4}, "icon_emoji": "✨"},
+	{"id": "w87", "name": "Efsane Buyucu", "desc": "+30 spell_damage, +76 mana, +12 cast_speed", "row": 4.0831, "col": -10.8294, "connects": ["w87_s0", "w87_s1", "w87_s2", "w87_s3", "w60", "w66", "w89"], "required_level": 6, "class": "any", "modifiers": {"spell_damage": 30, "mana": 76, "cast_speed": 12}, "icon_emoji": "🔮"},
+	{"id": "w88_s0", "name": "Zirhli", "desc": "+12 armour", "row": -11.9836, "col": 1.4082, "connects": ["w88"], "required_level": 5, "class": "any", "modifiers": {"armour": 12}, "icon_emoji": "🏸"},
+	{"id": "w88_s1", "name": "Direncli", "desc": "+6 all_resistance", "row": -11.9836, "col": 2.4082, "connects": ["w88"], "required_level": 5, "class": "any", "modifiers": {"all_resistance": 6}, "icon_emoji": "🌟"},
+	{"id": "w88_s2", "name": "Engelleyici", "desc": "+3 block_chance", "row": -10.9836, "col": 1.4082, "connects": ["w88"], "required_level": 5, "class": "any", "modifiers": {"block_chance": 3}, "icon_emoji": "⛛"},
+	{"id": "w88_s3", "name": "Dayanikli", "desc": "+22 base_life", "row": -10.9836, "col": 2.4082, "connects": ["w88"], "required_level": 5, "class": "any", "modifiers": {"base_life": 22}, "icon_emoji": "❤"},
+	{"id": "w88", "name": "Efsane Koruyucu", "desc": "+45 armour, +15 all_resistance, +12 block_chance", "row": -11.4836, "col": 1.9082, "connects": ["w88_s0", "w88_s1", "w88_s2", "w88_s3", "w86"], "required_level": 6, "class": "any", "modifiers": {"armour": 45, "all_resistance": 15, "block_chance": 12}, "icon_emoji": "🛡"},
+	{"id": "w89_s0", "name": "Zirhli", "desc": "+12 armour", "row": 5.7356, "col": -10.3926, "connects": ["w89"], "required_level": 5, "class": "any", "modifiers": {"armour": 12}, "icon_emoji": "🏸"},
+	{"id": "w89_s1", "name": "Direncli", "desc": "+6 all_resistance", "row": 5.7356, "col": -9.3926, "connects": ["w89"], "required_level": 5, "class": "any", "modifiers": {"all_resistance": 6}, "icon_emoji": "🌟"},
+	{"id": "w89_s2", "name": "Engelleyici", "desc": "+3 block_chance", "row": 6.7356, "col": -10.3926, "connects": ["w89"], "required_level": 5, "class": "any", "modifiers": {"block_chance": 3}, "icon_emoji": "⛛"},
+	{"id": "w89_s3", "name": "Dayanikli", "desc": "+23 base_life", "row": 6.7356, "col": -9.3926, "connects": ["w89"], "required_level": 5, "class": "any", "modifiers": {"base_life": 23}, "icon_emoji": "❤"},
+	{"id": "w89", "name": "Efsane Koruyucu", "desc": "+46 armour, +15 all_resistance, +12 block_chance", "row": 6.2356, "col": -9.8926, "connects": ["w89_s0", "w89_s1", "w89_s2", "w89_s3", "w60", "w87"], "required_level": 7, "class": "any", "modifiers": {"armour": 46, "all_resistance": 15, "block_chance": 12}, "icon_emoji": "🛡"},
+	{"id": "w90_s0", "name": "Guclu", "desc": "+23 base_life", "row": 11.2085, "col": -0.7415, "connects": ["w90"], "required_level": 5, "class": "any", "modifiers": {"base_life": 23}, "icon_emoji": "❤"},
+	{"id": "w90_s1", "name": "Guc", "desc": "+30 base_life", "row": 11.2085, "col": 0.2585, "connects": ["w90"], "required_level": 5, "class": "any", "modifiers": {"base_life": 30}, "icon_emoji": "❤"},
+	{"id": "w90_s2", "name": "Vurus", "desc": "+3 life_regen", "row": 12.2085, "col": -0.7415, "connects": ["w90"], "required_level": 5, "class": "any", "modifiers": {"life_regen": 3}, "icon_emoji": "💚"},
+	{"id": "w90_s3", "name": "Hizli", "desc": "+15 base_life, +1 life_regen", "row": 12.2085, "col": 0.2585, "connects": ["w90"], "required_level": 5, "class": "any", "modifiers": {"base_life": 15, "life_regen": 1}, "icon_emoji": "❤"},
+	{"id": "w90", "name": "Efsane Savasci", "desc": "+76 base_life, +7 life_regen, +18 physical_damage", "row": 11.7085, "col": -0.2415, "connects": ["w90_s0", "w90_s1", "w90_s2", "w90_s3", "w59", "w91"], "required_level": 7, "class": "any", "modifiers": {"base_life": 76, "life_regen": 7, "physical_damage": 18}, "icon_emoji": "⚔"},
+	{"id": "w91_s0", "name": "Zirhli", "desc": "+12 armour", "row": 11.0115, "col": -2.8705, "connects": ["w91"], "required_level": 5, "class": "any", "modifiers": {"armour": 12}, "icon_emoji": "🏸"},
+	{"id": "w91_s1", "name": "Direncli", "desc": "+6 all_resistance", "row": 11.0115, "col": -1.8705, "connects": ["w91"], "required_level": 5, "class": "any", "modifiers": {"all_resistance": 6}, "icon_emoji": "🌟"},
+	{"id": "w91_s2", "name": "Engelleyici", "desc": "+3 block_chance", "row": 12.0115, "col": -2.8705, "connects": ["w91"], "required_level": 5, "class": "any", "modifiers": {"block_chance": 3}, "icon_emoji": "⛛"},
+	{"id": "w91_s3", "name": "Dayanikli", "desc": "+23 base_life", "row": 12.0115, "col": -1.8705, "connects": ["w91"], "required_level": 5, "class": "any", "modifiers": {"base_life": 23}, "icon_emoji": "❤"},
+	{"id": "w91", "name": "Efsane Koruyucu", "desc": "+46 armour, +15 all_resistance, +12 block_chance", "row": 11.5115, "col": -2.3705, "connects": ["w91_s0", "w91_s1", "w91_s2", "w91_s3", "w59", "w90"], "required_level": 7, "class": "any", "modifiers": {"armour": 46, "all_resistance": 15, "block_chance": 12}, "icon_emoji": "🛡"},
+	{"id": "w92_s0", "name": "Cevik", "desc": "+4 attack_speed", "row": 9.6514, "col": -6.4315, "connects": ["w92"], "required_level": 5, "class": "any", "modifiers": {"attack_speed": 4}, "icon_emoji": "⚡"},
+	{"id": "w92_s1", "name": "Keskin", "desc": "+4 dodge", "row": 9.6514, "col": -5.4315, "connects": ["w92"], "required_level": 5, "class": "any", "modifiers": {"dodge": 4}, "icon_emoji": "💨"},
+	{"id": "w92_s2", "name": "Kritik", "desc": "+7 crit_chance", "row": 10.6514, "col": -6.4315, "connects": ["w92"], "required_level": 5, "class": "any", "modifiers": {"crit_chance": 7}, "icon_emoji": "🎯"},
+	{"id": "w92_s3", "name": "Kacak", "desc": "+12 evasion", "row": 10.6514, "col": -5.4315, "connects": ["w92"], "required_level": 5, "class": "any", "modifiers": {"evasion": 12}, "icon_emoji": "👟"},
+	{"id": "w92", "name": "Efsane Haydut", "desc": "+15 attack_speed, +23 crit_chance, +30 evasion", "row": 10.1514, "col": -5.9315, "connects": ["w92_s0", "w92_s1", "w92_s2", "w92_s3", "w61", "w62", "w78"], "required_level": 7, "class": "any", "modifiers": {"attack_speed": 15, "crit_chance": 23, "evasion": 30}, "icon_emoji": "💨"}
+]
+]
+var _filtered_skills: Array = []
+
+func _ready() -> void:
+	pass
+
+func _get_skills_for_class(_cname: String) -> Array:
+	# All skills shown regardless of class (PoE-style unified tree)
+	return ALL_PASSIVE_SKILLS.duplicate(true)
+
+func open_embedded(player_ref: Player, _parent: Control, embed_size: Vector2) -> void:
+	_embedded_mode = true
+	_current_embed_parent = _parent
+	player = player_ref
+	_zoom_level = 0.4
+	anchor_right = 1.0
+	anchor_bottom = 1.0
+	size = embed_size
+	var cls: String = player.character_class.to_lower() if player else "warrior"
+	_filtered_skills = _get_skills_for_class(cls)
+	_rebuild_embedded(embed_size)
+	visible = true
+	set_process_input(true)
+
+func _rebuild_embedded(embed_size: Vector2) -> void:
+	for c in get_children():
+		if c is Control:
+			c.queue_free()
+	_node_btns.clear()
+	
+	var panel := Panel.new()
+	panel.name = "EmbeddedPanel"
+	panel.position = Vector2.ZERO
+	panel.size = embed_size
+	var pst := StyleBoxFlat.new()
+	pst.bg_color = Color(0.015, 0.015, 0.03, 0.98)
+	pst.border_color = Color(0.3, 0.25, 0.4, 0.6)
+	pst.border_width_left = 1
+	pst.border_width_right = 1
+	pst.border_width_top = 1
+	pst.border_width_bottom = 1
+	pst.set_corner_radius_all(4)
+	panel.add_theme_stylebox_override("panel", pst)
+	add_child(panel)
+	
+	# Sağ detay paneli
+	var detail_w: float = 145.0
+	var tree_area_w: float = embed_size.x - detail_w - 10
+	var top_y: float = 23.0
+	var area_h: float = embed_size.y - top_y - 5
+	
+	var detail_panel := Panel.new()
+	detail_panel.name = "DetailPanel"
+	detail_panel.position = Vector2(tree_area_w + 5, top_y)
+	detail_panel.size = Vector2(detail_w, area_h)
+	var dpst := StyleBoxFlat.new()
+	dpst.bg_color = Color(0.05, 0.05, 0.09, 0.95)
+	dpst.border_color = Color(0.25, 0.2, 0.35, 0.5)
+	dpst.border_width_left = 1
+	dpst.border_width_right = 1
+	dpst.border_width_top = 1
+	dpst.border_width_bottom = 1
+	dpst.set_corner_radius_all(3)
+	detail_panel.add_theme_stylebox_override("panel", dpst)
+	panel.add_child(detail_panel)
+	
+	# Tree viewport - pure drag pan (PoE style)
+	var tree_viewport := Panel.new()
+	tree_viewport.name = "TreeViewport"
+	tree_viewport.position = Vector2(4, top_y)
+	tree_viewport.size = Vector2(tree_area_w, area_h)
+	tree_viewport.mouse_filter = Control.MOUSE_FILTER_STOP
+	var vp_style := StyleBoxFlat.new()
+	vp_style.bg_color = Color(0.01, 0.01, 0.02, 0.3)
+	vp_style.set_corner_radius_all(2)
+	tree_viewport.add_theme_stylebox_override("panel", vp_style)
+	panel.add_child(tree_viewport)
+	
+	var tree_container := Node2D.new()
+	tree_container.name = "TreeContent"
+	tree_container.scale = Vector2(_zoom_level, _zoom_level)
+	tree_viewport.add_child(tree_container)
+	
+	_build_tree(tree_container, tree_area_w)
+	
+	# Calculate tree bounds
+	var min_x := 0.0; var min_y := 0.0
+	var max_x := 0.0; var max_y := 0.0
+	for child in tree_container.get_children():
+		if child is Button:
+			var r: Rect2 = child.get_rect()
+			if r.position.x < min_x: min_x = r.position.x
+			if r.position.y < min_y: min_y = r.position.y
+			if r.end.x > max_x: max_x = r.end.x
+			if r.end.y > max_y: max_y = r.end.y
+	var tree_w: float = max_x - min_x
+	var tree_h: float = max_y - min_y
+	_tree_pan_offset = Vector2(
+		tree_area_w * 0.5 - (min_x + tree_w * 0.5) * _zoom_level,
+		area_h * 0.5 - (min_y + tree_h * 0.5) * _zoom_level
+	)
+	tree_container.position = _tree_pan_offset
+	
+	# Mouse drag input on tree viewport
+	tree_viewport.gui_input.connect(_on_tree_viewport_input.bind(tree_viewport, tree_container, tree_w, tree_h, tree_area_w, area_h, min_x, min_y))
+	
+	var default_skill: Dictionary = _filtered_skills[0] if _filtered_skills.size() > 0 else {}
+	for s in _filtered_skills:
+		if s.get("modifiers", {}).size() > 0:
+			default_skill = s
+			break
+	if not default_skill.is_empty():
+		_show_node_detail(detail_panel, default_skill)
+
+func _build_tree(tree_container: Node2D, tree_area_w: float) -> void:
+	var node_size := 32
+	var h_spacing := 110.0
+	var v_spacing := 110.0
+	var grid_center_x: float = tree_area_w * 0.5
+	var grid_center_y: float = 15.0
+	
+	var positions: Dictionary = {}
+	for skill in _filtered_skills:
+		positions[skill.id] = Vector2(grid_center_x + skill.col * h_spacing, grid_center_y + skill.row * v_spacing)
+	
+	# Bağlantı çizgileri
+	for skill in _filtered_skills:
+		var from_pos: Vector2 = positions.get(skill.id, Vector2.ZERO) + Vector2(node_size * 0.5, node_size * 0.5)
+		for target_id in skill.connects:
+			if not positions.has(target_id):
+				continue
+			var to_pos: Vector2 = positions.get(target_id, Vector2.ZERO) + Vector2(node_size * 0.5, node_size * 0.5)
+			var dx: float = to_pos.x - from_pos.x
+			var dy: float = to_pos.y - from_pos.y
+			var len_v: float = sqrt(dx * dx + dy * dy)
+			if len_v < 1:
+				continue
+			var line := ColorRect.new()
+			line.size = Vector2(len_v, 2)
+			line.color = Color(0.4, 0.35, 0.55, 0.6)
+			line.position = from_pos
+			line.rotation = atan2(dy, dx)
+			tree_container.add_child(line)
+	
+	for skill in _filtered_skills:
+		var pos: Vector2 = positions.get(skill.id, Vector2.ZERO)
+		_create_passive_node(tree_container, skill, pos, node_size)
+
+func _update_virtual_size(virtual: Control, tree_content: Node2D, tree_area_w: float) -> void:
+	var min_x := 0.0; var min_y := 0.0
+	var max_x := tree_area_w; var max_y := 50.0
+	for child in tree_content.get_children():
+		if child is Button:
+			var r: Rect2 = child.get_rect()
+			if r.position.x < min_x: min_x = r.position.x
+			if r.position.y < min_y: min_y = r.position.y
+			if r.end.x > max_x: max_x = r.end.x
+			if r.end.y > max_y: max_y = r.end.y
+	# tree_area_w'den küçükse padding ekleme (scrollbar önle)
+	var pad_x: float = 10.0 if max_x > tree_area_w else 0.0
+	var pad_y: float = 10.0 if max_y > 50.0 else 0.0
+	min_x = min(min_x, 0.0)
+	min_y = min(min_y, 0.0)
+	max_x = max(max_x + pad_x, tree_area_w)
+	max_y = max(max_y + pad_y, 50.0)
+	var w: float = (max_x - min_x) * _zoom_level
+	var h: float = (max_y - min_y) * _zoom_level
+	virtual.custom_minimum_size = Vector2(w, h)
+	tree_content.position = Vector2(-min_x, -min_y)
+
+func _on_tree_scroll_input(event: InputEvent, scroll: ScrollContainer, virtual: Control, tree_content: Node2D, tree_area_w: float) -> void:
+	if event is InputEventMouseButton:
+		var mb := event as InputEventMouseButton
+		if mb.pressed:
+			if mb.button_index == MOUSE_BUTTON_WHEEL_UP:
+				_zoom_level = clampf(_zoom_level * 1.15, 0.2, 2.5)
+				tree_content.scale = Vector2(_zoom_level, _zoom_level)
+				_update_virtual_size(virtual, tree_content, tree_area_w)
+				get_viewport().set_input_as_handled()
+				return
+			elif mb.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+				_zoom_level = clampf(_zoom_level / 1.15, 0.2, 2.5)
+				tree_content.scale = Vector2(_zoom_level, _zoom_level)
+				_update_virtual_size(virtual, tree_content, tree_area_w)
+				get_viewport().set_input_as_handled()
+				return
+			if mb.button_index == MOUSE_BUTTON_LEFT or mb.button_index == MOUSE_BUTTON_MIDDLE or mb.button_index == MOUSE_BUTTON_RIGHT:
+				_is_dragging = true
+				_drag_start_mouse = Vector2(mb.position.x, mb.position.y)
+				_drag_start_scroll = Vector2(scroll.scroll_horizontal, scroll.scroll_vertical)
+				get_viewport().set_input_as_handled()
+				return
+		else:
+			if _is_dragging:
+				_is_dragging = false
+				return
+	if event is InputEventMouseMotion and _is_dragging:
+		var mm := event as InputEventMouseMotion
+		var delta: Vector2 = Vector2(mm.position.x, mm.position.y) - _drag_start_mouse
+		scroll.scroll_horizontal = int(_drag_start_scroll.x - delta.x)
+		scroll.scroll_vertical = int(_drag_start_scroll.y - delta.y)
+
+func _on_tree_viewport_input(event: InputEvent, vp: Panel, tree_container: Node2D, tree_w: float, tree_h: float, view_w: float, view_h: float, min_x: float, min_y: float) -> void:
+	if event is InputEventMouseButton:
+		var mb := event as InputEventMouseButton
+		if mb.pressed:
+			if mb.button_index == MOUSE_BUTTON_WHEEL_UP:
+				_zoom_level = clampf(_zoom_level * 1.15, 0.2, 2.5)
+				tree_container.scale = Vector2(_zoom_level, _zoom_level)
+				_tree_pan_offset = Vector2(
+					view_w * 0.5 - (min_x + tree_w * 0.5) * _zoom_level,
+					view_h * 0.5 - (min_y + tree_h * 0.5) * _zoom_level
+				)
+				tree_container.position = _tree_pan_offset
+				get_viewport().set_input_as_handled()
+				return
+			elif mb.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+				_zoom_level = clampf(_zoom_level / 1.15, 0.2, 2.5)
+				tree_container.scale = Vector2(_zoom_level, _zoom_level)
+				_tree_pan_offset = Vector2(
+					view_w * 0.5 - (min_x + tree_w * 0.5) * _zoom_level,
+					view_h * 0.5 - (min_y + tree_h * 0.5) * _zoom_level
+				)
+				tree_container.position = _tree_pan_offset
+				get_viewport().set_input_as_handled()
+				return
+			if mb.button_index == MOUSE_BUTTON_LEFT or mb.button_index == MOUSE_BUTTON_MIDDLE or mb.button_index == MOUSE_BUTTON_RIGHT:
+				_is_dragging = true
+				_drag_start_mouse = Vector2(mb.position.x, mb.position.y)
+				_drag_start_scroll = _tree_pan_offset
+				get_viewport().set_input_as_handled()
+				return
+		else:
+			if _is_dragging:
+				_is_dragging = false
+				return
+	if event is InputEventMouseMotion and _is_dragging:
+		var mm := event as InputEventMouseMotion
+		var delta: Vector2 = Vector2(mm.position.x, mm.position.y) - _drag_start_mouse
+		_tree_pan_offset = _drag_start_scroll + delta
+		tree_container.position = _tree_pan_offset
+
+func _create_passive_node(parent: Node2D, data: Dictionary, pos: Vector2, psize: int) -> void:
+	var nid: String = data.get("id", "")
+	var unlocked: bool = player and _is_unlocked(nid)
+	var available: bool = player and _is_available(nid) and not unlocked
+	var meets_level: bool = player and player.level_system and player.level_system.level >= data.get("required_level", 1)
+	var _can_unlock: bool = available and meets_level and player.skill_points > 0
+	
+	var btn := Button.new()
+	btn.name = "Node_" + nid
+	btn.position = pos
+	btn.size = Vector2(psize, psize)
+	btn.text = data.get("icon_emoji", "●")
+	btn.add_theme_font_size_override("font_size", 16)
+	
+	var bg_color: Color
+	var border_color: Color
+	if unlocked:
+		bg_color = Color(0.15, 0.45, 0.25, 0.95)
+		border_color = Color(0.3, 0.8, 0.4, 0.9)
+	elif _can_unlock:
+		bg_color = Color(0.35, 0.35, 0.55, 0.95)
+		border_color = Color(0.55, 0.5, 0.7, 0.8)
+	else:
+		bg_color = Color(0.08, 0.08, 0.12, 0.95)
+		border_color = Color(0.15, 0.15, 0.25, 0.5)
+	
+	var style := StyleBoxFlat.new()
+	style.bg_color = bg_color
+	style.border_color = border_color
+	style.border_width_left = 2; style.border_width_right = 2
+	style.border_width_top = 2; style.border_width_bottom = 2
+	style.set_corner_radius_all(psize / 2)
+	btn.add_theme_stylebox_override("normal", style)
+	
+	if _can_unlock:
+		var hov := style.duplicate()
+		hov.bg_color = Color(0.45, 0.45, 0.65, 1.0)
+		hov.border_color = Color(0.65, 0.6, 0.8, 1.0)
+		btn.add_theme_stylebox_override("hover", hov)
+		btn.pressed.connect(_on_node_pressed.bind(nid))
+	else:
+		btn.disabled = true
+	
+	var name_lbl := Label.new()
+	name_lbl.text = data.get("name", "")
+	name_lbl.position = Vector2(-12, psize + 3)
+	name_lbl.size = Vector2(psize + 24, 14)
+	name_lbl.add_theme_color_override("font_color", Color(0.8, 0.8, 0.85) if not unlocked else Color(0.85, 0.95, 0.8))
+	name_lbl.add_theme_font_size_override("font_size", 8)
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	btn.add_child(name_lbl)
+	
+	btn.mouse_entered.connect(_on_node_hover.bind(data))
+	parent.add_child(btn)
+	_node_btns[nid] = btn
+
+func _on_node_pressed(node_id: String) -> void:
+	if not player or player.skill_points <= 0: return
+	if _is_unlocked(node_id): return
+	var node: Dictionary = _get_node_data(node_id)
+	if node.is_empty(): return
+	var lvl: int = player.level_system.level if player.level_system else 1
+	if lvl < node.get("required_level", 1): return
+	player.skill_points -= 1
+	_apply_node_bonus(node)
+	_unlock_node(node_id)
+	_update_ui()
+
+func _on_node_hover(data: Dictionary) -> void:
+	var dp := get_node_or_null("EmbeddedPanel/DetailPanel")
+	if dp: _show_node_detail(dp, data)
+
+func _show_node_detail(detail_panel: Panel, data: Dictionary) -> void:
+	if data.is_empty(): return
+	for c in detail_panel.get_children(): c.queue_free()
+	
+	var scroll := ScrollContainer.new()
+	scroll.anchor_right = 1.0; scroll.anchor_bottom = 1.0
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	detail_panel.add_child(scroll)
+	
+	var vbox := VBoxContainer.new()
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.add_theme_constant_override("separation", 3)
+	scroll.add_child(vbox)
+	
+	var add_lbl := func(text: String, color: Color, sz: int = 10):
+		var lbl := Label.new()
+		lbl.text = text
+		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		lbl.custom_minimum_size = Vector2(0, sz + 3)
+		lbl.add_theme_color_override("font_color", color)
+		lbl.add_theme_font_size_override("font_size", sz)
+		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		vbox.add_child(lbl)
+	
+	add_lbl.call("%s  %s" % [data.get("icon_emoji", "●"), data.get("name", "")], Color(0.9, 0.85, 0.5), 12)
+	add_lbl.call(data.get("desc", ""), Color(0.7, 0.7, 0.8), 9)
+	
+	var lvl_req: int = data.get("required_level", 1)
+	var cur_lvl: int = player.level_system.level if player and player.level_system else 1
+	add_lbl.call("Gerekli Seviye: %d" % lvl_req, Color(0.3, 0.9, 0.4) if cur_lvl >= lvl_req else Color(0.9, 0.4, 0.3), 9)
+	
+	var nid: String = data.get("id", "")
+	if _is_unlocked(nid):
+		add_lbl.call("✅ AÇIK", Color(0.3, 0.9, 0.4), 10)
+	else:
+		var available: bool = _is_available(nid)
+		if available and cur_lvl >= lvl_req and player and player.skill_points > 0:
+			add_lbl.call("👆 Aç (Puan: %d)" % player.skill_points, Color(0.9, 0.8, 0.3), 9)
+		else:
+			add_lbl.call("🔒 Kilitli", Color(0.7, 0.4, 0.4), 9)
+	
+	var mods: Dictionary = data.get("modifiers", {})
+	if mods.size() > 0:
+		add_lbl.call("", Color(0.4, 0.4, 0.4), 3)
+		add_lbl.call("— ETKİLER —", Color(0.7, 0.65, 0.85), 9)
+		for key in mods:
+			add_lbl.call("• " + _describe_bonus(key, mods[key]), Color(0.6, 0.8, 0.6), 8)
+
+func _describe_bonus(key: String, val: float) -> String:
+	match key:
+		"base_life": return "+%d Can" % val
+		"base_mana": return "+%d Mana" % val
+		"base_energy_shield": return "+%d ES" % val
+		"life_regen": return "+%.1f Can/s" % val
+		"mana_regen": return "+%.1f Mana/s" % val
+		"es_regen": return "+%.1f ES/s" % val
+		"physical_damage": return "+%%%.0f Fiziksel" % val
+		"elemental_damage": return "+%%%.0f Element" % val
+		"spell_damage": return "+%%%.0f Büyü" % val
+		"fire_damage": return "+%%%.0f Ateş" % val
+		"cold_damage": return "+%%%.0f Soğuk" % val
+		"lightning_damage": return "+%%%.0f Yıldırım" % val
+		"chaos_damage": return "+%%%.0f Kaos" % val
+		"damage_over_time": return "+%%%.0f Zamanla" % val
+		"projectile_damage": return "+%%%.0f Atış" % val
+		"area_damage": return "+%%%.0f Alan" % val
+		"armour": return "+%%%.0f Zırh" % val
+		"evasion": return "+%%%.0f Kaçınma" % val
+		"max_energy_shield": return "+%%%.0f ES" % val
+		"critical_chance": return "+%%%.0f Kritik Şans" % val
+		"critical_multiplier": return "+%%%.0f Kritik Hasar" % val
+		"critical_chance_spells": return "+%%%.0f Büyü Kritik" % val
+		"attack_block_chance": return "+%%%.0f Blok" % val
+		"attack_dodge_chance": return "+%%%.0f Kaçınma" % val
+		"spell_dodge_chance": return "+%%%.0f Büyü Kaçınma" % val
+		"base_accuracy": return "+%d İsabet" % val
+		"all_resistance": return "+%d Tüm Direnç" % val
+		"base_chaos_resistance": return "+%d Kaos Direnci" % val
+		"max_fire_resistance": return "+%%%.0f Maks Ateş Direnci" % val
+		"max_cold_resistance": return "+%%%.0f Maks Soğuk Direnci" % val
+		"max_lightning_resistance": return "+%%%.0f Maks Yıldırım Direnci" % val
+		"max_chaos_resistance": return "+%%%.0f Maks Kaos Direnci" % val
+		# "flask_effect" kaldırıldı
+		"cooldown_recovery": return "+%%%.0f Soğuma" % val
+		"item_rarity": return "+%%%.0f Rarity" % val
+		"item_quantity": return "+%%%.0f Quantity" % val
+		"attack_speed": return "+%%%.0f Saldırı Hızı" % val
+		"cast_speed": return "+%%%.0f Büyü Hızı" % val
+		"life_leech": return "%%%.1f Can Çalma" % val
+		"mana_leech": return "%%%.1f Mana Çalma" % val
+		"life_gain_on_hit": return "+%d Can/Vuruş" % val
+		"life_on_kill": return "+%d Can/Öldür" % val
+		"mana_on_kill": return "+%d Mana/Öldür" % val
+		"physical_to_fire_conversion": return "%%%.0f fiz→ateş" % val
+		"movement_speed": return "+%%%.0f Hareket" % (val * 100.0)
+	return "%s: %+.1f" % [key, val]
+
+func _is_unlocked(node_id: String) -> bool:
+	if not player: return false
+	var unlocked: Array = player.get_meta("passive_unlocked", [])
+	return node_id in unlocked
+
+func _unlock_node(node_id: String) -> void:
+	if not player: return
+	var unlocked: Array = player.get_meta("passive_unlocked", [])
+	if node_id in unlocked: return
+	unlocked.append(node_id)
+	player.set_meta("passive_unlocked", unlocked)
+
+func _is_available(node_id: String) -> bool:
+	if not player: return false
+	if _is_unlocked(node_id): return false
+	var node: Dictionary = _get_node_data(node_id)
+	if node.is_empty(): return false
+	# Center node always available
+	if node_id == "center": return true
+	# Available if connected to any unlocked node
+	for conn_id in node.connects:
+		if _is_unlocked(conn_id): return true
+	for skill in ALL_PASSIVE_SKILLS:
+		if node_id in skill.connects and _is_unlocked(skill.id): return true
+	return false
+
+func _get_node_data(node_id: String) -> Dictionary:
+	for n in ALL_PASSIVE_SKILLS:
+		if n.id == node_id: return n
+	return {}
+
+func _apply_node_bonus(node: Dictionary) -> void:
+	if not player or not player.stats: return
+	var mods: Dictionary = node.get("modifiers", {})
+	if mods.is_empty(): return
+	var stats: CharacterStats = player.stats
+	if mods.has("base_life"): stats.base_life += mods["base_life"]
+	if mods.has("base_mana"): stats.base_mana += mods["base_mana"]
+	if mods.has("base_energy_shield"): stats.base_energy_shield += mods["base_energy_shield"]
+	if mods.has("base_accuracy"): stats.base_accuracy += mods["base_accuracy"]
+	if mods.has("base_chaos_resistance"): stats.base_chaos_resistance += mods["base_chaos_resistance"]
+	for key in mods:
+		var val: float = mods[key]
+		match key:
+			"physical_damage": stats.physical_damage_increased += val
+			"elemental_damage": stats.elemental_damage_increased += val
+			"spell_damage": stats.spell_damage_increased += val
+			"fire_damage": stats.fire_damage_increased += val
+			"cold_damage": stats.cold_damage_increased += val
+			"lightning_damage": stats.lightning_damage_increased += val
+			"chaos_damage": stats.chaos_damage_increased += val
+			"damage_over_time": stats.damage_over_time_increased += val
+			"projectile_damage": stats.projectile_damage_increased += val
+			"area_damage": stats.area_damage_increased += val
+			"armour": stats.base_armour = stats.base_armour * (1.0 + val / 100.0)
+			"evasion": stats.base_evasion = stats.base_evasion * (1.0 + val / 100.0)
+			"max_energy_shield": stats.base_energy_shield = stats.base_energy_shield * (1.0 + val / 100.0)
+			"attack_block_chance": stats.base_block_chance += val
+			"critical_chance": stats.base_critical_chance += val
+			"critical_multiplier": stats.base_critical_multiplier += val
+			"critical_chance_spells": stats.spell_critical_chance += val
+			"movement_speed": stats.base_movement_speed += val
+			"attack_speed": stats.base_attack_speed *= (1.0 + val / 100.0)
+			"cast_speed": stats.base_cast_speed *= (1.0 + val / 100.0)
+			# "flask_effect" kaldırıldı
+			"cooldown_recovery": stats.cooldown_recovery += val
+			"item_rarity": stats.item_rarity += val
+			"item_quantity": stats.item_quantity += val
+			"life_regen": stats.life_regen_per_second += val
+			"mana_regen": stats.base_mana_regen += val
+			"es_regen": stats.es_regen_per_second += val
+			"life_leech": stats.life_leech_percent += val / 100.0
+			"mana_leech": stats.mana_leech_percent += val / 100.0
+			"life_gain_on_hit": stats.life_gain_on_hit += val
+			"life_on_kill": stats.life_on_kill += val
+			"mana_on_kill": stats.mana_on_kill += val
+			"attack_dodge_chance": stats.attack_dodge_chance = min(stats.attack_dodge_chance + val / 100.0, 0.75)
+			"spell_dodge_chance": stats.spell_dodge_chance = min(stats.spell_dodge_chance + val / 100.0, 0.75)
+			"all_resistance":
+				stats.base_fire_resistance += val; stats.base_cold_resistance += val
+				stats.base_lightning_resistance += val; stats.base_chaos_resistance += val
+			"max_fire_resistance": stats.max_fire_resistance += val
+			"max_cold_resistance": stats.max_cold_resistance += val
+			"max_lightning_resistance": stats.max_lightning_resistance += val
+			"max_chaos_resistance": stats.max_chaos_resistance += val
+			"physical_to_fire_conversion": player.set_meta("phys_to_fire_pct", val)
+	stats.recalculate()
+
+func _update_ui() -> void:
+	var panel := get_node_or_null("EmbeddedPanel")
+	if panel:
+		var detail := panel.get_node_or_null("DetailPanel") as Panel
+		if detail:
+			for c in detail.get_children(): c.queue_free()
+	var tree_content := get_node_or_null("EmbeddedPanel/TreeViewport/TreeContent") as Node2D
+	if tree_content:
+		for c in tree_content.get_children(): c.queue_free()
+		_node_btns.clear()
+		var vp := get_node_or_null("EmbeddedPanel/TreeViewport") as Panel
+		var tw: float = vp.size.x if vp else 300.0
+		_build_tree(tree_content, tw)
+		# Tree handles its own layout
+
+func close_embedded() -> void:
+	_embedded_mode = false; _current_embed_parent = null
+	for c in get_children(): c.queue_free()
+	visible = false; set_process_input(false)
+
+func close() -> void:
+	if _embedded_mode: close_embedded(); return
+	visible = false; set_process_input(false)
+
+func _build_ui() -> void:
+	pass
+
+func _input(event: InputEvent) -> void:
+	if _embedded_mode: return
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_ESCAPE: close()

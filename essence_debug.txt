@@ -1,0 +1,13 @@
+3 grid) ──
+	var essence_x: float = anvil_x
+	var essence_y: float = inv_y + anvil_sz + 8
+	var essence_cell := 40.0
+	var essence_sep := 4.0
+	
+	_essence_grid = GridContainer.new()
+	_essence_grid.name = "EssenceGrid"
+	_essence_grid.columns = 3
+	_essence_grid.position = Vector2(essence_x, essence_y)
+	_essence_grid.size = Vector2(essence_cell * 3 + essence_sep * 2, essence_cell * 2 + essence_sep)
+	_essence_grid.add_theme_constant_override("h_separation", essence_sep)
+	_essence_grid.add_theme_constant_

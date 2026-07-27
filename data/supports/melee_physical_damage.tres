@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SupportData" format=3 uid="uid://dknc5lnr607dp"]
+
+[ext_resource type="Script" uid="uid://bgvgabasayfa8" path="res://scripts/core/SupportData.gd" id="1"]
+[ext_resource type="Script" uid="uid://dwdtrcc4a6y56" path="res://scripts/core/StatModifier.gd" id="2"]
+
+[sub_resource type="Resource" id="mod_1"]
+script = ExtResource("2")
+stat = "damage"
+modifier_type = 1
+value = 30.0
+damage_type_filter = "physical"
+skill_tag_filter = ""
+
+[resource]
+script = ExtResource("1")
+id = "melee_physical_damage"
+display_name = "Fiziksel Odak Desteği"
+gem_description = "Yakın dövüş skill'lerinin Fiziksel Hasarını %30 artırır (Increased). Diğer hasar türlerine etki etmez. Sadece Yakın Dövüş skill'lerine takılır."
+icon_path = "res://assets/generated/support_melee_physical_frame_0.png"
+allowed_tags = Array[String](["Melee"])
+modifiers = Array[ExtResource("2")]([SubResource("mod_1")])

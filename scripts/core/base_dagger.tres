@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Texture2D" uid="uid://v28g33q5i4x8" path="res://assets/generated/icon_dagger_frame_0.png" id="1_dagger"]
+[ext_resource type="Script" path="res://scripts/core/ItemData.gd" id="2_b3d49"]
+
+[resource]
+script = ExtResource("2_b3d49")
+id = "base_dagger"
+display_name = "Hançer"
+icon = ExtResource("1_dagger")
+item_type = "weapon"
+weapon_type = "dagger"
+equip_slot = "weapon"
+required_level = 1
+base_physical_damage_min = 3.0
+base_physical_damage_max = 8.0
+base_attack_speed = 1.6
+required_strength = 5
+required_dexterity = 15

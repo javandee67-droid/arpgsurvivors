@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" uid="uid://c8cwd6fk2o0q3" path="res://scripts/core/ItemData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "base_sword_bastard"
+display_name = "Piç Kılıcı"
+item_type = "weapon"
+weapon_type = "sword"
+equip_slot = "weapon"
+required_level = 32
+base_physical_damage_min = 32.0
+base_physical_damage_max = 60.0
+base_attack_speed = 1.10
+required_strength = 58
+required_dexterity = 22

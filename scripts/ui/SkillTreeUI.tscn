@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://b7t87fbnbt0bj"]
+
+[ext_resource type="Script" path="res://scripts/ui/SkillTreeUI.gd" id="1_2bku4"]
+
+[node name="SkillTreeUI" type="Control" unique_id=557207637]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_2bku4")

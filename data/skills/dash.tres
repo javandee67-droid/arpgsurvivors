@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://scripts/core/SkillData.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://dey1gsslwlevh" path="res://assets/generated/skill_blink_frame_0.png" id="2"]
+[resource]
+script = ExtResource("1")
+id = "dash"
+display_name = "Işınlanma"
+icon_path = "res://assets/generated/skill_blink_frame_0.png"
+skill_type = 6
+tags = Array[String](["Movement", "Travel"])
+base_damage = 0.0
+mana_cost = 0.0
+cooldown = 2.5
+damage_buckets = {}
+damage_effectiveness = 0.0

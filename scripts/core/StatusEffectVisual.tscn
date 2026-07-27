@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dgbojau4xrk2a"]
+
+[ext_resource type="Script" path="res://scripts/core/StatusEffectVisual.gd" id="1"]
+
+[node name="StatusEffectVisual" type="Node2D"]
+script = ExtResource("1")

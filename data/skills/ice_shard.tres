@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://scripts/core/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "ice_shard"
+display_name = "Buz Mızrağı (Delici)"
+icon_path = "res://assets/generated/skill_ice_nova_frame_0.png"
+skill_type = 0
+tags = Array[String](["Spell", "Cold", "Projectile"])
+base_damage = 10.0
+mana_cost = 0.0
+cooldown = 1.8
+damage_type = "cold"
+damage_buckets = {
+	"cold": 10
+}
+damage_effectiveness = 1.0
+projectile_count = 1
+projectile_speed = 500.0
+projectile_spread = 0.0
+cast_time = 0.3

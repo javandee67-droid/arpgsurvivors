@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://d2hpfwq6x3on0"]
+
+[ext_resource type="Script" uid="uid://bshp1331gooox" path="res://scripts/ui/SimpleSkillTreeUI.gd" id="1"]
+
+[node name="SimpleSkillTreeUI" type="Control" unique_id=370599422]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")

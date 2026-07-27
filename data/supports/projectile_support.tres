@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="SupportData" format=3]
+
+[ext_resource type="Script" path="res://scripts/core/SupportData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "projectile_support"
+display_name = "Mermi Desteği"
+gem_description = "Skill'e Mermi tag'i ekler. Mermi skill'lerine takılabilir. Pasif destek: hasar değiştirmez."
+icon_path = "res://assets/generated/support_projectile_frame_0.png"
+allowed_tags = Array[String](["Projectile"])
+damage_multiplier = 1.0
+mana_multiplier = 1.0

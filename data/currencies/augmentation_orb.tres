@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CurrencyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/CurrencyData.gd" id="1_xxx"]
+
+[resource]
+script = ExtResource("1_xxx")
+id = "augmentation_orb"
+display_name = "Artırma Küresi"
+description = "Büyülü eşyaya ikinci bir modifier ekler (en fazla 2)."
+effect_type = 7
+allowed_item_types = []
+allowed_rarities = ["magic"]
+drop_weight = 55
+tier_min = 1
+tier_max = 10

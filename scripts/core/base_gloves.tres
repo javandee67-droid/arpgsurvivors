@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://c2pjwtd77wwjg"]
+
+[ext_resource type="Script" uid="uid://c8cwd6fk2o0q3" path="res://scripts/core/ItemData.gd" id="2_vcp4q"]
+
+[resource]
+script = ExtResource("2_vcp4q")
+id = "base_gloves"
+display_name = "Eldiven"
+item_type = "gloves"
+equip_slot = "gloves"
+required_level = 1
+base_armour = 2.0
+base_evasion = 2.0
+required_strength = 8
+required_dexterity = 8

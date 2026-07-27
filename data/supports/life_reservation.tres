@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="SupportData" format=3]
+
+[ext_resource type="Script" uid="uid://bgvgabasayfa8" path="res://scripts/core/SupportData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+resource_name = "Life Reservation"
+display_name = "Can Rezervasyon Desteği"
+gem_description = "Buff skill'lerinin mana yerine can rezerve etmesini sağlar. Sadece Buff skill'lerine takılır."
+icon_path = "res://assets/generated/support_life_reservation_icon_frame_0.png"
+allowed_tags = Array[String](["Buff"])
+added_tags = Array[String](["life_reservation"])
+damage_multiplier = 1.0
+extra_projectiles = 0
+modifiers = []

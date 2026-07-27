@@ -1,0 +1,102 @@
+[gd_resource type="Resource" script_class="YggdrasilTree" format=3 uid="uid://b0m824ibv5awv"]
+
+[ext_resource type="Script" uid="uid://e7tfsgtpbob6" path="res://addons/yggdrasil/scripts/resources/yggdrasil_tree.gd" id="1_3emg4"]
+[ext_resource type="Script" uid="uid://cri0khs3wypbm" path="res://addons/yggdrasil/scripts/resources/yggdrasil_attribute.gd" id="1_5lirl"]
+[ext_resource type="Texture2D" uid="uid://b5y6oef7rb4tm" path="res://yggdrasil_data/textures/line_active.png" id="2_7voo1"]
+[ext_resource type="Texture2D" uid="uid://ctvefy4bqjulb" path="res://yggdrasil_data/textures/line_intermediate.png" id="3_vmqox"]
+[ext_resource type="Texture2D" uid="uid://crldymmurcgji" path="res://yggdrasil_data/textures/line_normal.png" id="4_rwptw"]
+[ext_resource type="Texture2D" uid="uid://do1occ54m41fj" path="res://addons/yggdrasil/blank_icon.png" id="5_kelnf"]
+[ext_resource type="Script" uid="uid://dsrk0byl742tb" path="res://addons/yggdrasil/scripts/resources/yggdrasil_node.gd" id="6_ciogi"]
+[ext_resource type="Script" uid="uid://bmmquesqyed6p" path="res://addons/yggdrasil/scripts/shared/yggdrasil_line_data.gd" id="7_vomge"]
+
+[sub_resource type="Resource" id="Resource_vwyhq"]
+script = ExtResource("1_5lirl")
+id = "new_attribute"
+name = "New Attribute"
+effect = "Edit me!"
+
+[sub_resource type="Resource" id="Resource_rgtwe"]
+script = ExtResource("6_ciogi")
+id = 1
+name = "Node_1"
+icon = ExtResource("5_kelnf")
+position = Vector2(-2360, -2227)
+line_data = {}
+out_nodes = []
+in_nodes = []
+attributes = {}
+max_allocations = 1
+
+[sub_resource type="Resource" id="Resource_bqclf"]
+script = ExtResource("6_ciogi")
+id = 2
+name = "Node_2"
+icon = ExtResource("5_kelnf")
+position = Vector2(-2420, -2347)
+line_data = {}
+out_nodes = []
+in_nodes = []
+attributes = {}
+max_allocations = 1
+
+[sub_resource type="Resource" id="Resource_jid7n"]
+script = ExtResource("7_vomge")
+
+[sub_resource type="Resource" id="Resource_1x018"]
+script = ExtResource("6_ciogi")
+is_root = true
+id = 3
+name = "Node_3"
+icon = ExtResource("5_kelnf")
+position = Vector2(-2428, -2351)
+line_data = {
+4: SubResource("Resource_jid7n")
+}
+out_nodes = [4]
+in_nodes = []
+attributes = {}
+max_allocations = 1
+
+[sub_resource type="Resource" id="Resource_86adt"]
+script = ExtResource("6_ciogi")
+is_root = true
+id = 4
+name = "Node_4"
+type = 1
+icon = ExtResource("5_kelnf")
+position = Vector2(-2570, -2330)
+line_data = {}
+out_nodes = []
+in_nodes = [3]
+attributes = {}
+max_allocations = 1
+
+[resource]
+script = ExtResource("1_3emg4")
+id = "new_tree"
+name = "New Tree"
+line_texture_normal = ExtResource("4_rwptw")
+line_texture_intermediate = ExtResource("3_vmqox")
+line_texture_active = ExtResource("2_7voo1")
+id_counter = 4
+icon_sizes = {
+0: Vector2(0, 0),
+1: Vector2(0, 0),
+2: Vector2(0, 0)
+}
+icons = {
+0: null,
+1: null,
+2: null
+}
+node_size = {
+0: Vector2(27, 27),
+1: Vector2(48, 48),
+2: Vector2(64, 64)
+}
+nodes = [SubResource("Resource_rgtwe"), SubResource("Resource_bqclf"), SubResource("Resource_1x018"), SubResource("Resource_86adt")]
+decorations = []
+prefabs = {}
+attributes = {
+"new_attribute": SubResource("Resource_vwyhq")
+}

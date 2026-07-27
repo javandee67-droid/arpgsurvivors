@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://scripts/core/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "fireball"
+display_name = "Fireball"
+icon_path = "res://assets/generated/skill_fireball_frame_0.png"
+skill_type = 0
+tags = Array[String](["Spell", "Fire", "Projectile"])
+base_damage = 15.0
+mana_cost = 0.0
+cooldown = 1.5
+damage_type = "fire"
+damage_buckets = {
+	"fire": 15
+}
+damage_effectiveness = 1.0
+projectile_count = 1
+projectile_speed = 400.0
+projectile_spread = 0.0
+cast_time = 0.5

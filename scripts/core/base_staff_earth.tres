@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" uid="uid://c8cwd6fk2o0q3" path="res://scripts/core/ItemData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "base_staff_earth"
+display_name = "Toprak Asası"
+item_type = "weapon"
+weapon_type = "staff"
+equip_slot = "weapon"
+required_level = 50
+base_physical_damage_min = 10.0
+base_physical_damage_max = 18.0
+base_elemental_damage = 85.0
+base_attack_speed = 1.00
+required_intelligence = 85

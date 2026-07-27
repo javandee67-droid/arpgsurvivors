@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CurrencyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/CurrencyData.gd" id="1_xxx"]
+
+[resource]
+script = ExtResource("1_xxx")
+id = "essence_of_crit"
+display_name = "Kritik Özü"
+description = "Rastgele bir kritik modifier'ı ekler (crit chance, crit multi)."
+effect_type = 19
+allowed_item_types = []
+allowed_rarities = []
+drop_weight = 20
+tier_min = 3
+tier_max = 10

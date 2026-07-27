@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CurrencyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/CurrencyData.gd" id="1_xxx"]
+
+[resource]
+script = ExtResource("1_xxx")
+id = "chaos_orb"
+display_name = "Kaos Küresi"
+description = "Tüm modifierları yeniden dağıtır. Nadir bir eşyayı tamamen yeni modifierlarla değiştirir."
+effect_type = 0
+allowed_item_types = []
+allowed_rarities = ["rare"]
+drop_weight = 50
+tier_min = 1
+tier_max = 10

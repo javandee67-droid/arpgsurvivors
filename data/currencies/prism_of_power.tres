@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CurrencyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/CurrencyData.gd" id="1_xxx"]
+
+[resource]
+script = ExtResource("1_xxx")
+id = "prism_of_power"
+display_name = "Güç Prizması"
+description = "Rare eşyaya %50 bonus değerli güçlü bir modifier ekler (enchant etkisi). Unique'ler değiştirilemez."
+effect_type = 28
+allowed_item_types = []
+allowed_rarities = ["rare"]
+drop_weight = 5
+tier_min = 5
+tier_max = 10

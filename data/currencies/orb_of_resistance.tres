@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CurrencyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/CurrencyData.gd" id="1_xxx"]
+
+[resource]
+script = ExtResource("1_xxx")
+id = "orb_of_resistance"
+display_name = "Direnç Küresi"
+description = "Rastgele bir direnç modifier'ı ekler (ateş/buz/yıldırım/kaos)."
+effect_type = 11
+allowed_item_types = []
+allowed_rarities = []
+drop_weight = 40
+tier_min = 1
+tier_max = 10

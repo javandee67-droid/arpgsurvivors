@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://scripts/core/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "precision_aura"
+display_name = "Keskin Nişan"
+icon_path = "res://assets/generated/icon_precision_aura_frame_0.png"
+skill_type = 4
+tags = Array[String](["Buff", "Spell", "Aura"])
+base_damage = 0.0
+mana_cost = 0.0
+cooldown = 0.5
+damage_type = "physical"
+damage_buckets = {}
+damage_effectiveness = 0.0
+projectile_count = 0
+projectile_speed = 0.0
+projectile_spread = 0.0
+buff_duration = 0.0
+aura_reservation_flat = 0.0
+aura_reservation_percent = 25.0
+buff_tags = Array[String](["accuracy:40","critical_chance:15"])
+cast_time = 0.0

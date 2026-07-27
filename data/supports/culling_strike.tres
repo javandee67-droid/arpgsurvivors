@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="SupportData" format=3]
+
+[ext_resource type="Script" uid="uid://bgvgabasayfa8" path="res://scripts/core/SupportData.gd" id="1"]
+[ext_resource type="Script" uid="uid://dwdtrcc4a6y56" path="res://scripts/core/StatModifier.gd" id="2"]
+
+[sub_resource type="Resource" id="mod_dmg"]
+script = ExtResource("2")
+stat = "damage"
+modifier_type = 2
+value = 15.0
+damage_type_filter = ""
+skill_tag_filter = ""
+
+[sub_resource type="Resource" id="mod_cull"]
+script = ExtResource("2")
+stat = "culling_threshold"
+modifier_type = 0
+value = 10.0
+damage_type_filter = ""
+skill_tag_filter = ""
+
+[resource]
+script = ExtResource("1")
+id = "culling_strike"
+display_name = "Bitirici Vuruş Desteği"
+gem_description = "Toplam hasarı %15 ÇARPAN (More) artırır. Canı %10'un altındaki düşmanları anında öldürür (Culling Strike). Boss'lar için harika bir destek."
+icon_path = "res://assets/generated/support_culling_strike_frame_0.png"
+required_level = 8
+damage_multiplier = 1.15
+mana_multiplier = 1.0
+allowed_tags = Array[String](["Attack", "Spell"])
+modifiers = Array[Resource]([SubResource("mod_dmg"), SubResource("mod_cull")])

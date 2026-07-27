@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://caqcqcu3r5kjw"]
+
+[ext_resource type="Script" path="res://scripts/ui/SkillGemPanel.gd" id="1_02ubn"]
+
+[node name="SkillGemPanel" type="CanvasLayer"]
+script = ExtResource("1_02ubn")

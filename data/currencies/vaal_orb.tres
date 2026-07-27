@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CurrencyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/core/CurrencyData.gd" id="1_xxx"]
+
+[resource]
+script = ExtResource("1_xxx")
+id = "vaal_orb"
+display_name = "Vaal Küresi"
+description = "Eşyayı yozlaştırır — öngörülemez sonuçlar doğurur."
+effect_type = 10
+allowed_item_types = []
+allowed_rarities = ["magic", "rare", "unique"]
+drop_weight = 5
+tier_min = 5
+tier_max = 10

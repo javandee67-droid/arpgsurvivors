@@ -1,0 +1,18 @@
+l * 2 + essence_sep)
+	_essence_grid.add_theme_constant_override("h_separation", essence_sep)
+	_essence_grid.add_theme_constant_override("v_separation", essence_sep)
+	c.add_child(_essence_grid)
+	
+	var essence_label := Label.new()
+	essence_label.text = "ÖZLER"
+	essence_label.position = Vector2(essence_x, essence_y - 16)
+	essence_label.size = Vector2(130, 16)
+	essence_label.add_theme_color_override("font_color", Color(0.55, 0.35, 0.95))
+	essence_label.add_theme_font_size_override("font_size", 9)
+	c.add_child(essence_label)
+	
+	# 6 essence slotu olustur
+	for i in range(6):
+		var btn := Button.new()
+		btn.custom_minimum_size = Vector2(essence_cell, essence_cell)
+		btn.size_flags_horizontal = Contr

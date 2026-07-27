@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="SupportData" format=3]
+
+[ext_resource type="Script" uid="uid://bgvgabasayfa8" path="res://scripts/core/SupportData.gd" id="1"]
+[ext_resource type="Script" uid="uid://dwdtrcc4a6y56" path="res://scripts/core/StatModifier.gd" id="2"]
+
+[sub_resource type="Resource" id="mod_dmg"]
+script = ExtResource("2")
+stat = "damage"
+modifier_type = 2
+value = -10.0
+damage_type_filter = ""
+skill_tag_filter = ""
+
+[sub_resource type="Resource" id="mod_leech"]
+script = ExtResource("2")
+stat = "life_leech"
+modifier_type = 0
+value = 2.0
+damage_type_filter = ""
+skill_tag_filter = ""
+
+[resource]
+script = ExtResource("1")
+id = "life_leech"
+display_name = "Can Emme Desteği"
+gem_description = "Verdiğin hasarın %2'sini can olarak geri kazanırsın (Life Leech). Buna karşılık toplam hasarın %10 düşer (Less). Saldırı ve Büyü skill'lerine takılır."
+icon_path = "res://assets/generated/support_life_leech_frame_0.png"
+required_level = 6
+damage_multiplier = 0.9
+mana_multiplier = 1.0
+allowed_tags = Array[String](["Attack", "Spell"])
+modifiers = Array[Resource]([SubResource("mod_dmg"), SubResource("mod_leech")])

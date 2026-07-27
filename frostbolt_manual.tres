@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="PackedScene" path="res://scripts/projectile.tscn" id="1_5ie3h"]
+[ext_resource type="Script" path="res://scripts/core/SkillData.gd" id="2_xna1l"]
+
+[resource]
+script = ExtResource("2_xna1l")
+id = "frostbolt"
+display_name = "Frostbolt"
+tags = Array[String](["spell", "projectile", "cold"])
+base_damage = 25.0
+mana_cost = 8.0
+damage_type = "cold"
+projectile_scene = ExtResource("1_5ie3h")
+projectile_speed = 450.0

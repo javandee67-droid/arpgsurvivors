@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Texture2D" uid="uid://sax46wuokpor" path="res://assets/generated/icon_staff_frame_0.png" id="1_staff"]
+[ext_resource type="Script" path="res://scripts/core/ItemData.gd" id="2_7c9df"]
+
+[resource]
+script = ExtResource("2_7c9df")
+id = "base_staff"
+display_name = "Asa"
+icon = ExtResource("1_staff")
+item_type = "weapon"
+weapon_type = "staff"
+equip_slot = "weapon"
+required_level = 1
+base_physical_damage_min = 3.0
+base_physical_damage_max = 6.0
+base_elemental_damage = 5.0
+base_attack_speed = 1.1
+required_intelligence = 20

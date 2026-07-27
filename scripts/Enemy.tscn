@@ -1,0 +1,58 @@
+[gd_scene format=3 uid="uid://dbxu5whsku0vk"]
+
+[ext_resource type="Script" uid="uid://6huro4jwfxln" path="res://scripts/core/Health.gd" id="1_kqkmk"]
+[ext_resource type="Script" uid="uid://ba80q2o572npg" path="res://scripts/enemy/Enemy.gd" id="1_lol5l"]
+[ext_resource type="Script" uid="uid://b01ghf3kg53vd" path="res://scripts/enemy/DropTable.gd" id="2_lol5l"]
+[ext_resource type="Script" uid="uid://c8cwd6fk2o0q3" path="res://scripts/core/ItemData.gd" id="5_55j23"]
+[ext_resource type="Resource" uid="uid://b4f2v6pny1xxk" path="res://scripts/core/base_axe.tres" id="6_axe"]
+[ext_resource type="Resource" uid="uid://cix1gacx0g6u7" path="res://scripts/core/base_boots.tres" id="6_boots"]
+[ext_resource type="Resource" path="res://scripts/core/base_bow.tres" id="6_bow"]
+[ext_resource type="Resource" uid="uid://ctmbxgj6pjjvf" path="res://scripts/core/base_chest.tres" id="6_chest"]
+[ext_resource type="Resource" path="res://scripts/core/base_dagger.tres" id="6_dagger"]
+[ext_resource type="Resource" uid="uid://c2pjwtd77wwjg" path="res://scripts/core/base_gloves.tres" id="6_gloves"]
+[ext_resource type="Resource" uid="uid://htcslrivccwr" path="res://scripts/core/base_helmet.tres" id="6_l2l8s"]
+[ext_resource type="Resource" uid="uid://clfqsrjsfwy2f" path="res://scripts/core/base_shield.tres" id="6_shield"]
+[ext_resource type="Resource" path="res://scripts/core/base_staff.tres" id="6_staff"]
+[ext_resource type="Resource" uid="uid://ed2i5q8a60g3" path="res://scripts/core/base_sword.tres" id="6_sword"]
+[ext_resource type="Resource" path="res://scripts/core/base_wand.tres" id="6_wand"]
+[ext_resource type="Script" uid="uid://6v6d3iviu55o" path="res://scripts/core/CharacterStats.gd" id="7_stats"]
+[ext_resource type="Script" uid="uid://d1xnm0iuhlktb" path="res://scripts/core/AilmentController.gd" id="8_ail"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_wq4h1"]
+
+[node name="CharacterBody2D" type="CharacterBody2D" unique_id=1633005590]
+script = ExtResource("1_lol5l")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2067564073]
+shape = SubResource("CapsuleShape2D_wq4h1")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1458859391]
+z_index = 3
+
+[node name="Health" type="Node" parent="." unique_id=1411549973]
+script = ExtResource("1_kqkmk")
+metadata/_custom_type_script = "uid://6huro4jwfxln"
+
+[node name="DropTable" type="Node" parent="." unique_id=461503270]
+script = ExtResource("2_lol5l")
+possible_base_items = Array[ExtResource("5_55j23")]([ExtResource("6_l2l8s"), ExtResource("6_sword"), ExtResource("6_bow"), ExtResource("6_staff"), ExtResource("6_wand"), ExtResource("6_dagger"), ExtResource("6_axe"), ExtResource("6_chest"), ExtResource("6_boots"), ExtResource("6_gloves"), ExtResource("6_shield")])
+drop_chance = 100.0
+metadata/_custom_type_script = "uid://b01ghf3kg53vd"
+
+[node name="CharacterStats" type="Node" parent="." unique_id=200000001]
+script = ExtResource("7_stats")
+base_life = 30.0
+base_armour = 10.0
+base_evasion = 10.0
+
+[node name="AilmentController" type="Node" parent="." unique_id=200000002]
+script = ExtResource("8_ail")
+
+[node name="NameLabel" type="Label" parent="." unique_id=1658401445]
+offset_left = -80.0
+offset_top = -55.0
+offset_right = 80.0
+offset_bottom = -30.0
+theme_override_font_sizes/font_size = 11
+horizontal_alignment = 1
+vertical_alignment = 1

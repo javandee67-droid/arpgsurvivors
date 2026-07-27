@@ -1,0 +1,76 @@
+[gd_scene format=3 uid="uid://bfg7x1yhqqw7b"]
+
+[ext_resource type="Script" uid="uid://b0yrb4jgoggki" path="res://scripts/enemy/OrbitalProjectile.gd" id="1_x3lmb"]
+[ext_resource type="Texture2D" uid="uid://dhhj8tx4iq04e" path="res://assets/generated/proj_fire_orb_anim.png" id="2_1xve3"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wh511"]
+atlas = ExtResource("2_1xve3")
+region = Rect2(0, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vpo6r"]
+atlas = ExtResource("2_1xve3")
+region = Rect2(128, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m52ax"]
+atlas = ExtResource("2_1xve3")
+region = Rect2(256, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wutbh"]
+atlas = ExtResource("2_1xve3")
+region = Rect2(384, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qen4v"]
+atlas = ExtResource("2_1xve3")
+region = Rect2(0, 128, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5grcq"]
+atlas = ExtResource("2_1xve3")
+region = Rect2(128, 128, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2hru2"]
+atlas = ExtResource("2_1xve3")
+region = Rect2(256, 128, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bubfe"]
+atlas = ExtResource("2_1xve3")
+region = Rect2(384, 128, 128, 128)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_73uoq"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wh511")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vpo6r")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m52ax")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wutbh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qen4v")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5grcq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2hru2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bubfe")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 8.0
+}]
+
+[node name="OrbitalProjectile" type="Node2D" unique_id=620719039]
+script = ExtResource("1_x3lmb")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=354526939]
+z_index = 5
+sprite_frames = SubResource("SpriteFrames_73uoq")
+autoplay = "default"

@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://cq654ftwe0v5v"]
+
+[ext_resource type="Script" uid="uid://cxdmbfitrle45" path="res://scripts/world/Main.gd" id="1_i8f85"]
+[ext_resource type="PackedScene" uid="uid://csoqfibfi12va" path="res://scripts/Player.tscn" id="2_3sjs6"]
+[ext_resource type="Script" uid="uid://dpo1psuh17jwx" path="res://scripts/world/MapGenerator.gd" id="2_fhm1o"]
+[ext_resource type="PackedScene" uid="uid://bkuyrpdddjtl3" path="res://scripts/Tile.tscn" id="3_3sjs6"]
+[ext_resource type="PackedScene" uid="uid://dbxu5whsku0vk" path="res://scripts/Enemy.tscn" id="3_nxldc"]
+[ext_resource type="Script" uid="uid://6bwpevx2dfpk" path="res://scripts/ui/GameUI.gd" id="6_nxldc"]
+[ext_resource type="Script" uid="uid://vmicockrtvl8" path="res://scripts/ui/HUD.gd" id="7_teb4g"]
+[ext_resource type="Script" uid="uid://5i1gpia6y7b0" path="res://scripts/ui/SkillBar.gd" id="8_skillbar"]
+
+[node name="Node2D" type="Node2D" unique_id=1873682943]
+script = ExtResource("1_i8f85")
+player_scene = ExtResource("2_3sjs6")
+enemy_scene = ExtResource("3_nxldc")
+
+[node name="MapGenerator" type="Node2D" parent="." unique_id=959043728]
+script = ExtResource("2_fhm1o")
+tile_scene = ExtResource("3_3sjs6")
+metadata/_custom_type_script = "uid://dpo1psuh17jwx"
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1453917072]
+script = ExtResource("6_nxldc")
+
+[node name="CanvasLayer2" type="CanvasLayer" parent="." unique_id=1680195220]
+script = ExtResource("7_teb4g")
+
+[node name="CanvasLayer3" type="CanvasLayer" parent="." unique_id=1680195221]
+script = ExtResource("8_skillbar")

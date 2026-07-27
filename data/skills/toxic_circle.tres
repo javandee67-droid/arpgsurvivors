@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://scripts/core/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "toxic_circle"
+display_name = "Zehir Havuzu (Alan)"
+icon_path = "res://assets/generated/skill_fireball_frame_0.png"
+skill_type = 1
+tags = Array[String](["Spell", "Chaos", "Area"])
+base_damage = 6.0
+mana_cost = 0.0
+cooldown = 3.0
+damage_type = "chaos"
+damage_buckets = {
+	"chaos": 6
+}
+damage_effectiveness = 1.0
+aoe_radius = 60.0
+cast_time = 0.2

@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="Affix" format=3 uid="uid://cmvvi13qi3owe"]
+
+[ext_resource type="Script" uid="uid://v767noaiaob6" path="res://scripts/core/Affix.gd" id="1_fjkrm"]
+
+[resource]
+script = ExtResource("1_fjkrm")
+metadata/_custom_type_script = "uid://v767noaiaob6"

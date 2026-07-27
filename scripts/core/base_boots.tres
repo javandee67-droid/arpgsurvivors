@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://cix1gacx0g6u7"]
+
+[ext_resource type="Script" uid="uid://c8cwd6fk2o0q3" path="res://scripts/core/ItemData.gd" id="2_t2iw7"]
+
+[resource]
+script = ExtResource("2_t2iw7")
+id = "base_boots"
+display_name = "Bot"
+item_type = "boots"
+equip_slot = "boots"
+required_level = 1
+base_evasion = 5.0
+required_dexterity = 10

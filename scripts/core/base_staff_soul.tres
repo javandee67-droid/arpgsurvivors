@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" uid="uid://c8cwd6fk2o0q3" path="res://scripts/core/ItemData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "base_staff_soul"
+display_name = "Ruh Asası"
+item_type = "weapon"
+weapon_type = "staff"
+equip_slot = "weapon"
+required_level = 35
+base_physical_damage_min = 8.0
+base_physical_damage_max = 14.0
+base_elemental_damage = 55.0
+base_attack_speed = 1.05
+required_intelligence = 72

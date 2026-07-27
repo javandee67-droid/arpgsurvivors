@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://scripts/core/SkillData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "whirlwind"
+display_name = "Kasırga"
+icon_path = "res://assets/generated/skill_slice_wave_icon_frame_0.png"
+skill_type = 2
+tags = Array[String](["Attack", "Melee", "Area", "Physical"])
+base_damage = 18.0
+mana_cost = 0.0
+cooldown = 2.0
+damage_type = "physical"
+damage_buckets = {
+	"physical": 18
+}
+damage_effectiveness = 1.0
+melee_range = 60.0
+cast_time = 0.3

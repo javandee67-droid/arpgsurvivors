@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="SupportData" format=3]
+
+[ext_resource type="Script" uid="uid://bgvgabasayfa8" path="res://scripts/core/SupportData.gd" id="1"]
+[ext_resource type="Script" uid="uid://dwdtrcc4a6y56" path="res://scripts/core/StatModifier.gd" id="2"]
+
+[sub_resource type="Resource" id="mod_speed"]
+script = ExtResource("2")
+stat = "attack_speed"
+modifier_type = 1
+value = 25.0
+damage_type_filter = ""
+skill_tag_filter = ""
+
+[sub_resource type="Resource" id="mod_dmg"]
+script = ExtResource("2")
+stat = "damage"
+modifier_type = 2
+value = -10.0
+damage_type_filter = ""
+skill_tag_filter = ""
+
+[resource]
+script = ExtResource("1")
+resource_name = "Hizli Saldiri"
+display_name = "Hızlı Saldırı Desteği"
+gem_description = "%25 increased Attack Speed. %10 LESS Damage. Yakın dövüş ve Menzilli skill'lere takılır."
+icon_path = "res://assets/generated/support_faster_attacks_frame_0.png"
+allowed_tags = Array[String](["Attack", "Melee", "Ranged"])
+added_tags = Array[String]([])
+damage_multiplier = 0.9
+mana_multiplier = 1.0
+extra_projectiles = 0
+modifiers = Array[Resource]([SubResource("mod_speed"), SubResource("mod_dmg")])

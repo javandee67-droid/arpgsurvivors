@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://ctmbxgj6pjjvf"]
+
+[ext_resource type="Script" uid="uid://c8cwd6fk2o0q3" path="res://scripts/core/ItemData.gd" id="2_2kaw8"]
+
+[resource]
+script = ExtResource("2_2kaw8")
+id = "base_chest"
+display_name = "Zırh"
+item_type = "body_armour"
+equip_slot = "body_armour"
+required_level = 1
+base_armour = 8.0
+required_strength = 20

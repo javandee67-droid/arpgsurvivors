@@ -1,0 +1,70 @@
+{
+	"animation_name": "walking",
+	"animation_style": "",
+	"animation_type": "walking",
+	"columns": 4,
+	"directions": [],
+	"frame_count": 8,
+	"frame_height": 64,
+	"frame_paths": [],
+	"frame_regions": [
+		{
+			"h": 64,
+			"w": 64,
+			"x": 0,
+			"y": 0
+		},
+		{
+			"h": 64,
+			"w": 64,
+			"x": 64,
+			"y": 0
+		},
+		{
+			"h": 64,
+			"w": 64,
+			"x": 128,
+			"y": 0
+		},
+		{
+			"h": 64,
+			"w": 64,
+			"x": 192,
+			"y": 0
+		},
+		{
+			"h": 64,
+			"w": 64,
+			"x": 0,
+			"y": 64
+		},
+		{
+			"h": 64,
+			"w": 64,
+			"x": 64,
+			"y": 64
+		},
+		{
+			"h": 64,
+			"w": 64,
+			"x": 128,
+			"y": 64
+		},
+		{
+			"h": 64,
+			"w": 64,
+			"x": 192,
+			"y": 64
+		}
+	],
+	"frame_width": 64,
+	"name": "knight_player_walk",
+	"prompt": "A pixel art knight in silver armor with a sword, walking animation, top-down 2D view",
+	"rows": 2,
+	"source_image": "res://assets/generated/knight_player_frame_0.png",
+	"source_tool": "animate_sprite",
+	"spritesheet_height": 128,
+	"spritesheet_path": "res://assets/generated/knight_player_walk.png",
+	"spritesheet_width": 256,
+	"type": "animation"
+}
