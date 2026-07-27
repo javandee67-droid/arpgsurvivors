@@ -306,26 +306,41 @@ func _update_particles() -> void:
 	var particles_node := get_node_or_null("Particles") as Node2D
 	if not particles_node:
 		return
-	
-	# Add new particles occasionally
-	if randf() > 0.7:
-		var particle := ColorRect.new()
-		particle.color = Color(
-			0.85 + randf() * 0.15,
-			0.65 + randf() * 0.2,
-			0.25 + randf() * 0.1,
-			0.1 + randf() * 0.2
-		)
-		particle.size = Vector2(2, 2)
-		particle.position = Vector2(randf_range(100, 1180), 700)
-		particles_node.add_child(particle)
-		
-		# Animate upward
-		var tween := create_tween()
-		tween.tween_property(particle, "position:y", -20, 4.0 + randf() * 2.0)
-		tween.tween_callback(particle.queue_free)
 
-## Handle menu button press
+	# Add new particles - daha büyük ve çeşitli
+	if randf() > 0.6:
+		var particle := ColorRect.new()
+		# Altın/turuncu tonlarında parçacıklar
+		var color_type := randi() % 3
+		match color_type:
+			0:  # Altın
+				particle.color = Color(1.0, 0.8 + randf() * 0.2, 0.2 + randf() * 0.2, 0.3 + randf() * 0.4)
+			1:  # Mor
+				particle.color = Color(0.5 + randf() * 0.3, 0.2 + randf() * 0.2, 0.8 + randf() * 0.2, 0.2 + randf() * 0.3)
+			2:  # Mavi
+				particle.color = Color(0.3 + randf() * 0.2, 0.5 + randf() * 0.3, 0.9 + randf() * 0.1, 0.2 + randf() * 0.3)
+		# Büyük parçacıklar
+		var size := 3.0 + randf() * 5.0
+		particle.size = Vector2(size, size)
+		# Köşeleri yuvarlak
+		var style := StyleBoxFlat.new()
+		style.bg_color = particle.color
+		style.set_corner_radius_all(size / 2)
+		particle.add_theme_stylebox_override("panel", style)
+		# Rastgele X pozisyonu
+		particle.position = Vector2(randf_range(50, 1230), 700 + randf() * 50)
+		particles_node.add_child(particle)
+
+		# Yukarı doğru animasyon + hafif yan salınım
+		var duration := 5.0 + randf() * 3.0
+		var drift := randf_range(-30, 30)
+		var tween := create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(particle, "position:y", -30, duration)
+		tween.tween_property(particle, "position:x", particle.position.x + drift, duration)
+		tween.chain().tween_callback(particle.queue_free)
+		# Fade out
+		tween.tween_property(particle, "modulate:a", 0.0, 2.0).set_delay(duration - 2.0)
 func _on_menu_button_pressed(button_id: String) -> void:
 	match button_id:
 		"continue":
