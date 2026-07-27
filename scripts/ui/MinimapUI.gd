@@ -47,14 +47,22 @@ func _ready() -> void:
 	add_child(_mini_rect)
 	
 	# Minimal border
-	var border := ColorRect.new()
-	border.color = Color(0.5, 0.3, 0.2, 0.4)
-	border.size = _mini_rect.size + Vector2(4, 4)
-	border.position = _mini_rect.position - Vector2(2, 2)
-	border.mouse_filter = Control.MOUSE_FILTER_PASS
-	add_child(border)
-	move_child(border, 0)  # Arkaya
-	
+	# Minimap border with style
+	var border_panel := Panel.new()
+	border_panel.position = _mini_rect.position - Vector2(3, 3)
+	border_panel.size = _mini_rect.size + Vector2(6, 6)
+	var border_style := StyleBoxFlat.new()
+	border_style.bg_color = Color(0.05, 0.05, 0.08, 0.95)
+	border_style.border_width_left = 2; border_style.border_width_right = 2
+	border_style.border_width_top = 2; border_style.border_width_bottom = 2
+	border_style.border_color = Color(0.4, 0.35, 0.5, 0.8)
+	border_style.set_corner_radius_all(4)
+	border_style.shadow_color = Color(0, 0, 0, 0.5)
+	border_style.shadow_size = 4
+	border_style.shadow_offset = Vector2(0, 2)
+	border_panel.add_theme_stylebox_override("panel", border_style)
+	add_child(border_panel)
+	move_child(border_panel, 0)  # Arkaya
 	# Player marker
 	_player_marker = ColorRect.new()
 	_player_marker.size = Vector2(4, 4)
