@@ -105,19 +105,22 @@ func _panel_style(p: Panel) -> void:
 	s.bg_color = Color(0.0, 0.0, 0.0, 0.0)
 	p.add_theme_stylebox_override("panel", s)
 	var bc := ColorRect.new()
-	bc.color = Color(0.04, 0.04, 0.06, 0.92)
+	bc.color = Color(0.03, 0.03, 0.05, 0.96)
 	bc.size = p.size
 	bc.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bc.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	p.add_child(bc)
 	var border := StyleBoxFlat.new()
 	border.bg_color = Color(0.0, 0.0, 0.0, 0.0)
-	border.border_width_left = 1
-	border.border_width_right = 1
-	border.border_width_top = 1
-	border.border_width_bottom = 1
-	border.border_color = Color(0.2, 0.18, 0.25, 0.6)
-	border.set_corner_radius_all(6)
+	border.border_width_left = 2
+	border.border_width_right = 2
+	border.border_width_top = 2
+	border.border_width_bottom = 2
+	border.border_color = Color(0.25, 0.22, 0.3, 0.8)
+	border.set_corner_radius_all(8)
+	border.shadow_color = Color(0, 0, 0, 0.5)
+	border.shadow_size = 8
+	border.shadow_offset = Vector2(0, 4)
 	p.add_theme_stylebox_override("panel", border)
 
 func _build_right_stats(right_w: float, parent: Control = null) -> void:
@@ -529,26 +532,83 @@ func _make_equip_btn(slot: int) -> Button:
 	btn.text = Equipment.Slot.keys()[slot].capitalize()
 	btn.add_theme_font_size_override("font_size", 7)
 	btn.set_meta("slot_enum", slot)
-	_style_inv_btn(btn)
+	
+	# Slot bazlı renkler
+	var slot_colors := {
+		0: Color(0.8, 0.3, 0.2),   # weapon - kırmızı
+		1: Color(0.3, 0.5, 0.8),   # offhand - mavi
+		2: Color(0.5, 0.3, 0.7),   # helmet - mor
+		3: Color(0.3, 0.7, 0.5),   # body - yeşil
+		4: Color(0.7, 0.6, 0.3),   # gloves - sarı
+		5: Color(0.6, 0.4, 0.6),   # boots - pembe
+		6: Color(0.5, 0.5, 0.3),   # belt - altın
+		7: Color(0.8, 0.7, 0.2),   # amulet - turuncu
+		8: Color(0.4, 0.3, 0.8),   # ring_1 - koyu mor
+		9: Color(0.3, 0.6, 0.7),   # ring_2 - cyan
+	}
+	var slot_color: Color = slot_colors.get(slot, Color(0.5, 0.5, 0.5))
+	
+	# Slot için özel stil
+	var normal_s := StyleBoxFlat.new()
+	normal_s.bg_color = Color(0.08, 0.06, 0.1, 0.95)
+	normal_s.border_width_left = 2; normal_s.border_width_right = 2
+	normal_s.border_width_top = 2; normal_s.border_width_bottom = 2
+	normal_s.border_color = Color(slot_color.r * 0.5, slot_color.g * 0.5, slot_color.b * 0.5, 0.7)
+	normal_s.set_corner_radius_all(6)
+	normal_s.shadow_color = Color(slot_color.r * 0.2, slot_color.g * 0.2, slot_color.b * 0.2, 0.3)
+	normal_s.shadow_size = 3
+	
+	var hover_s := StyleBoxFlat.new()
+	hover_s.bg_color = Color(0.12, 0.1, 0.15, 0.98)
+	hover_s.border_width_left = 2; hover_s.border_width_right = 2
+	hover_s.border_width_top = 2; hover_s.border_width_bottom = 2
+	hover_s.border_color = slot_color.lightened(0.2)
+	hover_s.set_corner_radius_all(6)
+	hover_s.shadow_color = Color(slot_color.r * 0.3, slot_color.g * 0.3, slot_color.b * 0.3, 0.4)
+	hover_s.shadow_size = 5
+	
+	btn.add_theme_stylebox_override("normal", normal_s)
+	btn.add_theme_stylebox_override("pressed", normal_s)
+	btn.add_theme_stylebox_override("hover", hover_s)
+	btn.add_theme_color_override("font_color", slot_color.darkened(0.3))
+	btn.add_theme_color_override("font_hover_color", slot_color)
+	btn.add_theme_color_override("font_pressed_color", slot_color.lightened(0.3))
+	
 	equipment_slot_buttons.append(btn)
 	return btn
 
 func _style_inv_btn(btn: Button) -> void:
 	var normal_s := StyleBoxFlat.new()
-	normal_s.bg_color = Color(0.15, 0.12, 0.18, 0.95)
-	normal_s.border_color = Color(0.55, 0.5, 0.65, 0.75)
-	normal_s.border_width_left = 1; normal_s.border_width_right = 1
-	normal_s.border_width_top = 1; normal_s.border_width_bottom = 1
-	normal_s.set_corner_radius_all(4)
+	normal_s.bg_color = Color(0.12, 0.1, 0.15, 0.98)
+	normal_s.border_color = Color(0.45, 0.4, 0.55, 0.8)
+	normal_s.border_width_left = 2; normal_s.border_width_right = 2
+	normal_s.border_width_top = 2; normal_s.border_width_bottom = 2
+	normal_s.set_corner_radius_all(6)
+	normal_s.shadow_color = Color(0, 0, 0, 0.4)
+	normal_s.shadow_size = 4
+	normal_s.shadow_offset = Vector2(0, 2)
+	
 	var hover_s := StyleBoxFlat.new()
-	hover_s.bg_color = Color(0.2, 0.16, 0.25, 0.95)
-	hover_s.border_color = Color(0.7, 0.65, 0.8, 0.9)
-	hover_s.border_width_left = 1; hover_s.border_width_right = 1
-	hover_s.border_width_top = 1; hover_s.border_width_bottom = 1
-	hover_s.set_corner_radius_all(4)
+	hover_s.bg_color = Color(0.18, 0.14, 0.22, 0.98)
+	hover_s.border_color = Color(0.75, 0.7, 0.85, 1.0)
+	hover_s.border_width_left = 2; hover_s.border_width_right = 2
+	hover_s.border_width_top = 2; hover_s.border_width_bottom = 2
+	hover_s.set_corner_radius_all(6)
+	hover_s.shadow_color = Color(0.2, 0.2, 0.3, 0.5)
+	hover_s.shadow_size = 6
+	hover_s.shadow_offset = Vector2(0, 3)
+	
+	var disabled_s := StyleBoxFlat.new()
+	disabled_s.bg_color = Color(0.08, 0.06, 0.1, 0.95)
+	disabled_s.border_color = Color(0.3, 0.25, 0.35, 0.6)
+	disabled_s.border_width_left = 2; disabled_s.border_width_right = 2
+	disabled_s.border_width_top = 2; disabled_s.border_width_bottom = 2
+	disabled_s.set_corner_radius_all(6)
+	
 	btn.add_theme_stylebox_override("normal", normal_s)
 	btn.add_theme_stylebox_override("pressed", normal_s)
 	btn.add_theme_stylebox_override("hover", hover_s)
+	btn.add_theme_stylebox_override("disabled", disabled_s)
 	btn.add_theme_color_override("font_color", Color(0.85, 0.82, 0.78))
 	btn.add_theme_color_override("font_hover_color", Color(0.95, 0.93, 0.9))
 	btn.add_theme_color_override("font_pressed_color", Color(1.0, 1.0, 1.0))
@@ -570,8 +630,15 @@ func _build_stat_panel(parent: Control, w: float, doll_h: float) -> void:
 	var stat_keys := ["strength", "dexterity", "intelligence"]
 	var stat_names := ["STR", "DEX", "INT"]
 	var stat_colors := [Color(0.9, 0.4, 0.3), Color(0.3, 0.8, 0.4), Color(0.3, 0.5, 0.9)]
+	var stat_tooltips := {
+		"strength": "GÜÇ\n• Fiziksel hasarı artırır (+%10/her puan)\n• Yüksek güç gerektiren itemları takabilirsin",
+		"dexterity": "ÇEVİKİKLİK\n• Saldırı hızını artırır\n• Kaçınma şansını artırır (+%5/her puan)\n• Çeviklik gerektiren itemları takabilirsin",
+		"intelligence": "ZEKA\n• Büyü hasarını artırır (+%10/her puan)\n• Enerji kalkanını artırır\n• Zeka gerektiren itemları takabilirsin"
+	}
 	for i in 3:
 		var row_y: float = 4.0 + float(i) * 22.0
+		var stat_key: String = stat_keys[i]
+		
 		# "-" button
 		var btn_minus := Button.new()
 		btn_minus.name = stat_names[i] + "_Minus"
@@ -580,12 +647,10 @@ func _build_stat_panel(parent: Control, w: float, doll_h: float) -> void:
 		btn_minus.text = "-"
 		btn_minus.add_theme_font_size_override("font_size", 12)
 		btn_minus.add_theme_constant_override("outline_size", 0)
-		# Store which stat this button modifies
-		var stat_key: String = stat_keys[i]
 		btn_minus.pressed.connect(_on_stat_minus.bind(stat_key))
 		panel.add_child(btn_minus)
 
-		# Value label
+		# Value label with tooltip
 		var lbl := Label.new()
 		lbl.name = stat_names[i]
 		lbl.position = Vector2(22, row_y)
@@ -594,6 +659,11 @@ func _build_stat_panel(parent: Control, w: float, doll_h: float) -> void:
 		lbl.add_theme_font_size_override("font_size", 13)
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		lbl.set_meta("stat_key", stat_key)
+		lbl.set_meta("stat_tooltip", stat_tooltips[stat_key])
+		lbl.mouse_filter = Control.MOUSE_FILTER_STOP
+		lbl.mouse_entered.connect(_on_stat_label_hover.bind(lbl))
+		lbl.mouse_exited.connect(_on_stat_label_unhover)
 		panel.add_child(lbl)
 
 		# "+" button
@@ -616,7 +686,49 @@ func _build_stat_panel(parent: Control, w: float, doll_h: float) -> void:
 	rem.add_theme_font_size_override("font_size", 11)
 	rem.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	rem.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	rem.mouse_filter = Control.MOUSE_FILTER_STOP
+	rem.mouse_entered.connect(_on_remaining_points_hover)
+	rem.mouse_exited.connect(_on_stat_label_unhover)
 	panel.add_child(rem)
+
+func _on_stat_label_hover(lbl: Label) -> void:
+	var mp: Vector2 = get_viewport().get_mouse_position()
+	var stat_key: String = lbl.get_meta("stat_key", "")
+	var tooltip: String = lbl.get_meta("stat_tooltip", "")
+	_show_stat_tooltip(stat_key, tooltip, mp)
+
+func _on_remaining_points_hover() -> void:
+	var mp: Vector2 = get_viewport().get_mouse_position()
+	var msg: String = "KALAN PUANLAR\n• Yeni yetenekler açmak için puanların\n• Kullanmak için + butonuna tıkla"
+	_show_stat_tooltip("points", msg, mp)
+
+func _show_stat_tooltip(stat_key: String, text: String, global_pos: Vector2) -> void:
+	if not is_instance_valid(_tooltip_panel): return
+	
+	var header_color: String = "#ffffff"
+	if stat_key == "strength": header_color = "#e66a5c"
+	elif stat_key == "dexterity": header_color = "#5cb85c"
+	elif stat_key == "intelligence": header_color = "#5c8de6"
+	elif stat_key == "points": header_color = "#ffd700"
+	
+	var s: String = "[color=" + header_color + "][b]" + text + "[/b][/color]"
+	
+	_tooltip_label.text = s
+	_tooltip_label.size = Vector2(280, 0)
+	_tooltip_panel.size = Vector2(300, max(_tooltip_label.get_content_height() + 20, 50))
+	
+	var vp_size: Vector2 = get_viewport().get_visible_rect().size
+	var px: float = global_pos.x - _tooltip_panel.size.x - 10.0
+	var py: float = global_pos.y
+	if px < 0:
+		px = global_pos.x + 30.0
+	if py + _tooltip_panel.size.y > vp_size.y:
+		py = vp_size.y - _tooltip_panel.size.y - 10.0
+	_tooltip_panel.position = Vector2(px, py)
+	_tooltip_panel.visible = true
+
+func _on_stat_label_unhover() -> void:
+	_hide_tooltip()
 
 func _build_tooltip() -> void:
 	_tooltip_panel = Panel.new()
@@ -881,7 +993,41 @@ func _update_inventory() -> void:
 
 func _on_inv_slot_hover(item: ItemData) -> void:
 	var mp: Vector2 = get_viewport().get_mouse_position()
-	_show_tooltip(item, mp)
+	
+	# Eğer item giyilemiyorsa, nedenini göster
+	if player and player.inventory and not player.inventory.can_equip_item(item):
+		var failures: String = player.inventory.get_requirement_failures(item)
+		if not failures.is_empty():
+			_show_requirement_warning(item, mp, failures)
+		else:
+			_show_tooltip(item, mp)
+	else:
+		_show_tooltip(item, mp)
+
+func _show_requirement_warning(item: ItemData, global_pos: Vector2, failures: String) -> void:
+	"""Item'ın giyilememe nedenini gösteren uyarı tooltip'i."""
+	if not is_instance_valid(_tooltip_panel): return
+	
+	var s := "[center][color=#ff6b6b][b]⚠ GİYİLEMEZ[/b][/color][/center]\n"
+	s += "[color=#888888]%s[/color]" % item.display_name
+	s += "\n[color=#ffaaaa]" + failures + "[/color]"
+	s += "\n[color=#666666]─────────────────[/color]"
+	s += "\n[color=#aaaaaa]Detaylar için tekrar bak:[/color]"
+	
+	_tooltip_label.text = s
+	_tooltip_label.size = Vector2(360, 0)
+	_tooltip_panel.size = Vector2(380, max(_tooltip_label.get_content_height() + 20, 60))
+	
+	# Ekrandan taşmaması için pozisyon ayarla
+	var vp_size: Vector2 = get_viewport().get_visible_rect().size
+	var px: float = global_pos.x + 16.0
+	var py: float = global_pos.y + 16.0
+	if px + _tooltip_panel.size.x > vp_size.x:
+		px = global_pos.x - _tooltip_panel.size.x - 16.0
+	if py + _tooltip_panel.size.y > vp_size.y:
+		py = global_pos.y - _tooltip_panel.size.y - 16.0
+	_tooltip_panel.position = Vector2(px, py)
+	_tooltip_panel.visible = true
 
 func _on_equip_slot_hover(btn: Button) -> void:
 	var item: ItemData = btn.get_meta("item_data", null) as ItemData
