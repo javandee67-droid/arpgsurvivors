@@ -201,11 +201,11 @@ var skill_effect_duration: float = 0.0  ## % increased Skill Effect Duration
 var area_of_effect: float = 0.0         ## % increased Area of Effect
 
 # --- Utility (Pasif Ağaç) ---
-	var pickup_radius: float = 0.0
-	var gold_find: float = 0.0
-	var experience_gain: float = 0.0
-	var luck: float = 0.0
-	var extra_projectiles: int = 0
+var pickup_radius: float = 0.0
+var gold_find: float = 0.0
+var experience_gain: float = 0.0
+var luck: float = 0.0
+var extra_projectiles: int = 0
 
 # --- Mana / Life Cost & Reservation ---
 var mana_cost_efficiency: float = 0.0  ## % increased Mana Cost Efficiency (lower cost)
