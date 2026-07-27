@@ -1994,6 +1994,9 @@ func _cast_slice_wave(skill_data: SkillData, auto_target: Node = null) -> void:
 		var atk_anim: String = _get_dir_anim("attack", _last_dir)
 		if animated_sprite.sprite_frames.has_animation(atk_anim):
 			animated_sprite.play(atk_anim)
+	# Momentum: her skill kullaniminda yigin ekle
+	_add_momentum_stack()
+
 
 func _cast_ice_nova(skill_data: SkillData) -> void:
 	"""Ice Nova: etrafa buz dairesi (AoE) gonderir. Dusman yoksa fare pozisyonunda patlat."""
