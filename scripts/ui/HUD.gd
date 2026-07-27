@@ -331,6 +331,13 @@ func _build_ui() -> void:
 	xp_fill.position = Vector2(0, xp_y)
 	xp_fill.size = Vector2(0, 10)
 	add_child(xp_fill)
+	# XP bar pulse efekti (xp kazanılınca parlama)
+	var xp_pulse := ColorRect.new()
+	xp_pulse.name = "XPPulse"
+	xp_pulse.color = Color(1.0, 0.9, 0.5, 0.4)
+	xp_pulse.position = Vector2(0, xp_y)
+	xp_pulse.size = Vector2(0, 10)
+	add_child(xp_pulse)
 
 	# XP fill ışıltı efekti (üst kısımda parlak çizgi)
 	var xp_shine := ColorRect.new()
