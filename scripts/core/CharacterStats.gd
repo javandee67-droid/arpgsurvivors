@@ -28,7 +28,7 @@ signal stats_changed
 var stat_points: int = 0
 
 ## Pasif ağaç için biriken puanlar (her seviye +1)
-	var passive_points: int = 0
+var passive_points: int = 0
 
 @export var base_fire_resistance: float = -75.0
 @export var base_cold_resistance: float = -75.0
