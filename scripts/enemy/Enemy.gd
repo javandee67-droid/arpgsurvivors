@@ -705,8 +705,29 @@ func _on_death() -> void:
 	queue_free()
 
 func _spawn_death_effect() -> void:
-	"""Ölüm patlama efektleri kaldırıldı — ekran kirliliğini önlemek için."""
-	pass
+	"""Ölüm patlama efektleri — partiküller"""
+	# Renk rarity'ye göre belirlenir
+	var particle_color := Color(0.8, 0.2, 0.1)  # Normal kırmızı
+	match rarity:
+		EnemyRarity.MAGIC: particle_color = Color(0.3, 0.3, 0.9)  # Mavi
+		EnemyRarity.RARE: particle_color = Color(1.0, 0.7, 0.1)  # Sarı
+		EnemyRarity.UNIQUE: particle_color = Color(0.8, 0.3, 0.9)  # Mor
+
+	# Hafif partikül patlaması (5-8 parçacık)
+	for i in range(randi() % 4 + 5):
+		var p := ColorRect.new()
+		p.color = particle_color
+		p.modulate.a = 0.7
+		p.size = Vector2(randf_range(3, 6), randf_range(3, 6))
+		p.position = global_position + Vector2(randf_range(-15, 15), randf_range(-15, 15))
+		p.z_index = 15
+		get_parent().add_child(p)
+		var tw := create_tween()
+		tw.set_parallel(true)
+		var dir := Vector2(randf_range(-1, 1), randf_range(-1, 1)).normalized()
+		tw.tween_property(p, "position", p.position + dir * randf_range(20, 40), 0.4)
+		tw.tween_property(p, "modulate:a", 0.0, 0.4)
+		tw.tween_callback(p.queue_free)
 
 func _spawn_xp_gems() -> void:
 	"""Ölünce XP kristalleri düşür — VS tarzı görünür XP toplama."""
