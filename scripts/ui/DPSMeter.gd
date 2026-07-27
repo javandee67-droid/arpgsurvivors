@@ -102,7 +102,7 @@ func _shorten_name(id: String) -> String:
 
 func _fmt_num(val: float) -> String:
 	# NaN ve sonsuzluk koruması
-	if not @GDScript.is_finite(val):
+	if not val.is_finite():
 		return "ERR"
 	if abs(val) >= 1000000.0:
 		return "%.1fM" % (val / 1000000.0)
