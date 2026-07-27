@@ -1,4 +1,7 @@
 extends CharacterBody2D
+
+# Hit flash effect
+var _hit_flash_tween: Tween = null
 class_name Enemy
 ## Enhanced enemy with EnemyDatabase type configuration.
 
@@ -110,6 +113,45 @@ enum AnimState { IDLE, WALK, ATTACK }
 var _anim_state: int = AnimState.IDLE
 var _anim_dir: String = "front"
 var _attack_anim_playing: bool = false
+
+
+func do_hit_flash(damage_type: String = "physical") -> void:
+	"""Düşman hasar aldığında kırmızı yanıp söner"""
+	if not has_node("Sprite") and not has_node("AnimatedSprite2D"):
+		return
+	
+	var sprite: Node
+	if has_node("AnimatedSprite2D"):
+		sprite = get_node("AnimatedSprite2D")
+	else:
+		sprite = get_node("Sprite")
+	
+	# Mevcut tween'i iptal et
+	if _hit_flash_tween and is_instance_valid(_hit_flash_tween):
+		_hit_flash_tween.kill()
+	
+	# Renk seç (damage type'a göre)
+	var flash_color: Color
+	match damage_type:
+		"fire": flash_color = Color(1.0, 0.4, 0.1)
+		"cold": flash_color = Color(0.3, 0.6, 1.0)
+		"lightning": flash_color = Color(1.0, 0.9, 0.2)
+		"chaos": flash_color = Color(0.8, 0.2, 0.8)
+		_: flash_color = Color(1.0, 0.2, 0.2)  # physical - kırmızı
+	
+	# Sprite modulate et
+	if sprite is Sprite2D:
+		_hit_flash_tween = create_tween().set_parallel(true)
+		_hit_flash_tween.tween_property(sprite, "modulate", flash_color, 0.05)
+		_hit_flash_tween.tween_property(sprite, "modulate:a", 0.0, 0.15).set_delay(0.05)
+		_hit_flash_tween.chain().tween_property(sprite, "modulate", Color.WHITE, 0.1)
+		_hit_flash_tween.chain().tween_property(sprite, "modulate:a", 1.0, 0.0)
+	elif sprite is AnimatedSprite2D:
+		_hit_flash_tween = create_tween().set_parallel(true)
+		_hit_flash_tween.tween_property(sprite, "modulate", flash_color, 0.05)
+		_hit_flash_tween.tween_property(sprite, "modulate:a", 0.0, 0.15).set_delay(0.05)
+		_hit_flash_tween.chain().tween_property(sprite, "modulate", Color.WHITE, 0.1)
+		_hit_flash_tween.chain().tween_property(sprite, "modulate:a", 1.0, 0.0)
 
 func _ready() -> void:
 	RapierPhysicsServer2D.body_set_extra_param(get_rid(), RapierPhysicsServer2D.BODY_PARAM_CONTACT_SKIN, 0.02)

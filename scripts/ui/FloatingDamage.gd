@@ -22,6 +22,13 @@ func _on_damage_dealt(payload: Dictionary) -> void:
 	if amount <= 0.0:
 		return
 	var is_crit: bool = payload.get("is_crit", false)
+	
+	# Düşmana hit flash efekti uygula
+	if target and target.has_method("do_hit_flash"):
+		var damage_types: Array = payload.get("damage_types", ["physical"])
+		var dmg_type: String = damage_types[0] if damage_types.size() > 0 else "physical"
+		target.do_hit_flash(dmg_type)
+	
 	_spawn_number(pos, amount, is_crit)
 
 func _on_enemy_killed(_enemy: Node) -> void:
