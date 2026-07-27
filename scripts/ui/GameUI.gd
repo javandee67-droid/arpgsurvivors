@@ -19,6 +19,7 @@ var _drag_source_slot: int = -1
 var _is_dragging: bool = false
 var _drag_press_pos: Vector2 = Vector2.ZERO
 var _drag_moved: bool = false
+var _valid_slot_highlighted: int = -1  # Highlighted equipment slot during drag
 var _drag_ghost: TextureRect = null
 var _active_left_tab: int = LeftTab.INVENTORY
 var _connected: bool = false
@@ -1261,6 +1262,107 @@ func _input(event: InputEvent) -> void:
 		elif _drag_item:
 			_update_drag_position(event.position)
 
+
+func _update_drag_slot_highlight(mouse_pos: Vector2) -> void:
+	"""Drag sırasında uygun slot'u vurgula"""
+	if not _is_dragging or not _drag_item:
+		_clear_slot_highlight()
+		return
+	
+	var valid_slot: int = -1
+	
+	# Hangi slot tipi gerekli?
+	var target_slot: String = _drag_item.equip_slot
+	
+	# Equipment slotlarını kontrol et
+	for btn in equipment_slot_buttons:
+		if not is_instance_valid(btn): continue
+		var si: int = btn.get_meta("slot_enum", -1)
+		if si < 0: continue
+		
+		# Slot tipini kontrol et
+		var slot_name: String = Equipment.Slot.keys()[si] if si < Equipment.Slot.size() else ""
+		if slot_name == target_slot or (target_slot == "weapon" and slot_name in ["weapon", "offhand"]):
+			# Mouse bu slotun üzerinde mi?
+			if btn.get_global_rect().has_point(mouse_pos):
+				valid_slot = si
+				break
+	
+	# Highlight değiştiyse güncelle
+	if valid_slot != _valid_slot_highlighted:
+		_clear_slot_highlight()
+		if valid_slot >= 0:
+			_highlight_slot(valid_slot, true)
+		_valid_slot_highlighted = valid_slot
+
+func _highlight_slot(slot_idx: int, highlight: bool) -> void:
+	"""Belirtilen slotu vurgula veya kaldır"""
+	for btn in equipment_slot_buttons:
+		if not is_instance_valid(btn): continue
+		var si: int = btn.get_meta("slot_enum", -1)
+		if si != slot_idx: continue
+		
+		var normal_s: StyleBoxFlat = btn.get_theme_stylebox("normal") as StyleBoxFlat
+		var hover_s: StyleBoxFlat = btn.get_theme_stylebox("hover") as StyleBoxFlat
+		
+		if highlight:
+			# Yeşil gölgeli parlak highlight
+			if normal_s:
+				normal_s.border_color = Color(0.3, 1.0, 0.4, 1.0)
+				normal_s.shadow_color = Color(0.2, 1.0, 0.3, 0.6)
+				normal_s.shadow_size = 8
+			if hover_s:
+				hover_s.border_color = Color(0.5, 1.0, 0.6, 1.0)
+		else:
+			# Normal renklere geri dön (slot tipine göre)
+			_slot_reset_style(btn, si)
+		break
+
+func _slot_reset_style(btn: Button, slot_idx: int) -> void:
+	"""Slot'u kendi normal stiline geri döndür"""
+	var slot_colors := {
+		0: Color(0.8, 0.3, 0.2),   # weapon
+		1: Color(0.3, 0.5, 0.8),   # offhand
+		2: Color(0.5, 0.3, 0.7),   # helmet
+		3: Color(0.3, 0.7, 0.5),   # body
+		4: Color(0.7, 0.6, 0.3),   # gloves
+		5: Color(0.6, 0.4, 0.6),   # boots
+		6: Color(0.5, 0.5, 0.3),   # belt
+		7: Color(0.8, 0.7, 0.2),   # amulet
+		8: Color(0.4, 0.3, 0.8),   # ring_1
+		9: Color(0.3, 0.6, 0.7),   # ring_2
+	}
+	var slot_color: Color = slot_colors.get(slot_idx, Color(0.5, 0.5, 0.5))
+	
+	var normal_s := StyleBoxFlat.new()
+	normal_s.bg_color = Color(0.08, 0.06, 0.1, 0.95)
+	normal_s.border_width_left = 2; normal_s.border_width_right = 2
+	normal_s.border_width_top = 2; normal_s.border_width_bottom = 2
+	normal_s.border_color = Color(slot_color.r * 0.5, slot_color.g * 0.5, slot_color.b * 0.5, 0.7)
+	normal_s.set_corner_radius_all(6)
+	normal_s.shadow_color = Color(slot_color.r * 0.2, slot_color.g * 0.2, slot_color.b * 0.2, 0.3)
+	normal_s.shadow_size = 3
+	
+	var hover_s := StyleBoxFlat.new()
+	hover_s.bg_color = Color(0.12, 0.1, 0.15, 0.98)
+	hover_s.border_width_left = 2; hover_s.border_width_right = 2
+	hover_s.border_width_top = 2; hover_s.border_width_bottom = 2
+	hover_s.border_color = slot_color.lightened(0.2)
+	hover_s.set_corner_radius_all(6)
+	hover_s.shadow_color = Color(slot_color.r * 0.3, slot_color.g * 0.3, slot_color.b * 0.3, 0.4)
+	hover_s.shadow_size = 5
+	
+	btn.add_theme_stylebox_override("normal", normal_s)
+	btn.add_theme_stylebox_override("pressed", normal_s)
+	btn.add_theme_stylebox_override("hover", hover_s)
+
+func _clear_slot_highlight() -> void:
+	"""Tüm slot highlight'larını temizle"""
+	if _valid_slot_highlighted >= 0:
+		_highlight_slot(_valid_slot_highlighted, false)
+		_valid_slot_highlighted = -1
+
+
 func _try_drag_start(mouse_pos: Vector2) -> void:
 	if not is_instance_valid(inventory_grid) or not visible_ui: return
 	_drag_item = null; _drag_source_idx = -1; _drag_source_is_equipment = false
@@ -1445,10 +1547,16 @@ func _create_drag_ghost() -> void:
 func _update_drag_position(mouse_pos: Vector2) -> void:
 	if is_instance_valid(_drag_ghost):
 		_drag_ghost.position = mouse_pos - Vector2(18, 18)
+	
+	# Highlight valid equipment slot during drag
+	_update_drag_slot_highlight(mouse_pos)
 
 func _cleanup_drag() -> void:
+	# Clear slot highlight before cleanup
+	_clear_slot_highlight()
 	_drag_item = null; _drag_source_idx = -1; _drag_source_is_equipment = false
 	_drag_source_slot = -1; _is_dragging = false
+	_valid_slot_highlighted = -1
 	if is_instance_valid(_drag_ghost):
 		_drag_ghost.queue_free(); _drag_ghost = null
 
@@ -1474,7 +1582,7 @@ func _hide_tooltip() -> void:
 func _build_item_tooltip(item: ItemData) -> String:
 	if not item: return ""
 	var s: String = ""
-	var cm := {"normal":"#aaaaaa","magic":"#5b6eff","rare":"#ffd700","unique":"#ff8844","currency":"#88ff88"}
+	var cm := {"normal":"#ffffff","magic":"#8888ff","rare":"#ffff77","unique":"#af6025","currency":"#88ff88"}
 	var rt_map := {"magic":"BÜYÜLÜ","rare":"NADİR","unique":"EŞSİZ"}
 	var c: String = cm.get(item.rarity, "#aaaaaa")
 	# === BÜYÜK ITEM ADI ===
