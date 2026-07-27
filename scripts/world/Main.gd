@@ -553,10 +553,10 @@ func _spawn_boss() -> void:
 		health_node.current_health = health_node.max_health
 	
 	var base_dmg: float = etype.get("contact_damage", 35.0)
-	if boss.get("contact_damage", null) != null:
+	if boss.get("contact_damage") != null:
 		boss.contact_damage = base_dmg * diff_mult
 	
-	if boss.get("speed", null) != null:
+	if boss.get("speed") != null:
 		boss.speed = (etype.get("speed") if etype.get("speed") != null else 40.0) * 0.5
 	
 	var stats_node: CharacterStats = boss.get_node_or_null("CharacterStats")
