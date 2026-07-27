@@ -2142,10 +2142,10 @@ func _spawn_ice_nova_effect(pos: Vector2) -> void:
 func _track_dps(skill_id: String, damage: float, tags: Array) -> void:
 	EventBus.skill_damage.emit(skill_id, damage, tags)
 
-	func _calc_skill_damage(skill_data: SkillData, skill_path: String) -> float:
+func _calc_skill_damage(skill_data: SkillData, skill_path: String) -> float:
 		"""Ortak hasar hesaplama — tum skill'ler kullanir.
 		Skill seviyesi hasari artirir: level 1 = %100, her ek level +%25.
-		
+
 		Spells: skill.base_damage kullanir (weapon damage yok)
 		Attacks: weapon damage kullanir"""
 
@@ -2159,7 +2159,6 @@ func _track_dps(skill_id: String, damage: float, tags: Array) -> void:
 		dmg *= level_mult
 
 		return dmg
-
 
 # ─── 1. NAPALM (fire_bolt) ─────────────────────────────────────────
 func _cast_fire_bolt_vs(skill_data: SkillData, target: Node, skill_path: String) -> void:
