@@ -250,42 +250,61 @@ func _build_ui() -> void:
 	_vignette.show_behind_parent = true
 	add_child(_vignette)
 	
-	# == BOSS CAN ÇUBUĞU (ekranın üst-orta kısmı) ==
-	_boss_bar = ColorRect.new()
+	# == BOSS CAN ÇUBUĞU (ekranın üst-orta kısmı) - İYİLEŞTİRİLMİŞ ==
+	# Dış çerçeve
+	var boss_frame := StyleBoxFlat.new()
+	boss_frame.bg_color = Color(0.0, 0.0, 0.0, 0.0)
+	boss_frame.border_width_left = 3; boss_frame.border_width_right = 3
+	boss_frame.border_width_top = 3; boss_frame.border_width_bottom = 3
+	boss_frame.border_color = Color(0.6, 0.15, 0.1, 1.0)
+	boss_frame.set_corner_radius_all(8)
+	boss_frame.shadow_color = Color(0.8, 0.2, 0.1, 0.5)
+	boss_frame.shadow_size = 8
+	boss_frame.shadow_offset = Vector2(0, 4)
+
+	_boss_bar = Panel.new()
 	_boss_bar.name = "BossBar"
-	_boss_bar.color = Color(0.05, 0.05, 0.08, 0.9)
-	_boss_bar.position = Vector2(vp.x / 2 - 200, 56)
-	_boss_bar.size = Vector2(400, 28)
+	_boss_bar.position = Vector2(vp.x / 2 - 250, 50)
+	_boss_bar.size = Vector2(500, 36)
 	_boss_bar.visible = false
+	_boss_bar.add_theme_stylebox_override("panel", boss_frame)
 	add_child(_boss_bar)
-	
+
 	_boss_fill = ColorRect.new()
-	_boss_fill.color = Color(0.8, 0.2, 0.15, 1.0)
-	_boss_fill.position = Vector2(2, 2)
-	_boss_fill.size = Vector2(396, 24)
+	_boss_fill.color = Color(0.85, 0.15, 0.1, 1.0)
+	_boss_fill.position = Vector2(4, 4)
+	_boss_fill.size = Vector2(492, 28)
 	_boss_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_boss_bar.add_child(_boss_fill)
-	
+
+	# HP bar ışıltı efekti
+	var boss_glow := ColorRect.new()
+	boss_glow.color = Color(1.0, 0.4, 0.3, 0.2)
+	boss_glow.position = Vector2(4, 4)
+	boss_glow.size = Vector2(492, 4)
+	boss_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_boss_bar.add_child(boss_glow)
+
 	_boss_name = Label.new()
-	_boss_name.position = Vector2(0, -18)
-	_boss_name.size = Vector2(400, 18)
-	_boss_name.add_theme_color_override("font_color", Color(0.9, 0.7, 0.4, 1.0))
-	_boss_name.add_theme_font_size_override("font_size", 14)
+	_boss_name.position = Vector2(0, -22)
+	_boss_name.size = Vector2(500, 20)
+	_boss_name.add_theme_color_override("font_color", Color(1.0, 0.6, 0.2, 1.0))
+	_boss_name.add_theme_font_size_override("font_size", 16)
 	_boss_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_boss_name.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_boss_name.text = ""
 	_boss_bar.add_child(_boss_name)
-	
+
 	_boss_hp_label = Label.new()
-	_boss_hp_label.position = Vector2(0, 4)
-	_boss_hp_label.size = Vector2(400, 20)
-	_boss_hp_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.9))
-	_boss_hp_label.add_theme_font_size_override("font_size", 10)
+	_boss_hp_label.position = Vector2(0, 6)
+	_boss_hp_label.size = Vector2(500, 24)
+	_boss_hp_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.9, 1.0))
+	_boss_hp_label.add_theme_font_size_override("font_size", 12)
 	_boss_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_boss_hp_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_boss_hp_label.text = ""
 	_boss_bar.add_child(_boss_hp_label)
-	
+
 	# == XP BAR (en altta, tam genişlik, ince) ==
 	var xp_y := vp.y - 10
 	xp_bg = ColorRect.new()
