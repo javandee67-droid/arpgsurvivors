@@ -872,6 +872,11 @@ func _on_damage_dealt(payload: Dictionary) -> void:
 func _on_damage_number_spawned(text: String, position: Vector2, color: Color, is_crit: bool) -> void:
 	if not GameSettings.damage_numbers:
 		return
+	# Kritik vuruşta hafif altın parlama efekti
+	if is_crit and is_instance_valid(_damage_flash):
+		var crit_tw := create_tween()
+		_damage_flash.modulate = Color(1.0, 0.9, 0.3, 0.25)  # Altın tonu
+		crit_tw.tween_property(_damage_flash, "modulate:a", 0.0, 0.2)
 	# Convert world position to screen position
 	var screen_pos := _world_to_screen(position)
 	# Create floating text label
