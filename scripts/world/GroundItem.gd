@@ -177,6 +177,20 @@ func _pickup_mouse() -> void:
 			var ei := p.get_node_or_null("EssenceInventory") as EssenceInventory
 			if ei and ei.add_essence(item_data):
 				var tw := create_tween()
+
+		# Pickup burst efekti
+		var burst := ColorRect.new()
+		burst.color = RARITY_COLORS.get(item_data.rarity, Color.WHITE)
+		burst.modulate.a = 0.6
+		burst.size = Vector2(20, 20)
+		burst.position = Vector2(-10, -10)
+		burst.z_index = 10
+		add_child(burst)
+		var burst_tw := create_tween()
+		burst_tw.set_parallel(true)
+		burst_tw.tween_property(burst, "scale", Vector2(2.5, 2.5), 0.2)
+		burst_tw.tween_property(burst, "modulate:a", 0.0, 0.2)
+		burst_tw.tween_callback(burst.queue_free)
 				tw.tween_property(self, "modulate", Color(1, 1, 1, 0), 0.15)
 				tw.tween_callback(queue_free)
 				return
