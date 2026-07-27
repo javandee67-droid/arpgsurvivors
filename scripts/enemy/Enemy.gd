@@ -194,6 +194,29 @@ func _draw() -> void:
 		# Parlama efekti (üst kenar)
 		draw_rect(Rect2(-bar_w / 2.0 + 1, bar_y + 1, (bar_w - 2) * pct, 1), Color(1.0, 0.5, 0.5, 0.3))
 
+
+	# Rarity glow efekti (haritanın altında)
+	if rarity != EnemyRarity.NORMAL:
+		var glow_color := Color(1.0, 0.85, 0.0)  # Sarı
+		match rarity:
+			EnemyRarity.MAGIC: glow_color = Color(0.3, 0.6, 1.0)  # Mavi
+			EnemyRarity.RARE: glow_color = Color(1.0, 0.85, 0.0)  # Altın
+			EnemyRarity.UNIQUE: glow_color = Color(1.0, 0.5, 0.0)  # Turuncu
+		# Glow çemberi (sprite'ın altında)
+		var glow_size: float = 24.0
+		if rarity == EnemyRarity.UNIQUE:
+			glow_size = 32.0
+		elif rarity == EnemyRarity.RARE:
+			glow_size = 28.0
+		var glow_alpha: float = 0.4
+		if rarity == EnemyRarity.UNIQUE:
+			glow_alpha = 0.6
+		for k in range(3):  # 3 katmanlı glow
+			var ring_size := glow_size + k * 8
+			var ring_alpha := glow_alpha * (1.0 - k * 0.3)
+			var ring_color := Color(glow_color.r, glow_color.g, glow_color.b, ring_alpha)
+			draw_circle(Vector2.ZERO, ring_size, ring_color)
+
 ## VS: Dusman sinifi - sadece melee
 func set_enemy_class_info(class_id: int, skill_ids: Array) -> void:
 	enemy_class = EnemyClass.MELEE

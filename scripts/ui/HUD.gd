@@ -18,6 +18,7 @@ var xp_label: Label
 var _vignette: ColorRect = null  # Dusuk can efekti
 var _damage_flash: ColorRect = null  # Hasar aldığında kırmızı flash
 var _floating_texts: Array[Label] = []  # Floating damage text labels
+var _level_up_flash: ColorRect = null  # Seviye atlama efekti
 var _vs_kill_label: Label = null  # VS kill counter
 var _connected: bool = false
 var _wave_label: Label = null
@@ -130,6 +131,7 @@ func _ready() -> void:
 	EventBus.damage_dealt.connect(_on_damage_dealt)
 	# Damage number gösterimi
 	EventBus.damage_number_spawned.connect(_on_damage_number_spawned)
+	EventBus.level_up.connect(_on_level_up)
 
 func _build_ui() -> void:
 	var vp := get_viewport().get_visible_rect().size
@@ -900,3 +902,12 @@ func _world_to_screen(world_pos: Vector2) -> Vector2:
 	if cam:
 		return cam.get_viewport().get_visible_rect().size / 2 + (world_pos - cam.global_position) * cam.zoom
 	return world_pos
+
+func _on_level_up(new_level: int, _position: Vector2) -> void:
+	# Altın rengi ekran parlama efekti
+	_level_up_flash.modulate.a = 0.5
+	var tw := create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(_level_up_flash, "modulate:a", 0.0, 0.5)
+	tw.parallel().tween_property(_level_up_flash, "modulate:r", 1.0, 0.5)
+	tw.parallel().tween_property(_level_up_flash, "modulate:g", 0.7, 0.5)
