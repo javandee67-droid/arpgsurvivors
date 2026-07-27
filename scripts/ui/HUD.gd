@@ -17,6 +17,7 @@ var xp_bg: ColorRect
 var xp_label: Label
 var _vignette: ColorRect = null  # Dusuk can efekti
 var _damage_flash: ColorRect = null  # Hasar aldığında kırmızı flash
+var _floating_texts: Array[Label] = []  # Floating damage text labels
 var _vs_kill_label: Label = null  # VS kill counter
 var _connected: bool = false
 var _wave_label: Label = null
@@ -127,6 +128,8 @@ func _ready() -> void:
 		root.size_changed.connect(_reposition_ui)
 	# Hasar aldığında damage flash göster
 	EventBus.damage_dealt.connect(_on_damage_dealt)
+	# Damage number gösterimi
+	EventBus.damage_number_spawned.connect(_on_damage_number_spawned)
 
 func _build_ui() -> void:
 	var vp := get_viewport().get_visible_rect().size
@@ -856,3 +859,37 @@ func _on_damage_dealt(payload: Dictionary) -> void:
 	var target: Node = payload.get("target", null)
 	if target and target.is_in_group("player"):
 		show_damage_flash()
+
+func _on_damage_number_spawned(text: String, position: Vector2, color: Color, is_crit: bool) -> void:
+	if not GameSettings.damage_numbers:
+		return
+	# Convert world position to screen position
+	var screen_pos := _world_to_screen(position)
+	# Create floating text label
+	var lbl := Label.new()
+	lbl.text = text
+	lbl.global_position = screen_pos
+	lbl.add_theme_color_override("font_color", color)
+	lbl.add_theme_font_size_override("font_size", 18 if is_crit else 14)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	if is_crit:
+		lbl.add_theme_color_override("font_color", Color(1.0, 0.8, 0.0))  # Altın kritik
+		lbl.add_theme_constant_override("shadow_outline_size", 4)
+		lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	add_child(lbl)
+	_floating_texts.append(lbl)
+	# Animate floating up and fading
+	var tw := create_tween()
+	var offset := Vector2(randf_range(-20, 20), 0)
+	tw.tween_property(lbl, "position:y", lbl.position.y - 50, 0.8).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(lbl, "modulate:a", 0.0, 0.8)
+	tw.parallel().tween_property(lbl, "scale", Vector2(1.3, 1.3) if is_crit else Vector2(1.1, 1.1), 0.3)
+	tw.chain().tween_callback(lbl.queue_free)
+	_floating_texts.erase(lbl)
+
+func _world_to_screen(world_pos: Vector2) -> Vector2:
+	var cam := get_viewport().get_camera_2d()
+	if cam:
+		return cam.get_viewport().get_visible_rect().size / 2 + (world_pos - cam.global_position) * cam.zoom
+	return world_pos
