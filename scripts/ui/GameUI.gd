@@ -102,26 +102,47 @@ func _on_inventory_item_added(item: ItemData) -> void:
 	tw.tween_callback(lbl.queue_free)
 
 func _panel_style(p: Panel) -> void:
-	var s := StyleBoxFlat.new()
-	s.bg_color = Color(0.0, 0.0, 0.0, 0.0)
-	p.add_theme_stylebox_override("panel", s)
-	var bc := ColorRect.new()
-	bc.color = Color(0.03, 0.03, 0.05, 0.96)
-	bc.size = p.size
-	bc.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bc.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	p.add_child(bc)
+	# Gradient arka plan için ColorRect zinciri
+	var bg_top := ColorRect.new()
+	bg_top.name = "BGBottom"
+	bg_top.color = Color(0.02, 0.02, 0.04, 0.98)  # Üst (daha koyu)
+	bg_top.size = p.size
+	bg_top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bg_top.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	p.add_child(bg_top)
+	
+	var bg_bottom := ColorRect.new()
+	bg_bottom.name = "BGBottom2"
+	bg_bottom.color = Color(0.04, 0.03, 0.06, 0.95)  # Alt (biraz daha açık)
+	bg_bottom.size = p.size
+	bg_bottom.position = Vector2(0, 0)
+	bg_bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bg_bottom.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	p.add_child(bg_bottom)
+	
+	# İç çerçeve (subtle highlight)
+	var inner_border := StyleBoxFlat.new()
+	inner_border.bg_color = Color(0.0, 0.0, 0.0, 0.0)
+	inner_border.border_width_left = 1
+	inner_border.border_width_right = 1
+	inner_border.border_width_top = 1
+	inner_border.border_width_bottom = 1
+	inner_border.border_color = Color(0.3, 0.28, 0.35, 0.15)  # Hafif iç parlama
+	inner_border.set_corner_radius_all(6)
+	p.add_theme_stylebox_override("panel", inner_border)
+	
+	# Dış çerçeve ve gölge
 	var border := StyleBoxFlat.new()
 	border.bg_color = Color(0.0, 0.0, 0.0, 0.0)
 	border.border_width_left = 2
 	border.border_width_right = 2
 	border.border_width_top = 2
 	border.border_width_bottom = 2
-	border.border_color = Color(0.25, 0.22, 0.3, 0.8)
+	border.border_color = Color(0.35, 0.32, 0.4, 0.9)  # Daha belirgin
 	border.set_corner_radius_all(8)
-	border.shadow_color = Color(0, 0, 0, 0.5)
-	border.shadow_size = 8
-	border.shadow_offset = Vector2(0, 4)
+	border.shadow_color = Color(0, 0, 0, 0.6)
+	border.shadow_size = 10
+	border.shadow_offset = Vector2(0, 5)
 	p.add_theme_stylebox_override("panel", border)
 
 func _build_right_stats(right_w: float, parent: Control = null) -> void:
@@ -579,40 +600,55 @@ func _make_equip_btn(slot: int) -> Button:
 	return btn
 
 func _style_inv_btn(btn: Button) -> void:
+	# Normal state - koyu arka plan, hafif kenarlık
 	var normal_s := StyleBoxFlat.new()
-	normal_s.bg_color = Color(0.12, 0.1, 0.15, 0.98)
-	normal_s.border_color = Color(0.45, 0.4, 0.55, 0.8)
-	normal_s.border_width_left = 2; normal_s.border_width_right = 2
-	normal_s.border_width_top = 2; normal_s.border_width_bottom = 2
-	normal_s.set_corner_radius_all(6)
-	normal_s.shadow_color = Color(0, 0, 0, 0.4)
-	normal_s.shadow_size = 4
-	normal_s.shadow_offset = Vector2(0, 2)
+	normal_s.bg_color = Color(0.08, 0.06, 0.1, 0.98)  # Daha koyu
+	normal_s.border_color = Color(0.4, 0.35, 0.5, 0.7)
+	normal_s.border_width_left = 1; normal_s.border_width_right = 1
+	normal_s.border_width_top = 1; normal_s.border_width_bottom = 1
+	normal_s.set_corner_radius_all(4)
+	# İç gölge efekti (inner shadow)
+	normal_s.shadow_color = Color(0, 0, 0, 0.3)
+	normal_s.shadow_size = 2
+	normal_s.shadow_offset = Vector2(1, 1)
 	
+	# Hover state - parlak kenarlık, hafif glow
 	var hover_s := StyleBoxFlat.new()
-	hover_s.bg_color = Color(0.18, 0.14, 0.22, 0.98)
-	hover_s.border_color = Color(0.75, 0.7, 0.85, 1.0)
+	hover_s.bg_color = Color(0.12, 0.1, 0.16, 0.98)
+	hover_s.border_color = Color(0.7, 0.65, 0.85, 1.0)  # Daha parlak
 	hover_s.border_width_left = 2; hover_s.border_width_right = 2
 	hover_s.border_width_top = 2; hover_s.border_width_bottom = 2
-	hover_s.set_corner_radius_all(6)
-	hover_s.shadow_color = Color(0.2, 0.2, 0.3, 0.5)
-	hover_s.shadow_size = 6
-	hover_s.shadow_offset = Vector2(0, 3)
+	hover_s.set_corner_radius_all(5)
+	hover_s.shadow_color = Color(0.3, 0.25, 0.4, 0.4)  # Hafif mavi-mor glow
+	hover_s.shadow_size = 4
+	hover_s.shadow_offset = Vector2(0, 2)
 	
+	# Pressed state
+	var pressed_s := StyleBoxFlat.new()
+	pressed_s.bg_color = Color(0.06, 0.05, 0.08, 0.98)
+	pressed_s.border_color = Color(0.85, 0.8, 1.0, 1.0)  # En parlak
+	pressed_s.border_width_left = 2; pressed_s.border_width_right = 2
+	pressed_s.border_width_top = 2; pressed_s.border_width_bottom = 2
+	pressed_s.set_corner_radius_all(5)
+	pressed_s.shadow_color = Color(0.2, 0.15, 0.3, 0.3)
+	pressed_s.shadow_size = 2
+	pressed_s.shadow_offset = Vector2(0, 1)
+	
+	# Disabled state
 	var disabled_s := StyleBoxFlat.new()
-	disabled_s.bg_color = Color(0.08, 0.06, 0.1, 0.95)
-	disabled_s.border_color = Color(0.3, 0.25, 0.35, 0.6)
-	disabled_s.border_width_left = 2; disabled_s.border_width_right = 2
-	disabled_s.border_width_top = 2; disabled_s.border_width_bottom = 2
-	disabled_s.set_corner_radius_all(6)
+	disabled_s.bg_color = Color(0.05, 0.04, 0.06, 0.9)
+	disabled_s.border_color = Color(0.25, 0.2, 0.3, 0.5)
+	disabled_s.border_width_left = 1; disabled_s.border_width_right = 1
+	disabled_s.border_width_top = 1; disabled_s.border_width_bottom = 1
+	disabled_s.set_corner_radius_all(4)
 	
 	btn.add_theme_stylebox_override("normal", normal_s)
-	btn.add_theme_stylebox_override("pressed", normal_s)
+	btn.add_theme_stylebox_override("pressed", pressed_s)
 	btn.add_theme_stylebox_override("hover", hover_s)
 	btn.add_theme_stylebox_override("disabled", disabled_s)
-	btn.add_theme_color_override("font_color", Color(0.85, 0.82, 0.78))
-	btn.add_theme_color_override("font_hover_color", Color(0.95, 0.93, 0.9))
-	btn.add_theme_color_override("font_pressed_color", Color(1.0, 1.0, 1.0))
+	btn.add_theme_color_override("font_color", Color(0.8, 0.78, 0.85))
+	btn.add_theme_color_override("font_hover_color", Color(1.0, 0.98, 1.0))
+	btn.add_theme_color_override("font_pressed_color", Color(0.9, 0.88, 0.95))
 
 func _build_stat_panel(parent: Control, w: float, doll_h: float) -> void:
 	var panel := Panel.new()

@@ -16,9 +16,10 @@ var _slot_cooldown_labels: Array[Label] = []  # Cooldown countdown label
 const SLOT_SIZE := 44
 const SLOT_GAP := 3
 const BAR_COLOR := Color(0.03, 0.03, 0.06, 0.88)
-const EMPTY_COLOR := Color(0.08, 0.08, 0.12, 0.9)
-const FILLED_COLOR := Color(0.12, 0.1, 0.18, 0.95)
-const BORDER_COLOR := Color(0.25, 0.22, 0.18, 0.5)
+const EMPTY_COLOR := Color(0.06, 0.06, 0.1, 0.95)     # Daha koyu
+const FILLED_COLOR := Color(0.1, 0.08, 0.15, 0.98)  # Daha belirgin
+const BORDER_COLOR := Color(0.3, 0.28, 0.35, 0.7)   # Daha parlak
+const ACTIVE_BORDER_COLOR := Color(0.5, 0.45, 0.6, 0.9)  # Aktif slot kenarlığı
 const KEY_LABEL_COLOR := Color(0.5, 0.5, 0.55, 0.7)
 const TEXT_COLOR := Color(0.85, 0.85, 0.9, 1.0)
 
