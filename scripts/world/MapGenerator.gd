@@ -335,6 +335,34 @@ func _build_floor_visuals() -> void:
 			floor_tiles[key] = true
 			
 			# Zemin (daha parlak tile)
+
+			# Arka plan pattern katmanı (tile'ların altında hafif doku)
+			var bg_pattern := ColorRect.new()
+			bg_pattern.name = "BackgroundPattern"
+			bg_pattern.size = Vector2(map_width, map_height) * tile_size
+			bg_pattern.color = Color(0.04, 0.03, 0.05, 1.0)  # Çok koyu arka plan
+			bg_pattern.z_index = -10
+			add_child(bg_pattern)
+
+			# Subtle grid pattern (ince çizgiler)
+			var grid_pattern := Line2D.new()
+			grid_pattern.name = "GridPattern"
+			grid_pattern.z_index = -5
+			var grid_color := Color(0.08, 0.06, 0.1, 0.12)  # Çok hafif grid
+			for gx in range(0, map_width + 1):
+				grid_pattern.add_point(Vector2(gx * tile_size, 0))
+				grid_pattern.add_point(Vector2(gx * tile_size, map_height * tile_size))
+				if gx < map_width:
+					grid_pattern.add_point(Vector2(gx * tile_size, map_height * tile_size))
+			for gy in range(0, map_height + 1):
+				grid_pattern.add_point(Vector2(0, gy * tile_size))
+				grid_pattern.add_point(Vector2(map_width * tile_size, gy * tile_size))
+				if gy < map_height:
+					grid_pattern.add_point(Vector2(map_width * tile_size, gy * tile_size))
+			grid_pattern.default_color = grid_color
+			grid_pattern.width = 1
+			add_child(grid_pattern)
+
 			var tex: Texture2D = _floor_textures.get(ft, null)
 			var base_color: Color = colors.get(ft, Color(0.2, 0.18, 0.15))
 			if tex:
