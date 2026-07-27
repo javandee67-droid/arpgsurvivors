@@ -8,6 +8,10 @@ extends Node2D
 # VS game controller
 @onready var map_generator: MapGenerator = $MapGenerator
 
+# Script dosyaları (class_name yerine dinamik yükleme)
+const PASSIVE_TREE_SCRIPT_PATH := "res://scripts/core/SimplifiedPassiveTree.gd"
+const PASSIVE_PANEL_SCRIPT_PATH := "res://scripts/ui/PassiveTreePanel.gd"
+
 var player: Node = null
 var _game_camera: Camera2D = null
 
@@ -125,7 +129,8 @@ func _create_world_ui() -> void:
 		_setup_passive_tree_ui(wui)
 
 func _setup_passive_tree_ui(parent: CanvasLayer) -> void:
-	# Pasif Ağaç paneli (başlangıçta gizli)
+	# Pasif Ağaç paneli (başlangıçta gizli) - dinamik yükleme
+	var PassiveTreePanel := load(PASSIVE_PANEL_SCRIPT_PATH)
 	var passive_panel := PassiveTreePanel.new()
 	passive_panel.name = "PassiveTreePanel"
 	passive_panel.visible = false
@@ -177,26 +182,41 @@ func _setup_passive_tree_player() -> void:
 	if not wui or not player:
 		return
 	
-	var panel: PassiveTreePanel = wui.get_node_or_null("PassiveTreePanel") as PassiveTreePanel
+	# Control olarak al (tip cast yerine)
+	var panel: Control = wui.get_node_or_null("PassiveTreePanel")
 	if not panel:
 		return
 	
+	# passive_tree özelliğine dinamik erişim
+	var passive_tree: Node = panel.get("passive_tree") as Node
+	if not passive_tree:
+		return
+	
 	# Oyuncunun pasif puanlarını panele ver
-	panel.passive_tree.set_passive_points(player.stats.passive_points)
+	var set_points_func: Callable = Callable(passive_tree, "set_passive_points")
+	set_points_func.call(player.stats.passive_points)
 	
 	# Pasif node açıldığında stat değişikliklerini uygula
-	panel.passive_tree.passive_unlocked.connect(_on_passive_node_unlocked)
+	var unlocked_signal: Signal = passive_tree.get("passive_unlocked") as Signal
+	unlocked_signal.connect(_on_passive_node_unlocked)
 
 func _on_passive_node_unlocked(node_id: String) -> void:
 	"""Bir pasif node açıldığında oyuncunun statlarına uygula."""
 	if not player or not player.stats:
 		return
 	
-	var panel: PassiveTreePanel = get_tree().root.get_node_or_null("WorldUI/PassiveTreePanel") as PassiveTreePanel
+	# Panel'e dinamik erişim
+	var panel: Control = get_tree().root.get_node_or_null("WorldUI/PassiveTreePanel")
 	if not panel:
 		return
 	
-	var node_info: Dictionary = panel.passive_tree.get_node_info(node_id)
+	var passive_tree: Node = panel.get("passive_tree") as Node
+	if not passive_tree:
+		return
+	
+	# get_node_info fonksiyonunu çağır
+	var get_info_func: Callable = Callable(passive_tree, "get_node_info")
+	var node_info: Dictionary = get_info_func.call(node_id)
 	if node_info.is_empty():
 		return
 	
@@ -267,7 +287,8 @@ func _on_passive_node_unlocked(node_id: String) -> void:
 		player.stats.recalculate()
 		
 		# Oyuncunun pasif puanını güncelle
-		player.stats.passive_points = panel.passive_tree.get_remaining_points()
+		var get_points_func: Callable = Callable(passive_tree, "get_remaining_points")
+		player.stats.passive_points = get_points_func.call()
 
 func _spawn_player() -> void:
 	if not player_scene:

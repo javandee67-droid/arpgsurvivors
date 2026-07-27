@@ -5,7 +5,10 @@ class_name PassiveTreePanel
 
 signal node_selected(node_id: String)
 
-var passive_tree: SimplifiedPassiveTree = null
+# Script dosya yolu (dinamik yükleme için)
+const PASSIVE_TREE_SCRIPT := "res://scripts/core/SimplifiedPassiveTree.gd"
+
+var _passive_tree_node: Node = null  # SimplifiedPassiveTree instance
 var _category_panels: Array[Panel] = []
 var _node_buttons: Dictionary = {}  # node_id -> Button
 
@@ -14,15 +17,37 @@ const PANEL_HEIGHT := 300.0
 const NODE_HEIGHT := 50.0
 const CATEGORY_GAP := 10.0
 
+# Helper fonksiyonlar (passive_tree yerine)
+func _get_passive_tree() -> Node:
+	return _passive_tree_node
+
+func _call_tree_func(func_name: String, args: Array = []) -> Variant:
+	var tree := _get_passive_tree()
+	if not tree:
+		return null
+	var method: Callable = Callable(tree, func_name)
+	return method.callv(args)
+
+func _get_tree_prop(prop_name: String) -> Variant:
+	var tree := _get_passive_tree()
+	if not tree:
+		return null
+	return tree.get(prop_name)
+
 func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
 	layer = 100
 	
-	# Pasif ağacı oluştur
-	passive_tree = SimplifiedPassiveTree.new()
-	passive_tree.passive_points_changed.connect(_on_points_changed)
-	passive_tree.passive_unlocked.connect(_on_node_unlocked)
-	add_child(passive_tree)
+	# Pasif ağacı oluştur (dinamik yükleme)
+	var SimplifiedPassiveTree := load(PASSIVE_TREE_SCRIPT)
+	_passive_tree_node = SimplifiedPassiveTree.new()
+	add_child(_passive_tree_node)
+	
+	# Sinyalleri bağla
+	var points_changed: Signal = _passive_tree_node.get("passive_points_changed") as Signal
+	var unlocked: Signal = _passive_tree_node.get("passive_unlocked") as Signal
+	points_changed.connect(_on_points_changed)
+	unlocked.connect(_on_node_unlocked)
 	
 	_build_ui()
 	_update_all_nodes()
@@ -52,7 +77,8 @@ func _build_ui() -> void:
 	add_child(summary_btn)
 	
 	# Kategori panellerini oluştur
-	var categories: Array = passive_tree.tree_data.get("categories", [])
+	var tree_data: Dictionary = _get_tree_prop("tree_data")
+	var categories: Array = tree_data.get("categories", [])
 	var y_offset: float = 110.0
 	
 	for i in range(categories.size()):
@@ -188,14 +214,16 @@ func _update_all_nodes() -> void:
 		var category_color: String = "#ff4444"
 		
 		# Kategori rengini bul
-		for cat in passive_tree.tree_data.get("categories", []):
+		var tree_data: Dictionary = _get_tree_prop("tree_data")
+		for cat in tree_data.get("categories", []):
 			for n in cat.get("nodes", []):
 				if n.get("id") == node_id:
 					category_color = cat.get("color", "#ff4444")
 					break
 		
-		var unlocked: bool = node_id in passive_tree.unlocked_nodes
-		var can_unlock: bool = passive_tree.can_unlock_node(node_id)
+		var unlocked_nodes: Array = _get_tree_prop("unlocked_nodes")
+		var unlocked: bool = node_id in unlocked_nodes
+		var can_unlock: bool = _call_tree_func("can_unlock_node", [node_id])
 		_update_button_style(btn, unlocked, can_unlock, category_color)
 		
 		# Durum etiketini güncelle
@@ -212,7 +240,8 @@ func _update_all_nodes() -> void:
 				cost_label.add_theme_color_override("font_color", Color(0.4, 0.4, 0.4))
 
 func _on_node_clicked(node_id: String) -> void:
-	if passive_tree.unlock_node(node_id):
+	var result = _call_tree_func("unlock_node", [node_id])
+	if result:
 		_update_all_nodes()
 		_show_node_tooltip(node_id, true)
 
@@ -223,7 +252,7 @@ func _on_node_unhover() -> void:
 	_hide_tooltip()
 
 func _show_node_tooltip(node_id: String, just_unlocked: bool) -> void:
-	var node_info: Dictionary = passive_tree.get_node_info(node_id)
+	var node_info: Dictionary = _call_tree_func("get_node_info", [node_id])
 	if node_info.is_empty():
 		return
 	
@@ -245,12 +274,13 @@ func _show_node_tooltip(node_id: String, just_unlocked: bool) -> void:
 	
 	content += "[color=#aaaaaa]Maliyet:[/color] %d puan\n" % node_info.get("cost", 1)
 	content += "\n"
-	content += "[color=#dddddd]%s[/color]" % passive_tree.get_stat_display(node_id)
+	content += "[color=#dddddd]%s[/color]" % _call_tree_func("get_stat_display", [node_id])
 	
 	# Gereksinim bilgisi
 	if node_info.has("requires"):
 		var req_id: String = node_info["requires"]
-		var req_name: String = passive_tree.get_node_info(req_id).get("name", req_id)
+		var req_info: Dictionary = _call_tree_func("get_node_info", [req_id])
+		var req_name: String = req_info.get("name", req_id)
 		content += "\n\n[color=#888888]Gereken: %s[/color]" % req_name
 	
 	# Tooltip göster
@@ -280,13 +310,14 @@ func _hide_tooltip() -> void:
 func _on_points_changed(points: int) -> void:
 	var label := get_node_or_null("PointsLabel") as Label
 	if label:
-		label.text = "Kalan Puan: [color=#ffcc00]%d[/color] / %d" % [points, SimplifiedPassiveTree.MAX_PASSIVE_POINTS]
+		# MAX_PASSIVE_POINTS sabitini doğrudan kullan
+		label.text = "Kalan Puan: [color=#ffcc00]%d[/color] / 20" % points
 
 func _on_node_unlocked(node_id: String) -> void:
 	_update_all_nodes()
 
 func _show_summary() -> void:
-	var summary: String = passive_tree.get_summary()
+	var summary: String = _call_tree_func("get_summary", [])
 	
 	# Özet dialog
 	var dialog := AcceptDialog.new()
@@ -299,4 +330,5 @@ func _show_summary() -> void:
 
 ## Test için: Belirli miktarda puan ver
 func give_points(amount: int) -> void:
-	passive_tree.set_passive_points(passive_tree._passive_points + amount)
+	var current_points: int = _call_tree_func("get_remaining_points", [])
+	_call_tree_func("set_passive_points", [current_points + amount])
