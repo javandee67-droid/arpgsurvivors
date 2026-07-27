@@ -98,10 +98,10 @@ func _ready() -> void:
 		_rebuild_skill_instance()
 		_verify_support_system()
 	
-				# Skill Gem Panel toggle (K tusu)
-				if InputMap.has_action("toggle_skill_gem_panel"):
-								if not InputMap.action_get_events("toggle_skill_gem_panel").is_empty():
-												InputMap.action_add_event("toggle_skill_gem_panel", InputEventKey.new())
+	# Skill Gem Panel toggle (K tusu)
+	if InputMap.has_action("toggle_skill_gem_panel"):
+	if not InputMap.action_get_events("toggle_skill_gem_panel").is_empty():
+	InputMap.action_add_event("toggle_skill_gem_panel", InputEventKey.new())
 	# Lit aydınlatma: AnimatedSprite2D'ye alıcı materyali ata
 	_setup_lit_receiver()
 	

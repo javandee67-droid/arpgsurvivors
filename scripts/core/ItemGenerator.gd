@@ -26,7 +26,7 @@ const AFFIX_POOL = {
 	"physical_damage": {"min": 2.0, "max": 600.0, "pct": false, "types": ["weapon", "gloves"]},
 	"physical_damage_percent": {"min": 3.0, "max": 200.0, "pct": true, "types": ["weapon"]},
 	"elemental_damage": {"min": 3.0, "max": 180.0, "pct": true, "types": ["weapon", "gloves", "offhand", "amulet"]},
-				"spell_damage": {"min": 3.0, "max": 120.0, "pct": true, "types": ["weapon", "gloves", "offhand", "amulet"]},
+	"spell_damage": {"min": 3.0, "max": 120.0, "pct": true, "types": ["weapon", "gloves", "offhand", "amulet"]},
 	"cold_damage": {"min": 2.0, "max": 150.0, "pct": true, "types": ["weapon", "gloves"]},
 	"fire_damage": {"min": 2.0, "max": 150.0, "pct": true, "types": ["weapon", "gloves"]},
 	"lightning_damage": {"min": 2.0, "max": 150.0, "pct": true, "types": ["weapon", "gloves"]},
