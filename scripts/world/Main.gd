@@ -776,11 +776,11 @@ func _on_respawn() -> void:
 	get_tree().paused = false
 	
 	# UI bilesenlerini sifirla (CanvasLayer olduklari icin _clear_all silmez)
-	var hud := get_node_or_null("CanvasLayer2") as HUD
+	var hud: HUD = get_node_or_null("CanvasLayer2")
 	if hud:
 		hud.player = null
 		hud._connected = false
-	var game_ui := get_node_or_null("CanvasLayer") as GameUI
+	var game_ui: GameUI = get_node_or_null("CanvasLayer")
 	if game_ui:
 		game_ui.player = null
 		game_ui._connected = false
