@@ -2,7 +2,7 @@ extends CanvasLayer
 class_name HUD
 ## Modern HUD: HP+ES shield overlay, full-width XP bar at bottom.
 
-var player: Player = null
+var player = null  # type: Node (assigned at runtime)
 var health_fill: ColorRect
 var health_drain: ColorRect  # Delay bar (two-layer health effect)
 var health_bg: ColorRect

@@ -9,7 +9,7 @@ const SAVE_PATH: String = "user://simple_skill_tree.save"
 signal node_allocated(node_id: int, ref_json: String)
 signal node_deallocated(node_id: int, ref_json: String)
 
-var player: Player = null
+var player = null  # type: Node (assigned at runtime)
 var _embedded_mode: bool = false
 var _effect_applier: PassiveEffectApplier = null
 

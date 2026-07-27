@@ -156,7 +156,7 @@ func _toggle_passive_tree() -> void:
 	if not wui:
 		return
 	
-	var panel: Control = wui.get_node_or_null("PassiveTreePanel")
+	var panel: CanvasLayer = wui.get_node_or_null("PassiveTreePanel") as CanvasLayer
 	var btn: Button = wui.get_node_or_null("PassiveTreeButton") as Button
 	
 	if not panel:
@@ -183,7 +183,7 @@ func _setup_passive_tree_player() -> void:
 		return
 	
 	# Control olarak al (tip cast yerine)
-	var panel: Control = wui.get_node_or_null("PassiveTreePanel")
+	var panel: CanvasLayer = wui.get_node_or_null("PassiveTreePanel") as CanvasLayer
 	if not panel:
 		return
 	
@@ -206,7 +206,7 @@ func _on_passive_node_unlocked(node_id: String) -> void:
 		return
 	
 	# Panel'e dinamik erişim
-	var panel: Control = get_tree().root.get_node_or_null("WorldUI/PassiveTreePanel")
+	var panel: CanvasLayer = get_tree().root.get_node_or_null("WorldUI/PassiveTreePanel") as CanvasLayer
 	if not panel:
 		return
 	

@@ -4,7 +4,7 @@ class_name SkillGemPanel
 ## Yetenek Gem Paneli — K tusu ile acilir.
 ## Sol: Skill listesi, Sag: 5 support slotu, Alt: Gem havuzu.
 
-var player: Player = null
+var player = null  # type: Node (assigned at runtime)
 var _visible: bool = false
 
 # UI references

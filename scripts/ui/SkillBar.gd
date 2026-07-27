@@ -3,7 +3,7 @@ class_name SkillBar
 ## Alt ekrandaki skill hotbar'ı. 20 slot (1-9, 0, -, =, Q, W, E, R, T, Y, U, I).
 ## SkillGemPanel'de skill'leri hotbar'a atayıp tuşlarla kullanabilirsin.
 
-var player: Player = null
+var player = null  # type: Node (assigned at runtime)
 
 var _slot_bgs: Array[ColorRect] = []
 var _slot_labels: Array[Label] = []
@@ -800,22 +800,22 @@ func _on_slot_hover(slot_idx: int) -> void:
 	var extra_info_parts: Array[String] = []
 	
 	# Chain count
-	if skill_data.get("chain_count", 0) > 0:
+	if ("chain_count" in skill_data and skill_data.chain_count > 0):
 		extra_info_parts.append("⚡ %d Zincir" % skill_data.chain_count)
 		has_extra_info = true
 	
 	# AoE radius
-	if skill_data.get("area_radius", 0.0) > 0.0:
+	if ("area_radius" in skill_data and skill_data.area_radius > 0.0):
 		extra_info_parts.append("💥 %.0fpx Alan" % skill_data.area_radius)
 		has_extra_info = true
 	
 	# Projectile count
-	if skill_data.get("projectile_count", 0) > 0:
+	if ("projectile_count" in skill_data and skill_data.projectile_count > 0):
 		extra_info_parts.append("🏹 %d Mermi" % skill_data.projectile_count)
 		has_extra_info = true
 	
 	# Pierce count
-	if skill_data.get("pierce_count", 0) > 0:
+	if ("pierce_count" in skill_data and skill_data.pierce_count > 0):
 		extra_info_parts.append("🗡️ %d Delme" % skill_data.pierce_count)
 		has_extra_info = true
 	
@@ -911,7 +911,9 @@ func _on_slot_hover(slot_idx: int) -> void:
 	var wpn_item: ItemData = player.equipment.get_item_in_slot(0)  # WEAPON slot
 	var adds_damage: Dictionary = {}  # {"fire": [min, max], ...}
 	if wpn_item and wpn_item.affixes.size() > 0:
-		var adds_raw: Dictionary = Player._get_adds_damage_from_affixes(wpn_item)
+		var adds_raw: Dictionary = {}
+		if player and player.has_method("_get_adds_damage_from_affixes"):
+			adds_raw = player._get_adds_damage_from_affixes(wpn_item)
 		for dmg_type in adds_raw:
 			var aff_range = adds_raw[dmg_type]
 			adds_damage[dmg_type] = [aff_range.min * skill_data.damage_effectiveness, aff_range.max * skill_data.damage_effectiveness]

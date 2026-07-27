@@ -23,7 +23,7 @@ var _drag_ghost: TextureRect = null
 var _active_left_tab: int = LeftTab.INVENTORY
 var _connected: bool = false
 var _inv_total_h: float = 640.0
-var player: Player = null
+var player = null  # type: Node (assigned at runtime)
 var visible_ui: bool = false
 var _left_content: Control = null
 var _stats_label: RichTextLabel = null
@@ -771,7 +771,7 @@ func _fmt_util(stats: CharacterStats, uc: String, ec: String, sh: String, se: St
 	t += sh + "═══ TEMEL ═══" + se + nl
 	var ms := int((stats.movement_speed - 1.0) * 100.0)
 	t += "Hareket Hızı: " + uc + "+" + str(ms) + "%" + ec + "  Menzil: " + uc + "+" + str(int(stats.melee_range_bonus * 100.0)) + "%" + ec + nl
-	var mana_node = player.get_node_or_null("Mana")
+	var mana_node: Node = player.get_node_or_null("Mana")
 	if mana_node:
 		t += "Can: " + uc + str(player.health.current_health) + "/" + str(player.health.max_health) + ec + "  Mana: " + uc + str(mana_node.current_mana) + "/" + str(mana_node.max_mana) + ec + nl
 	else:
@@ -798,7 +798,7 @@ func _toggle_ui() -> void:
 func _open_ui() -> void:
 	visible_ui = true; visible = true; get_tree().paused = true
 	if not is_instance_valid(player):
-		player = get_tree().get_first_node_in_group("player") as Player
+		player = get_tree().get_first_node_in_group("player") as Node
 		_connected = false
 	_active_left_tab = LeftTab.INVENTORY
 	_show_left_tab(LeftTab.INVENTORY); _update_right_stats()
@@ -821,7 +821,7 @@ func _connect_signals() -> void:
 		player.stats.stats_changed.connect(_on_stats_changed)
 	if not player.health.health_changed.is_connected(_on_health_changed_for_stats):
 		player.health.health_changed.connect(_on_health_changed_for_stats)
-	var mana_node := player.get_node_or_null("Mana")
+	var mana_node: Node = player.get_node_or_null("Mana")
 	if mana_node and not mana_node.mana_changed.is_connected(_on_mana_changed_for_stats):
 		mana_node.mana_changed.connect(_on_mana_changed_for_stats)
 	_connected = true
@@ -953,7 +953,7 @@ func _update_stats() -> void:
 	s += "Seviye: %d\n" % ls.level
 	s += "XP: %d/%d\n" % [ls.current_xp, ls.get_xp_required()]
 	s += "Can: %d/%d\n" % [player.health.current_health, player.health.max_health]
-	var mana_node = player.get_node_or_null("Mana")
+	var mana_node: Node = player.get_node_or_null("Mana")
 	if mana_node: s += "Mana: %d/%d\n" % [mana_node.current_mana, mana_node.max_mana]
 	if player.has_node("EnergyShield"):
 		var es = player.get_node("EnergyShield")

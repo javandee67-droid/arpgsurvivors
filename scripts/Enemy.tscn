@@ -41,9 +41,30 @@ metadata/_custom_type_script = "uid://b01ghf3kg53vd"
 
 [node name="CharacterStats" type="Node" parent="." unique_id=200000001]
 script = ExtResource("7_stats")
+strength = null
+dexterity = null
+intelligence = null
 base_life = 30.0
+base_mana = null
+base_mana_regen = null
+base_energy_shield = null
 base_armour = 10.0
 base_evasion = 10.0
+base_accuracy = null
+base_movement_speed = null
+base_critical_chance = null
+base_critical_multiplier = null
+base_attack_speed = null
+base_cast_speed = null
+base_block_chance = null
+base_fire_resistance = null
+base_cold_resistance = null
+base_lightning_resistance = null
+base_chaos_resistance = null
+max_fire_resistance = null
+max_cold_resistance = null
+max_lightning_resistance = null
+max_chaos_resistance = null
 
 [node name="AilmentController" type="Node" parent="." unique_id=200000002]
 script = ExtResource("8_ail")

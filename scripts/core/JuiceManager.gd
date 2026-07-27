@@ -107,11 +107,13 @@ func _on_level_up_event(new_level: int, pos: Vector2) -> void:
 	show_level_up_effect(new_level)
 	_spawn_level_up_burst(pos)
 
-func _on_boss_encounter(boss_name: String, pos: Vector2) -> void:
-	_do_boss_spawn_flash(boss_name, pos)
+func _on_boss_encounter(_boss_name: String, _pos: Vector2) -> void:
+	# TODO: boss spawn flash effect
+	pass
 
-func _on_boss_killed(_boss_name: String, pos: Vector2) -> void:
-	_do_boss_killed_effect(pos)
+func _on_boss_killed(_boss_name: String, _pos: Vector2) -> void:
+	# TODO: boss killed effect
+	pass
 
 # ==================== PRIMITIVES ====================
 

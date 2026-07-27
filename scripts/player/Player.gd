@@ -2142,23 +2142,23 @@ func _spawn_ice_nova_effect(pos: Vector2) -> void:
 func _track_dps(skill_id: String, damage: float, tags: Array) -> void:
 	EventBus.skill_damage.emit(skill_id, damage, tags)
 
-	func _calc_skill_damage(skill_data: SkillData, skill_path: String) -> float:
-		"""Ortak hasar hesaplama — tum skill'ler kullanir.
-		Skill seviyesi hasari artirir: level 1 = %100, her ek level +%25.
-		
-		Spells: skill.base_damage kullanir (weapon damage yok)
-		Attacks: weapon damage kullanir"""
+func _calc_skill_damage(skill_data: SkillData, skill_path: String) -> float:
+	"""Ortak hasar hesaplama — tum skill'ler kullanir.
+	Skill seviyesi hasari artirir: level 1 = %100, her ek level +%25.
+	
+	Spells: skill.base_damage kullanir (weapon damage yok)
+	Attacks: weapon damage kullanir"""
 
-		var supports: Array[SupportData] = _get_active_supports_for_skill(skill_path)
-		var si: SkillInstance = SkillInstance.new(skill_data, supports)
-		var dmg: float = si.get_total_damage(_get_base_damage_for_skill)
+	var supports: Array[SupportData] = _get_active_supports_for_skill(skill_path)
+	var si: SkillInstance = SkillInstance.new(skill_data, supports)
+	var dmg: float = si.get_total_damage(_get_base_damage_for_skill)
 
-		# Skill seviyesi carpani: her seviye +%25 hasar
-		var level: int = _skill_levels.get(skill_path, 1)
-		var level_mult: float = 1.0 + (level - 1) * 0.25
-		dmg *= level_mult
+	# Skill seviyesi carpani: her seviye +%25 hasar
+	var level: int = _skill_levels.get(skill_path, 1)
+	var level_mult: float = 1.0 + (level - 1) * 0.25
+	dmg *= level_mult
 
-		return dmg
+	return dmg
 
 
 # ─── 1. NAPALM (fire_bolt) ─────────────────────────────────────────
@@ -2256,11 +2256,11 @@ func _cast_lightning_chain_vs(skill_data: SkillData, target: Node, skill_path: S
 	Zincir sayısı: skill_data.chain_count + support gem bonusları"""
 	var dmg := _calc_skill_damage(skill_data, skill_path)
 	# Zincir sayısını hesapla (base + support gem bonusları)
-	var base_chains: int = skill_data.get("chain_count", 4)
+	var base_chains: int = skill_data.chain_count if "chain_count" in skill_data else 4
 	var chain_bonus: int = 0
 	var supports: Array[SupportData] = _get_active_supports_for_skill(skill_path)
 	for sd in supports:
-		if sd and sd.get("chain_count", 0) > 0:
+		if sd and ("chain_count" in sd and sd.chain_count > 0):
 			chain_bonus += sd.chain_count
 	var total_chains: int = base_chains + chain_bonus
 	# İlk vuruş = 1, sonra remaining_chains = total_chains - 1
@@ -2331,7 +2331,9 @@ func _on_lightning_arrival(bolt: Node2D, target: Node, damage: float, skill_data
 	
 	# Kalan zincir sayısını göster (debug için)
 	if remaining_chains > 0:
-		_show_damage_number(target.global_position, "⚡%d" % remaining_chains, Color(1.0, 0.9, 0.2))
+		pass
+		# TODO: _show_damage_number not implemented
+		# _show_damage_number(target.global_position, "⚡%d" % remaining_chains, Color(1.0, 0.9, 0.2))
 	
 	# Hasar
 	h.take_damage(damage, self, skill_data.tags.duplicate(), false, 0.0)

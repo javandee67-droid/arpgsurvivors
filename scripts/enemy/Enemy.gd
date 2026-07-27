@@ -724,7 +724,7 @@ func _try_support_gem_drop() -> void:
 		return
 	
 	# Player's gem stash'ine ekle
-	var player := get_tree().get_first_node_in_group("player") as Player
+	var player := get_tree().get_first_node_in_group("player") as Node
 	if player and player.has_method("add_to_gem_stash"):
 		player.add_to_gem_stash(chosen)
 		print("Support gem dÃ¼ÅŸtÃ¼: ", chosen.display_name)

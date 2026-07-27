@@ -21,12 +21,18 @@ func _load_tree_data() -> void:
 		push_error("Passive tree data not found: " + PASSIVE_TREE_PATH)
 		return
 	
-	var file := FileAccess.open_json(PASSIVE_TREE_PATH)
+	var file := FileAccess.open(PASSIVE_TREE_PATH, FileAccess.READ)
 	if file == null:
 		push_error("Failed to load passive tree: " + str(FileAccess.get_open_error()))
 		return
 	
-	tree_data = file as Dictionary
+	var json_text: String = file.get_as_text()
+	file.close()
+	var json := JSON.new()
+	if json.parse(json_text) != OK:
+		push_error("Failed to parse passive tree JSON: " + json.get_error_message())
+		return
+	tree_data = json.data as Dictionary
 
 ## Oyuncunun kalan pasif puanını döndürür
 func get_remaining_points() -> int:

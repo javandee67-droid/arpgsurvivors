@@ -271,22 +271,22 @@ func _build_ui() -> void:
 		var extra_parts: Array[String] = []
 		
 		# Chain count (Lightning Chain vb.)
-		if skill_data.get("chain_count", 0) > 0:
+		if ("chain_count" in skill_data and skill_data.chain_count > 0):
 			var chains: int = skill_data.chain_count
 			extra_parts.append("⚡ %d Zincir" % chains)
 		
 		# AoE radius (area skills)
-		if skill_data.get("area_radius", 0.0) > 0.0:
+		if ("area_radius" in skill_data and skill_data.area_radius > 0.0):
 			var radius: float = skill_data.area_radius
 			extra_parts.append("💥 %.0fpx AoE" % radius)
 		
 		# Projectile count
-		if skill_data.get("projectile_count", 0) > 0:
+		if ("projectile_count" in skill_data and skill_data.projectile_count > 0):
 			var proj_count: int = skill_data.projectile_count
 			extra_parts.append("🏹 %d Mermi" % proj_count)
 		
 		# Pierce count
-		if skill_data.get("pierce_count", 0) > 0:
+		if ("pierce_count" in skill_data and skill_data.pierce_count > 0):
 			var pierce: int = skill_data.pierce_count
 			extra_parts.append("🗡️ %d Delme" % pierce)
 		

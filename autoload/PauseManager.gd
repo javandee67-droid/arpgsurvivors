@@ -16,12 +16,12 @@ func _ready() -> void:
 	pass
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not is_instance_get_tree():
+	if not get_tree():
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.is_action_pressed(PAUSE_ACTION):
 			_toggle_pause()
-			event.set_handled(True)
+			event.set_handled(true)
 
 func _toggle_pause() -> void:
 	var tree = get_tree()
