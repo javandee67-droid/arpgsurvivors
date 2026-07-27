@@ -953,6 +953,38 @@ func _on_player_died() -> void:
 	death_screen.set_stats(p_level, _kill_count, _game_time)
 	
 	death_screen.respawn_requested.connect(_on_respawn)
+	death_screen.return_to_menu.connect(_on_return_to_menu_from_death)
+
+func _on_return_to_menu_from_death() -> void:
+	"""Handle return to menu from death screen"""
+	# Track stats before clearing
+	var upgrades = PersistentUpgrades.get_instance()
+	upgrades.add_gold(100)  # Reward for surviving
+	upgrades.add_kill()
+	upgrades.save_data()
+	
+	# Clear everything and return to main menu
+	_game_started = false
+	_in_main_menu = true
+	
+	# Clear game elements
+	for ch in get_children():
+		if ch is VSDeathScreen:
+			ch.queue_free()
+		if ch is CanvasLayer:
+			ch.queue_free()
+	
+	# Clear root-level UI
+	var root := get_tree().root
+	for child in root.get_children():
+		if child != get_tree().current_scene and child.name != "root":
+			child.queue_free()
+	
+	player = null
+	get_tree().paused = false
+	
+	# Return to main menu
+	_show_main_menu()
 
 func _on_respawn() -> void:
 	# Olum ekranini kaldir (CanvasLayer oldugu icin _clear_all silmez)

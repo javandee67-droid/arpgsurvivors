@@ -403,7 +403,7 @@ func _show_confirm_dialog() -> void:
 	label.offset_top = 10
 	label.offset_bottom = 50
 	label.add_theme_color_override("font_color", TEXT_COLOR)
-	label.add_theme_font_size_override("font_size", 14)
+	label.add_theme_font_size_override("font_size", 12)
 	dialog.add_child(label)
 	
 	var btn_container := HBoxContainer.new()
@@ -514,12 +514,12 @@ func _create_upgrade_item(upgrade_id: String, def: Dictionary) -> Panel:
 	
 	# Name
 	var name_label := Label.new()
-	name_label.text = def.get("name", upgrade_id)
-	name_label.offset_left = 15
+	name_label.text = def.get("icon", "•") + " " + def.get("name", upgrade_id)
+	name_label.offset_left = 35
 	name_label.offset_right = 250
 	name_label.offset_top = 8
 	name_label.offset_bottom = 28
-	name_label.add_theme_font_size_override("font_size", 14)
+	name_label.add_theme_font_size_override("font_size", 12)
 	name_label.add_theme_color_override("font_color", ACCENT_COLOR)
 	item.add_child(name_label)
 	
@@ -597,6 +597,8 @@ func _on_buy_upgrade(upgrade_id: String) -> void:
 
 ## Show settings panel
 func _show_settings_panel() -> void:
+	var settings = GameSettings.get_instance()
+	
 	var panel := Panel.new()
 	panel.name = "SettingsPanel"
 	panel.anchor_left = 0.3
@@ -663,21 +665,21 @@ func _show_settings_panel() -> void:
 	content.add_child(sfx_row)
 	
 	# Fullscreen toggle
-	var fs_row := _create_setting_toggle("Tam Ekran", true)
+	var fs_row := _create_setting_toggle("Tam Ekran", settings.fullscreen, func(v): settings.set_fullscreen(v))
 	content.add_child(fs_row)
 	
 	# VSync toggle
-	var vsync_row := _create_setting_toggle("VSync", true)
+	var vsync_row := _create_setting_toggle("VSync", settings.vsync, func(v): settings.set_vsync(v))
 	content.add_child(vsync_row)
 
 func _create_setting_row(label_text: String, default_value: String) -> HBoxContainer:
 	var row := HBoxContainer.new()
-	row.custom_minimum_size = Vector2(0, 40)
+	row.custom_minimum_size = Vector2(0, 35)
 	
 	var label := Label.new()
 	label.text = label_text
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.add_theme_font_size_override("font_size", 14)
+	label.add_theme_font_size_override("font_size", 12)
 	label.add_theme_color_override("font_color", TEXT_COLOR)
 	row.add_child(label)
 	
@@ -690,19 +692,20 @@ func _create_setting_row(label_text: String, default_value: String) -> HBoxConta
 	
 	return row
 
-func _create_setting_toggle(label_text: String, default_value: bool) -> HBoxContainer:
+func _create_setting_toggle(label_text: String, default_value: bool, callback: Callable = func(v): pass) -> HBoxContainer:
 	var row := HBoxContainer.new()
-	row.custom_minimum_size = Vector2(0, 40)
+	row.custom_minimum_size = Vector2(0, 35)
 	
 	var label := Label.new()
 	label.text = label_text
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.add_theme_font_size_override("font_size", 14)
+	label.add_theme_font_size_override("font_size", 12)
 	label.add_theme_color_override("font_color", TEXT_COLOR)
 	row.add_child(label)
 	
 	var check := CheckButton.new()
 	check.button_pressed = default_value
+eck.toggled.connect(callback)
 	row.add_child(check)
 	
 	return row

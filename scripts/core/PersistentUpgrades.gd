@@ -27,7 +27,7 @@ const UPGRADES := {
 		"max_level": 20,
 		"effect": "starting_gold_bonus",
 		"value_per_level": 50,
-		"icon": "res://assets/ui/icon_gold.png",
+		"icon": "✦",
 	},
 	"starting_essence": {
 		"name": "Baslangic Özü",
@@ -38,7 +38,7 @@ const UPGRADES := {
 		"max_level": 10,
 		"effect": "starting_essence_bonus",
 		"value_per_level": 5,
-		"icon": "res://assets/ui/icon_essence.png",
+		"icon": "✧",
 	},
 	
 	# === OFFENSE ===
@@ -51,7 +51,7 @@ const UPGRADES := {
 		"max_level": 25,
 		"effect": "damage_multiplier",
 		"value_per_level": 2.0,
-		"icon": "res://assets/ui/icon_damage.png",
+		"icon": "⚔️",
 	},
 	"critical_chance": {
 		"name": "Keskin Göz",
@@ -62,7 +62,7 @@ const UPGRADES := {
 		"max_level": 15,
 		"effect": "critical_chance_bonus",
 		"value_per_level": 1.0,
-		"icon": "res://assets/ui/icon_crit.png",
+		"icon": "🎯",
 	},
 	"critical_multiplier": {
 		"name": "Savurgan Hasar",
@@ -73,7 +73,7 @@ const UPGRADES := {
 		"max_level": 20,
 		"effect": "critical_multiplier_bonus",
 		"value_per_level": 5.0,
-		"icon": "res://assets/ui/icon_crit_damage.png",
+		"icon": "💥",
 	},
 	"pickup_radius": {
 		"name": "Altin Toplayici",
@@ -84,7 +84,7 @@ const UPGRADES := {
 		"max_level": 30,
 		"effect": "pickup_radius_bonus",
 		"value_per_level": 15.0,
-		"icon": "res://assets/ui/icon_pickup.png",
+		"icon": "🧲",
 	},
 	"xp_bonus": {
 		"name": "Bilgelik",
@@ -95,7 +95,7 @@ const UPGRADES := {
 		"max_level": 20,
 		"effect": "xp_multiplier",
 		"value_per_level": 3.0,
-		"icon": "res://assets/ui/icon_xp.png",
+		"icon": "⭐",
 	},
 	"gold_find": {
 		"name": "Refik",
@@ -106,7 +106,7 @@ const UPGRADES := {
 		"max_level": 25,
 		"effect": "gold_find_bonus",
 		"value_per_level": 2.0,
-		"icon": "res://assets/ui/icon_gold_find.png",
+		"icon": "💰",
 	},
 	
 	# === DEFENSE ===
@@ -119,7 +119,7 @@ const UPGRADES := {
 		"max_level": 40,
 		"effect": "max_life_bonus",
 		"value_per_level": 25.0,
-		"icon": "res://assets/ui/icon_health.png",
+		"icon": "❤️",
 	},
 	"life_regen": {
 		"name": "Iyilesme",
@@ -130,7 +130,7 @@ const UPGRADES := {
 		"max_level": 25,
 		"effect": "life_regen_bonus",
 		"value_per_level": 0.5,
-		"icon": "res://assets/ui/icon_regen.png",
+		"icon": "💚",
 	},
 	"armor_boost": {
 		"name": "Sert Deri",
@@ -141,7 +141,7 @@ const UPGRADES := {
 		"max_level": 35,
 		"effect": "armor_bonus",
 		"value_per_level": 15.0,
-		"icon": "res://assets/ui/icon_armor.png",
+		"icon": "🛡️",
 	},
 	"movement_speed": {
 		"name": "Ceviklik",
@@ -152,7 +152,7 @@ const UPGRADES := {
 		"max_level": 20,
 		"effect": "movement_speed_bonus",
 		"value_per_level": 1.5,
-		"icon": "res://assets/ui/icon_speed.png",
+		"icon": "⚡",
 	},
 	
 	# === UTILITY ===
@@ -165,7 +165,7 @@ const UPGRADES := {
 		"max_level": 15,
 		"effect": "cooldown_reduction_bonus",
 		"value_per_level": 2.0,
-		"icon": "res://assets/ui/icon_cdr.png",
+		"icon": "⏱️",
 	},
 	"skill_duration": {
 		"name": "Uzun Süren",
@@ -176,7 +176,7 @@ const UPGRADES := {
 		"max_level": 20,
 		"effect": "skill_duration_bonus",
 		"value_per_level": 3.0,
-		"icon": "res://assets/ui/icon_duration.png",
+		"icon": "⏳",
 	},
 	"item_rarity": {
 		"name": "Shaper's Eye",
@@ -187,7 +187,7 @@ const UPGRADES := {
 		"max_level": 20,
 		"effect": "item_rarity_bonus",
 		"value_per_level": 3.0,
-		"icon": "res://assets/ui/icon_rarity.png",
+		"icon": "💎",
 	},
 }
 

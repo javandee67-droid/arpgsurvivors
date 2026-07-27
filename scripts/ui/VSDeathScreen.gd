@@ -4,6 +4,7 @@ class_name VSDeathScreen
 ## Karakter olunce "Respawn" yazisi gosterir, tiklayinca oyun en bastan baslar.
 
 signal respawn_requested
+signal return_to_menu
 
 func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
@@ -69,7 +70,34 @@ func _build_ui() -> void:
 	respawn_btn.pressed.connect(func(): respawn_requested.emit())
 	add_child(respawn_btn)
 
-func set_stats(level: int, kills: int, time_survived: float) -> void:
+	# Return to Menu button
+	var menu_btn := Button.new()
+	menu_btn.name = "MenuButton"
+	menu_btn.text = "ANA MENÜ"
+	menu_btn.size = Vector2(240, 50)
+	menu_btn.position = Vector2(vp_size.x / 2 - 120, vp_size.y * 0.6 + 70)
+
+	var menu_normal := StyleBoxFlat.new()
+	menu_normal.bg_color = Color(0.12, 0.08, 0.05, 0.9)
+	menu_normal.border_width_left = 2
+	menu_normal.border_width_right = 2
+	menu_normal.border_width_top = 2
+	menu_normal.border_width_bottom = 2
+	menu_normal.border_color = Color(0.85, 0.65, 0.25, 0.8)
+	menu_btn.add_theme_stylebox_override("normal", menu_normal)
+
+	var menu_hover := StyleBoxFlat.new()
+	menu_hover.bg_color = Color(0.18, 0.12, 0.08, 0.95)
+	menu_hover.border_color = Color(1.0, 0.85, 0.4, 1.0)
+	menu_btn.add_theme_stylebox_override("hover", menu_hover)
+
+	menu_btn.add_theme_color_override("font_color", Color(0.85, 0.65, 0.25))
+	menu_btn.add_theme_font_size_override("font_size", 16)
+
+	menu_btn.pressed.connect(func(): return_to_menu.emit())
+	add_child(menu_btn)
+
+func set_stats(level: int, kills: int, time_survived: float, gold_earned: int = 0, essence_earned: int = 0) -> void:
 	var stats_label := get_node_or_null("StatsLabel") as Label
 	if stats_label:
 		var minutes: int = int(time_survived) / 60
