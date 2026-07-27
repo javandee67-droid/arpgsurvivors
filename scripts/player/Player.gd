@@ -2143,11 +2143,19 @@ func _track_dps(skill_id: String, damage: float, tags: Array) -> void:
 	EventBus.skill_damage.emit(skill_id, damage, tags)
 
 func _calc_skill_damage(skill_data: SkillData, skill_path: String) -> float:
+<<<<<<< HEAD
 	"""Ortak hasar hesaplama — tum skill'ler kullanir.
 	Skill seviyesi hasari artirir: level 1 = %100, her ek level +%25.
 	
 	Spells: skill.base_damage kullanir (weapon damage yok)
 	Attacks: weapon damage kullanir"""
+=======
+		"""Ortak hasar hesaplama — tum skill'ler kullanir.
+		Skill seviyesi hasari artirir: level 1 = %100, her ek level +%25.
+
+		Spells: skill.base_damage kullanir (weapon damage yok)
+		Attacks: weapon damage kullanir"""
+>>>>>>> a667904a2f60f91bce8148f96dac35a85e1f1980
 
 	var supports: Array[SupportData] = _get_active_supports_for_skill(skill_path)
 	var si: SkillInstance = SkillInstance.new(skill_data, supports)
@@ -2159,7 +2167,6 @@ func _calc_skill_damage(skill_data: SkillData, skill_path: String) -> float:
 	dmg *= level_mult
 
 	return dmg
-
 
 # ─── 1. NAPALM (fire_bolt) ─────────────────────────────────────────
 func _cast_fire_bolt_vs(skill_data: SkillData, target: Node, skill_path: String) -> void:
