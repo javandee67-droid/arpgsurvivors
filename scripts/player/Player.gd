@@ -600,6 +600,10 @@ func _vs_auto_cast_skill(skill_path: String) -> void:
 	var cd2: float = adjusted_cd
 	if cd2 <= 0.0:
 		cd2 = 0.5
+
+	# Momentum: her skill kullaniminda yigin ekle
+	_add_momentum_stack()
+
 	_auto_skill_timers[skill_path] = cd2
 
 func _cast_projectile_skill(skill_data: SkillData, target: Node, skill_path: String) -> void:
@@ -2369,6 +2373,27 @@ func _fire_lightning_projectile(target: Node, damage: float, skill_data: SkillDa
 			travel_bolt.queue_free()
 	)
 
+## VS Skill hasarini CombatEngine uzerinden verir (kritik, zirh, direnc hesabi)
+func _apply_skill_damage(target: Node, damage: float, skill_data: SkillData, is_spell: bool = false) -> void:
+	if not is_instance_valid(target) or not target.has_node("Health"):
+		return
+	var h: Health = target.get_node("Health") as Health
+	if h.current_health <= 0:
+		return
+	# CombatEngine kullanarak hasar ver
+	var hit_result: Dictionary
+	if stats:
+		hit_result = CombatEngine.calculate_hit(stats, null, damage, skill_data.damage_type, skill_data.tags, is_spell, target, self)
+	else:
+		hit_result = {"hit": true, "damage": damage, "is_crit": false, "penetration": 0.0}
+	if hit_result.hit:
+		var pen: float = hit_result.get("penetration", 0.0)
+		h.take_damage(hit_result.damage, self, skill_data.tags.duplicate(), is_spell, pen)
+		# Aftermath: dusman oldurulurse aktiflestir
+		if h.current_health <= 0:
+			_trigger_aftermath()
+
+
 func _on_lightning_arrival(bolt: Node2D, target: Node, damage: float, skill_data: SkillData, remaining_chains: int, skill_path: String) -> void:
 	if is_instance_valid(bolt):
 		bolt.queue_free()
@@ -2391,7 +2416,7 @@ func _on_lightning_arrival(bolt: Node2D, target: Node, damage: float, skill_data
 		# _show_damage_number(target.global_position, "⚡%d" % remaining_chains, Color(1.0, 0.9, 0.2))
 	
 	# Hasar
-	h.take_damage(damage, self, skill_data.tags.duplicate(), false, 0.0)
+	_apply_skill_damage(target, damage, skill_data, false)
 	_spawn_basic_hit_effect(target.global_position)
 	
 	# Chain — daha uzağa sektir (kalan zincir varsa)
@@ -2774,18 +2799,19 @@ func _cast_holy_nova_vs(skill_data: SkillData, target: Node, skill_path: String)
 	tw.tween_property(burst, "scale", burst.scale * 1.5, 0.5)
 	tw.tween_callback(func(): if is_instance_valid(burst): burst.queue_free())
 	
-	# Hasar ver
-	var enemies := _find_enemies_in_radius(global_position, radius)
-	var total_damage_dealt: float = 0.0
-	for e in enemies:
-		if not is_instance_valid(e) or not e.has_node("Health"):
-			continue
-		var h := e.get_node("Health") as Health
-		if h.current_health <= 0:
-			continue
-		h.take_damage(dmg, self, skill_data.tags.duplicate())
-		_spawn_basic_hit_effect(e.global_position)
-		total_damage_dealt += dmg
+		# CombatEngine ile hasar ver
+		var hit_result: Dictionary
+		if stats:
+			hit_result = CombatEngine.calculate_hit(stats, null, dmg, skill_data.damage_type, skill_data.tags, true, e, self)
+		else:
+			hit_result = {"hit": true, "damage": dmg}
+		if hit_result.hit:
+			h.take_damage(hit_result.damage, self, skill_data.tags.duplicate(), true, 0.0)
+			_spawn_basic_hit_effect(e.global_position)
+			total_damage_dealt += hit_result.damage
+			if h.current_health <= 0:
+				_trigger_aftermath()
+
 	# Hasarın %20'sini cana çevir
 	var heal_amt: float = total_damage_dealt * 0.2
 	if heal_amt > 0.0 and health:
@@ -2803,7 +2829,7 @@ func _cast_thunder_strike_vs(skill_data: SkillData, target: Node, skill_path: St
 	for e in enemies:
 		if not is_instance_valid(e) or not e.has_node("Health"):
 			continue
-		e.get_node("Health").take_damage(dmg, self, skill_data.tags.duplicate(), false, 0.0)
+		_apply_skill_damage(e, dmg, skill_data, false)
 		_spawn_basic_hit_effect(e.global_position)
 	# 3sn boyunca rastgele yıldırımlar
 	var storm_duration: float = 3.0
@@ -2868,7 +2894,7 @@ func _cast_frost_explosion_vs(skill_data: SkillData, target: Node, skill_path: S
 		if h.current_health <= 0:
 			continue
 		# Önce hasar
-		h.take_damage(dmg, self, skill_data.tags.duplicate(), false, 0.0)
+		_apply_skill_damage(e, dmg, skill_data, true)
 		_spawn_basic_hit_effect(e.global_position)
 		# %30 altındaysa dondur
 		var hp_pct: float = h.current_health / maxf(h.max_health, 1.0)
