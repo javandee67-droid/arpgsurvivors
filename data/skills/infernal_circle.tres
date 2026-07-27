@@ -10,7 +10,6 @@ icon_path = "res://assets/generated/skill_infernal_circle_frame_0.png"
 skill_type = 1
 tags = Array[String](["Spell", "Fire", "Area"])
 base_damage = 0.0
-mana_cost = 0.0
 cooldown = 0.0
 damage_type = "fire"
 damage_buckets = {}

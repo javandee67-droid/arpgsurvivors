@@ -6,10 +6,16 @@
 script = ExtResource("1_xxx")
 id = "essence_of_anger"
 display_name = "Öfke Özü"
-description = "Rastgele bir element hasarı modifier'ı ekler."
+description = "Rastgele bir ateş hasarı modifier'ı ekler. T3+: Kritik vuruşlarda ekstra alev hasarı verir."
 effect_type = 18
 allowed_item_types = []
 allowed_rarities = []
 drop_weight = 35
 tier_min = 1
 tier_max = 10
+effect_params = {
+	"stat_type": "fire_damage_increased",
+	"tier1_min": 10,
+	"tier1_max": 15,
+	"tier3_bonus": "burn_on_crit"
+}

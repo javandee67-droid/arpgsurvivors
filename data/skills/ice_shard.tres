@@ -10,7 +10,6 @@ icon_path = "res://assets/generated/skill_ice_nova_frame_0.png"
 skill_type = 0
 tags = Array[String](["Spell", "Cold", "Projectile"])
 base_damage = 10.0
-mana_cost = 0.0
 cooldown = 1.8
 damage_type = "cold"
 damage_buckets = {

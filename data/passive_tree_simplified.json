@@ -1,0 +1,92 @@
+{
+  "version": "1.0",
+  "name": "ARPG Survivors Passive Tree",
+  "description": "Simplified passive tree with 50 nodes organized in 5 categories",
+  "categories": [
+    {
+      "id": "offense",
+      "name": "Saldırı",
+      "color": "#ff4444",
+      "icon": "sword",
+      "nodes": [
+        {"id": "off_damage_1", "name": "Güçlü Darbe", "effects": [{"stat": "all_damage", "value": 10, "type": "increased"}], "cost": 1},
+        {"id": "off_damage_2", "name": "Hasar Artışı", "effects": [{"stat": "all_damage", "value": 15, "type": "increased"}], "cost": 2, "requires": "off_damage_1"},
+        {"id": "off_damage_3", "name": "Yıkım", "effects": [{"stat": "all_damage", "value": 20, "type": "increased"}], "cost": 3, "requires": "off_damage_2"},
+        {"id": "off_phys_1", "name": "Kas Gücü", "effects": [{"stat": "physical_damage_increased", "value": 15, "type": "increased"}], "cost": 1},
+        {"id": "off_phys_2", "name": "Keskin Kılıç", "effects": [{"stat": "physical_damage_increased", "value": 25, "type": "increased"}], "cost": 2, "requires": "off_phys_1"},
+        {"id": "off_fire_1", "name": "Ateş Ruhu", "effects": [{"stat": "fire_damage_increased", "value": 15, "type": "increased"}], "cost": 1},
+        {"id": "off_fire_2", "name": "Alev Fırtınası", "effects": [{"stat": "fire_damage_increased", "value": 25, "type": "increased"}], "cost": 2, "requires": "off_fire_1"},
+        {"id": "off_cold_1", "name": "Buz Büyüsü", "effects": [{"stat": "cold_damage_increased", "value": 15, "type": "increased"}], "cost": 1},
+        {"id": "off_cold_2", "name": "Buz Fırtınası", "effects": [{"stat": "cold_damage_increased", "value": 25, "type": "increased"}], "cost": 2, "requires": "off_cold_1"},
+        {"id": "off_lightning_1", "name": "Yıldırım Gücü", "effects": [{"stat": "lightning_damage_increased", "value": 15, "type": "increased"}], "cost": 1},
+        {"id": "off_lightning_2", "name": "Şimşek Çarpması", "effects": [{"stat": "lightning_damage_increased", "value": 25, "type": "increased"}], "cost": 2, "requires": "off_lightning_1"}
+      ]
+    },
+    {
+      "id": "defense",
+      "name": "Savunma",
+      "color": "#4488ff",
+      "icon": "shield",
+      "nodes": [
+        {"id": "def_life_1", "name": "Sağlık", "effects": [{"stat": "max_life", "value": 30, "type": "flat"}], "cost": 1},
+        {"id": "def_life_2", "name": "Dayanıklılık", "effects": [{"stat": "max_life", "value": 50, "type": "flat"}], "cost": 2, "requires": "def_life_1"},
+        {"id": "def_life_3", "name": "Hayatta Kalma", "effects": [{"stat": "max_life", "value": 80, "type": "flat"}], "cost": 3, "requires": "def_life_2"},
+        {"id": "def_regen_1", "name": "İyileşme", "effects": [{"stat": "life_regen_per_second", "value": 2, "type": "flat"}], "cost": 1},
+        {"id": "def_regen_2", "name": "Hızlı İyileşme", "effects": [{"stat": "life_regen_per_second", "value": 5, "type": "flat"}], "cost": 2, "requires": "def_regen_1"},
+        {"id": "def_armor_1", "name": "Zırh", "effects": [{"stat": "armour", "value": 20, "type": "flat"}], "cost": 1},
+        {"id": "def_armor_2", "name": "Kalkan", "effects": [{"stat": "armour", "value": 40, "type": "flat"}], "cost": 2, "requires": "def_armor_1"},
+        {"id": "def_evasion_1", "name": "Çeviklik", "effects": [{"stat": "evasion", "value": 30, "type": "flat"}], "cost": 1},
+        {"id": "def_evasion_2", "name": "Kaçınma", "effects": [{"stat": "evasion", "value": 60, "type": "flat"}], "cost": 2, "requires": "def_evasion_1"},
+        {"id": "def_res_1", "name": "Direnç", "effects": [{"stat": "all_resistance", "value": 10, "type": "increased"}], "cost": 1}
+      ]
+    },
+    {
+      "id": "speed",
+      "name": "Hız",
+      "color": "#44ff44",
+      "icon": "lightning",
+      "nodes": [
+        {"id": "spd_attack_1", "name": "Saldırı Hızı", "effects": [{"stat": "attack_speed", "value": 10, "type": "increased"}], "cost": 1},
+        {"id": "spd_attack_2", "name": "Hızlı Darbeler", "effects": [{"stat": "attack_speed", "value": 20, "type": "increased"}], "cost": 2, "requires": "spd_attack_1"},
+        {"id": "spd_cast_1", "name": "Büyü Hızı", "effects": [{"stat": "cast_speed", "value": 10, "type": "increased"}], "cost": 1},
+        {"id": "spd_cast_2", "name": "Anlık Büyüler", "effects": [{"stat": "cast_speed", "value": 20, "type": "increased"}], "cost": 2, "requires": "spd_cast_1"},
+        {"id": "spd_move_1", "name": "Hareket", "effects": [{"stat": "movement_speed", "value": 5, "type": "increased"}], "cost": 1},
+        {"id": "spd_move_2", "name": "Koşu", "effects": [{"stat": "movement_speed", "value": 10, "type": "increased"}], "cost": 2, "requires": "spd_move_1"},
+        {"id": "spd_cd_1", "name": "Bekleme Kısaltma", "effects": [{"stat": "cooldown_recovery", "value": 10, "type": "increased"}], "cost": 1},
+        {"id": "spd_cd_2", "name": "Hızlı Tekrar", "effects": [{"stat": "cooldown_recovery", "value": 20, "type": "increased"}], "cost": 2, "requires": "spd_cd_1"}
+      ]
+    },
+    {
+      "id": "critical",
+      "name": "Kritik",
+      "color": "#ffaa00",
+      "icon": "star",
+      "nodes": [
+        {"id": "crit_chance_1", "name": "Kritik Şans", "effects": [{"stat": "critical_chance", "value": 5, "type": "flat"}], "cost": 1},
+        {"id": "crit_chance_2", "name": "Hassas Vuruş", "effects": [{"stat": "critical_chance", "value": 10, "type": "flat"}], "cost": 2, "requires": "crit_chance_1"},
+        {"id": "crit_multi_1", "name": "Kritik Hasar", "effects": [{"stat": "critical_multiplier", "value": 25, "type": "increased"}], "cost": 1},
+        {"id": "crit_multi_2", "name": "Öldürücü Darbe", "effects": [{"stat": "critical_multiplier", "value": 50, "type": "increased"}], "cost": 2, "requires": "crit_multi_1"},
+        {"id": "crit_accuracy_1", "name": "İsabet", "effects": [{"stat": "accuracy", "value": 100, "type": "flat"}], "cost": 1},
+        {"id": "crit_accuracy_2", "name": "Kesin Vuruş", "effects": [{"stat": "accuracy", "value": 200, "type": "flat"}], "cost": 2, "requires": "crit_accuracy_1"}
+      ]
+    },
+    {
+      "id": "utility",
+      "name": "Fayda",
+      "color": "#aa44ff",
+      "icon": "gem",
+      "nodes": [
+        {"id": "util_mana_1", "name": "Mana", "effects": [{"stat": "max_mana", "value": 30, "type": "flat"}], "cost": 1},
+        {"id": "util_mana_2", "name": "Mana Havuzu", "effects": [{"stat": "max_mana", "value": 60, "type": "flat"}], "cost": 2, "requires": "util_mana_1"},
+        {"id": "util_mana_regen_1", "name": "Mana Yenileme", "effects": [{"stat": "mana_regen_per_second", "value": 3, "type": "flat"}], "cost": 1},
+        {"id": "util_pickup_1", "name": "Bulma", "effects": [{"stat": "pickup_radius", "value": 20, "type": "flat"}], "cost": 1},
+        {"id": "util_gold_1", "name": "Hazine Avcısı", "effects": [{"stat": "gold_find", "value": 15, "type": "increased"}], "cost": 1},
+        {"id": "util_exp_1", "name": "Tecrübe", "effects": [{"stat": "experience_gain", "value": 10, "type": "increased"}], "cost": 1},
+        {"id": "util_luck_1", "name": "Şans", "effects": [{"stat": "luck", "value": 5, "type": "flat"}], "cost": 1},
+        {"id": "util_chain_1", "name": "Zincirleme", "effects": [{"stat": "chain_count", "value": 1, "type": "flat"}], "cost": 2},
+        {"id": "util_proj_1", "name": "Ek Mermi", "effects": [{"stat": "extra_projectiles", "value": 1, "type": "flat"}], "cost": 2},
+        {"id": "util_aoe_1", "name": "Geniş Alan", "effects": [{"stat": "area_of_effect", "value": 10, "type": "increased"}], "cost": 1}
+      ]
+    }
+  ]
+}

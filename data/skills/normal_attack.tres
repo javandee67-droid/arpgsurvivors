@@ -10,7 +10,6 @@ icon_path = "res://assets/generated/skill_normal_attack_frame_0.png"
 skill_type = 2
 tags = Array[String](["Attack", "Melee", "Physical"])
 base_damage = 10.0
-mana_cost = 0.0
 damage_type = "physical"
 damage_buckets = {
 	"physical": 10

@@ -266,9 +266,51 @@ func _build_ui() -> void:
 		tags_lbl.size = Vector2(card_w - 30, 20)
 		card.add_child(tags_lbl)
 		
+		# Ekstra skill bilgileri: chain, AoE, projectile count
+		var extra_info_lbl := Label.new()
+		var extra_parts: Array[String] = []
+		
+		# Chain count (Lightning Chain vb.)
+		if skill_data.get("chain_count", 0) > 0:
+			var chains: int = skill_data.chain_count
+			extra_parts.append("⚡ %d Zincir" % chains)
+		
+		# AoE radius (area skills)
+		if skill_data.get("area_radius", 0.0) > 0.0:
+			var radius: float = skill_data.area_radius
+			extra_parts.append("💥 %.0fpx AoE" % radius)
+		
+		# Projectile count
+		if skill_data.get("projectile_count", 0) > 0:
+			var proj_count: int = skill_data.projectile_count
+			extra_parts.append("🏹 %d Mermi" % proj_count)
+		
+		# Pierce count
+		if skill_data.get("pierce_count", 0) > 0:
+			var pierce: int = skill_data.pierce_count
+			extra_parts.append("🗡️ %d Delme" % pierce)
+		
+		# DPS hesabı (tahmini)
+		var base_dmg: float = skill_data.base_damage
+		if skill_data.damage_buckets and not skill_data.damage_buckets.is_empty():
+			base_dmg = 0.0
+			for d_type in skill_data.damage_buckets:
+				base_dmg += skill_data.damage_buckets[d_type]
+		var cd: float = skill_data.cooldown if skill_data.cooldown > 0 else 1.0
+		var dps: float = base_dmg / cd
+		extra_parts.append("📊 ~%.0f DPS" % dps)
+		
+		if not extra_parts.is_empty():
+			extra_info_lbl.text = " • ".join(extra_parts)
+			extra_info_lbl.add_theme_color_override("font_color", Color(0.7, 0.85, 1.0, 0.9))
+			extra_info_lbl.add_theme_font_size_override("font_size", 11)
+			extra_info_lbl.position = Vector2(15, 278)
+			extra_info_lbl.size = Vector2(card_w - 30, 18)
+			card.add_child(extra_info_lbl)
+		
 		var line3 := ColorRect.new()
 		line3.color = Color(dmg_color.r, dmg_color.g, dmg_color.b, 0.2)
-		line3.position = Vector2(15, 285)
+		line3.position = Vector2(15, 300)
 		line3.size = Vector2(card_w - 30, 1)
 		card.add_child(line3)
 		

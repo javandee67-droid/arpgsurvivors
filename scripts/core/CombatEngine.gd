@@ -56,14 +56,9 @@ static func calculate_hit(
 		elif "aoe" in skill_tags or "area" in skill_tags:
 			final_damage *= (1.0 + attacker_stats.area_damage_increased / 100.0)
 	
-	# Attack speed / cast speed affect damage rate, not per-hit — but we use them
-	# for DPS calculation. For now they scale damage slightly.
-	if attacker_stats:
-		if is_spell:
-			final_damage *= (0.7 + 0.3 * attacker_stats.cast_speed)
-		else:
-			final_damage *= (0.7 + 0.3 * attacker_stats.attack_speed)
-	
+
+	# NOTE: Attack/cast speed affects DPS (more hits per second) but NOT per-hit damage.
+	# This matches PoE design where speed and damage are separate multipliers.
 	# --- Damage Conversion (PoE-style chains) ---
 	# Tam dönüşüm: Hasara etki eden skill tag'leri varsa damage_type güncellenir
 	# Not: Full dönüşüm sistemi henüz implemente edilmedi;

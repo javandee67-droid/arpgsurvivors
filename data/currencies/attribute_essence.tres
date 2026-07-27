@@ -6,10 +6,20 @@
 script = ExtResource("1_xxx")
 id = "attribute_essence"
 display_name = "Özellik Özü"
-description = "Rastgele bir özellik modifier'ı ekler (güç/çeviklik/zeka)."
+description = "Güç, Çeviklik veya Zeka ekler. T3+: İlgili hasar türü artar, T7+: İlgili yetenek hızı artar."
 effect_type = 12
 allowed_item_types = []
 allowed_rarities = []
 drop_weight = 35
 tier_min = 1
 tier_max = 10
+effect_params = {
+	"strength_min": 10,
+	"strength_max": 40,
+	"dexterity_min": 10,
+	"dexterity_max": 40,
+	"intelligence_min": 10,
+	"intelligence_max": 40,
+	"tier3_bonus_damage": 10,
+	"tier7_bonus_speed": 8
+}

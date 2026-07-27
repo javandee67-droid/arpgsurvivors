@@ -203,28 +203,11 @@ func refresh() -> void:
 	# ── Aktif aura glow gösterimi ──
 	_update_aura_glows()
 
-## Skill slotlarindaki mana cost göstergelerini güncelle (passive + support)
+## ⚠️ MANA SİSTEMİ KALDIRILDI: Vampire Survivors modunda tüm yetenekler ücretsizdir
 func _update_mana_costs() -> void:
-	if not player or not player.has_method("_calc_effective_mana_cost"):
-		return
-	for i in range(player.hotbar.size()):
-		if i >= _slot_mana_labels.size():
-			break
-		var sp: String = player.hotbar[i]
-		var sk: SkillData = _get_skill_data(sp)
-		if not sk or sk.mana_cost <= 0.0:
-			_slot_mana_labels[i].visible = false
-			continue
-		# Buff/aura skill'lerinde mana cost gösterme
-		if sk.is_buff() or sk.is_aura():
-			_slot_mana_labels[i].visible = false
-			continue
-		var cost: float = player._calc_effective_mana_cost(sp, sk)
-		if cost > 0.0:
-			_slot_mana_labels[i].visible = true
-			_slot_mana_labels[i].text = str(int(cost))
-		else:
-			_slot_mana_labels[i].visible = false
+	# Tüm mana cost etiketlerini gizle
+	for i in range(_slot_mana_labels.size()):
+		_slot_mana_labels[i].visible = false
 
 ## Aktif buff/aura skill'leri olan hotbar slot'larında glow efekti göster.
 ## Player._active_buffs'teki skill_path'ler ile hotbar slotlarını eşleştirir.
@@ -811,6 +794,33 @@ func _on_slot_hover(slot_idx: int) -> void:
 		_tooltip_panel.position = Vector2(tt_sx, tt_bar_y - _tooltip_panel.size.y - 4)
 		_tooltip_panel.visible = true
 		return
+	
+	# ── Normal skill'ler için chain/AoE/projectile bilgisi ──
+	var has_extra_info: bool = false
+	var extra_info_parts: Array[String] = []
+	
+	# Chain count
+	if skill_data.get("chain_count", 0) > 0:
+		extra_info_parts.append("⚡ %d Zincir" % skill_data.chain_count)
+		has_extra_info = true
+	
+	# AoE radius
+	if skill_data.get("area_radius", 0.0) > 0.0:
+		extra_info_parts.append("💥 %.0fpx Alan" % skill_data.area_radius)
+		has_extra_info = true
+	
+	# Projectile count
+	if skill_data.get("projectile_count", 0) > 0:
+		extra_info_parts.append("🏹 %d Mermi" % skill_data.projectile_count)
+		has_extra_info = true
+	
+	# Pierce count
+	if skill_data.get("pierce_count", 0) > 0:
+		extra_info_parts.append("🗡️ %d Delme" % skill_data.pierce_count)
+		has_extra_info = true
+	
+	if has_extra_info:
+		tt += "\n[color=#88aacc]" + " • ".join(extra_info_parts) + "[/color]\n"
 	
 	# ── Infernal Circle: özel tooltip (hasar runtime'da hesaplanır) ──
 	if skill_data.id == "infernal_circle":

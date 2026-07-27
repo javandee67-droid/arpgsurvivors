@@ -68,9 +68,13 @@ func _init_game() -> void:
 		player.stats.dexterity = 10
 		player.stats.intelligence = 10
 		player.stats.stat_points = 20
+		player.stats.passive_points = 5  # Başlangıç pasif puanı
 		player.stats.recalculate()
 		player.set_class("warrior")
 		player.level_system.leveled_up.connect(_on_player_leveled_up)
+		
+		# Pasif Ağaç panelini oyuncuya bağla
+		_setup_passive_tree_player()
 		
 		# Sadece normal attack skill'ini ekle
 		var na_path := "res://data/skills/normal_attack.tres"
@@ -112,9 +116,158 @@ func _create_world_ui() -> void:
 		wui.name = "WorldUI"
 		wui.layer = 10
 		get_tree().root.add_child(wui)
+		
 		# DPS Meter ekle
 		var dps := preload("res://scripts/ui/DPSMeter.gd").new()
 		wui.add_child(dps)
+		
+		# Pasif Ağaç paneli ve butonu ekle
+		_setup_passive_tree_ui(wui)
+
+func _setup_passive_tree_ui(parent: CanvasLayer) -> void:
+	# Pasif Ağaç paneli (başlangıçta gizli)
+	var passive_panel := PassiveTreePanel.new()
+	passive_panel.name = "PassiveTreePanel"
+	passive_panel.visible = false
+	parent.add_child(passive_panel)
+	
+	# Pasif Ağaç butonu (sağ üst köşe)
+	var btn := Button.new()
+	btn.name = "PassiveTreeButton"
+	btn.text = "⚡ PASİF AĞAÇ"
+	btn.anchor_left = 1.0
+	btn.anchor_right = 1.0
+	btn.position = Vector2(-160, 10)
+	btn.size = Vector2(150, 40)
+	btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+	btn.add_theme_font_size_override("font_size", 12)
+	btn.pressed.connect(_toggle_passive_tree)
+	parent.add_child(btn)
+
+var _passive_tree_visible: bool = false
+
+func _toggle_passive_tree() -> void:
+	var wui := get_tree().root.get_node_or_null("WorldUI") as CanvasLayer
+	if not wui:
+		return
+	
+	var panel: Control = wui.get_node_or_null("PassiveTreePanel")
+	var btn: Button = wui.get_node_or_null("PassiveTreeButton") as Button
+	
+	if not panel:
+		return
+	
+	_passive_tree_visible = not _passive_tree_visible
+	panel.visible = _passive_tree_visible
+	
+	# Oyunu duraklat pasif ağaç açıkken
+	get_tree().paused = _passive_tree_visible
+	
+	if btn:
+		if _passive_tree_visible:
+			btn.text = "✕ KAPAT"
+			btn.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
+		else:
+			btn.text = "⚡ PASİF AĞAÇ"
+			btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+
+func _setup_passive_tree_player() -> void:
+	"""Pasif Ağaç panelini oyuncunun statlarına bağla."""
+	var wui := get_tree().root.get_node_or_null("WorldUI") as CanvasLayer
+	if not wui or not player:
+		return
+	
+	var panel: PassiveTreePanel = wui.get_node_or_null("PassiveTreePanel") as PassiveTreePanel
+	if not panel:
+		return
+	
+	# Oyuncunun pasif puanlarını panele ver
+	panel.passive_tree.set_passive_points(player.stats.passive_points)
+	
+	# Pasif node açıldığında stat değişikliklerini uygula
+	panel.passive_tree.passive_unlocked.connect(_on_passive_node_unlocked)
+
+func _on_passive_node_unlocked(node_id: String) -> void:
+	"""Bir pasif node açıldığında oyuncunun statlarına uygula."""
+	if not player or not player.stats:
+		return
+	
+	var panel: PassiveTreePanel = get_tree().root.get_node_or_null("WorldUI/PassiveTreePanel") as PassiveTreePanel
+	if not panel:
+		return
+	
+	var node_info: Dictionary = panel.passive_tree.get_node_info(node_id)
+	if node_info.is_empty():
+		return
+	
+	# Açılan node'un istatistiklerini oyuncuya uygula
+	for effect in node_info.get("effects", []):
+		var stat: String = effect.get("stat", "")
+		var value: float = effect.get("value", 0.0)
+		var eff_type: String = effect.get("type", "")
+		
+		match stat:
+			"all_damage":
+				player.stats.all_damage_increased += value
+			"physical_damage_increased":
+				player.stats.physical_damage_increased += value
+			"fire_damage_increased":
+				player.stats.fire_damage_increased += value
+			"cold_damage_increased":
+				player.stats.cold_damage_increased += value
+			"lightning_damage_increased":
+				player.stats.lightning_damage_increased += value
+			"max_life":
+				player.stats.base_life += value
+			"life_regen_per_second":
+				player.stats.life_regen_per_second += value
+			"armour":
+				player.stats.base_armour += value
+			"evasion":
+				player.stats.base_evasion += value
+			"all_resistance":
+				player.stats.base_fire_resistance += value
+				player.stats.base_cold_resistance += value
+				player.stats.base_lightning_resistance += value
+				player.stats.base_chaos_resistance += value
+			"attack_speed":
+				player.stats.base_attack_speed += value / 100.0
+			"cast_speed":
+				player.stats.base_cast_speed += value / 100.0
+			"movement_speed":
+				player.stats.base_movement_speed += value / 100.0
+			"cooldown_recovery":
+				player.stats.cooldown_recovery_increased += value
+			"critical_chance":
+				player.stats.base_critical_chance += value
+			"critical_multiplier":
+				player.stats.base_critical_multiplier += value
+			"accuracy":
+				player.stats.base_accuracy += value
+			"max_mana":
+				player.stats.base_mana += value
+			"mana_regen_per_second":
+				player.stats.base_mana_regen += value
+			"pickup_radius":
+				player.stats.pickup_radius += value
+			"gold_find":
+				player.stats.gold_find += value
+			"experience_gain":
+				player.stats.experience_gain += value
+			"luck":
+				player.stats.luck += value
+			"chain_count":
+				player.stats.chain_count += int(value)
+			"extra_projectiles":
+				player.stats.extra_projectiles += int(value)
+			"area_of_effect":
+				player.stats.area_of_effect += value
+		
+		# İstatistiği güncelle
+		player.stats.recalculate()
+		
+		# Oyuncunun pasif puanını güncelle
+		player.stats.passive_points = panel.passive_tree.get_remaining_points()
 
 func _spawn_player() -> void:
 	if not player_scene:

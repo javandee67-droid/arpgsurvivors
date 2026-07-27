@@ -6,10 +6,20 @@
 script = ExtResource("1_xxx")
 id = "essence_of_defense"
 display_name = "Savunma Özü"
-description = "Rastgele bir savunma modifier'ı ekler (armour, evasion, energy shield, block chance, dodge chance)."
+description = "Zırh, kaçınma veya enerji kalkanı ekler. T4+: Blok şansı, T7+: Kaçınma şansı kazanırsın."
 effect_type = 14
 allowed_item_types = []
 allowed_rarities = []
 drop_weight = 35
 tier_min = 1
 tier_max = 10
+effect_params = {
+	"armour_min": 15,
+	"armour_max": 60,
+	"evasion_min": 20,
+	"evasion_max": 80,
+	"energy_shield_min": 10,
+	"energy_shield_max": 40,
+	"tier4_bonus": "block_chance",
+	"tier7_bonus": "dodge_chance"
+}

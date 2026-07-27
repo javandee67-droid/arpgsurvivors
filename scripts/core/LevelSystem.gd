@@ -34,15 +34,16 @@ func add_xp(amount: float) -> void:
 func emit_skills_changed() -> void:
 	skills_changed.emit()
 
-## Seviye atlayınca temel statların büyümesi. Şimdilik basit/otomatik;
-## ileride bunu "seviye atlayınca 2 stat puanı ver, oyuncu str/dex/int'e
-## kendi dağıtsın" şeklinde bir seçim sistemine çevirebiliriz.
+## Seviye atlayınca temel statların büyümesi.
+## Her seviye: +8 can, +1 stat puanı, +1 pasif puan
 func _apply_level_up_growth() -> void:
 	if not stats_ref:
 		return
 	stats_ref.base_life += 8.0
 	# Otomatik stat artışı yerine 1 stat puanı ver — oyuncu str/dex/int'in birine dağıtsın
 	stats_ref.stat_points += 1
+	# Pasif ağaç puanı ver (her seviye +1 puan)
+	stats_ref.passive_points += 1
 	# Aura seviyesini player level ile güncelle
 	stats_ref.aura_level = level
 	# Not: skill_points Player._on_leveled_up tarafından +1 artırılır

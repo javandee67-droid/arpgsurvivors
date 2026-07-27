@@ -6,10 +6,17 @@
 script = ExtResource("1_xxx")
 id = "essence_of_crit"
 display_name = "Kritik Özü"
-description = "Rastgele bir kritik modifier'ı ekler (crit chance, crit multi)."
+description = "Kritik şansı ve kritik hasar çarpanı ekler. T5+: Kritik vuruşlar düşmanları sersemletir."
 effect_type = 19
 allowed_item_types = []
 allowed_rarities = []
 drop_weight = 20
 tier_min = 3
 tier_max = 10
+effect_params = {
+	"crit_chance_min": 5,
+	"crit_chance_max": 15,
+	"crit_multi_min": 20,
+	"crit_multi_max": 50,
+	"tier5_bonus": "crit_stun"
+}

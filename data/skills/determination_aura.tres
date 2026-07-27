@@ -10,7 +10,6 @@ icon_path = "res://assets/generated/icon_determination_aura_frame_0.png"
 skill_type = 4
 tags = Array[String](["Buff", "Spell", "Aura"])
 base_damage = 0.0
-mana_cost = 0.0
 cooldown = 0.5
 damage_type = "physical"
 damage_buckets = {}

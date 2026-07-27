@@ -6,10 +6,18 @@
 script = ExtResource("1_xxx")
 id = "mana_essence"
 display_name = "Mana Özü"
-description = "Rastgele bir mana modifier'ı ekler (mana regen, mana on kill, mana leech, mana on hit)."
+description = "Maksimum mana ve mana yenilenmesi ekler. T5+: Vuruşta mana kazanırsın, T8+: Mana çalma kazanırsın."
 effect_type = 16
 allowed_item_types = []
 allowed_rarities = []
 drop_weight = 40
 tier_min = 1
 tier_max = 10
+effect_params = {
+	"max_mana_min": 20,
+	"max_mana_max": 80,
+	"mana_regen_min": 2,
+	"mana_regen_max": 10,
+	"tier5_bonus": "mana_on_hit",
+	"tier8_bonus": "mana_leech"
+}

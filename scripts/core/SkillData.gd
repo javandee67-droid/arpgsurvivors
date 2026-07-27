@@ -20,7 +20,8 @@ enum SkillType {
 @export var skill_type: SkillType = SkillType.PROJECTILE
 @export var tags: Array[String] = []
 @export var base_damage: float = 10.0
-@export var mana_cost: float = 10.0
+## ⚠️ DEPRECATED: Artık mana kullanılmıyor (Vampire Survivors modu - ücretsiz otomatik yetenekler)
+@export var mana_cost: float = 0.0
 @export var cooldown: float = 0.0
 @export var damage_type: String = "physical"
 @export var trigger_event: String = ""
@@ -46,6 +47,11 @@ enum SkillType {
 ## --- AoE ---
 @export var aoe_radius: float = 100.0
 @export var aoe_scene: PackedScene
+
+## --- Chain (Lightning/Zincir) ---
+## Bu skill kaç kere zincirleyecek (yıldırım zinciri vb.)
+## Support gem'ler ile artırılabilir.
+@export var chain_count: int = 0
 
 ## --- Melee ---
 @export var melee_range: float = 20.0

@@ -1017,9 +1017,14 @@ func _calc_single_weapon_range(wp: ItemData) -> Dictionary:
 	var dmg_max: float = max_d * stat_mult * 8.0
 	return {"min": dmg_min, "max": dmg_max}
 
-## get_base_damage_for_skill: weapon damage x damage_effectiveness
-## Artık oyuncunun gerçek silahından okur, placeholder 30.0 yerine.
+## get_base_damage_for_skill: skill damage x damage_effectiveness
+## Spells: skill'in own base_damage kullanir (PoE tarzi, weapon damage yok)
+## Attacks: weapon damage kullanir
 func _get_base_damage_for_skill(skill: SkillData) -> float:
+	# Spells don't use weapon damage - use skill's own base_damage
+	if skill.is_spell():
+		return skill.base_damage
+	# Attacks use weapon damage
 	var wr := _calculate_weapon_damage_range()
 	var weapon_damage: float = (wr.min + wr.max) / 2.0
 	return weapon_damage * skill.damage_effectiveness
@@ -2137,29 +2142,24 @@ func _spawn_ice_nova_effect(pos: Vector2) -> void:
 func _track_dps(skill_id: String, damage: float, tags: Array) -> void:
 	EventBus.skill_damage.emit(skill_id, damage, tags)
 
-func _calc_skill_damage(skill_data: SkillData, skill_path: String) -> float:
-	"""Ortak hasar hesaplama — tum skill'ler kullanir.
-	Skill seviyesi hasari artirir: level 1 = %100, her ek level +%25."""
-	var weapon: ItemData = equipment.get_item_in_slot(Equipment.Slot.WEAPON)
-	var dmg_arr: Array = _get_basic_damage(weapon)
-	var dmg: float = dmg_arr[0] as float
-	var supports: Array[SupportData] = _get_active_supports_for_skill(skill_path)
-	var si: SkillInstance = SkillInstance.new(skill_data, supports)
-	var si_total: float = si.get_total_damage(_get_base_damage_for_skill)
-	if si_total > 0.0:
-		var placeholder_base: float = _get_base_damage_for_skill(skill_data)
-		if placeholder_base > 0.0:
-			var ratio: float = dmg / placeholder_base
-			dmg = si_total * ratio
-		else:
-			dmg = si_total
-	
-	# Skill seviyesi carpani: her seviye +%25 hasar
-	var level: int = _skill_levels.get(skill_path, 1)
-	var level_mult: float = 1.0 + (level - 1) * 0.25
-	dmg *= level_mult
-	
-	return dmg
+	func _calc_skill_damage(skill_data: SkillData, skill_path: String) -> float:
+		"""Ortak hasar hesaplama — tum skill'ler kullanir.
+		Skill seviyesi hasari artirir: level 1 = %100, her ek level +%25.
+		
+		Spells: skill.base_damage kullanir (weapon damage yok)
+		Attacks: weapon damage kullanir"""
+
+		var supports: Array[SupportData] = _get_active_supports_for_skill(skill_path)
+		var si: SkillInstance = SkillInstance.new(skill_data, supports)
+		var dmg: float = si.get_total_damage(_get_base_damage_for_skill)
+
+		# Skill seviyesi carpani: her seviye +%25 hasar
+		var level: int = _skill_levels.get(skill_path, 1)
+		var level_mult: float = 1.0 + (level - 1) * 0.25
+		dmg *= level_mult
+
+		return dmg
+
 
 # ─── 1. NAPALM (fire_bolt) ─────────────────────────────────────────
 func _cast_fire_bolt_vs(skill_data: SkillData, target: Node, skill_path: String) -> void:
@@ -2251,9 +2251,20 @@ func _cast_ice_shard_vs(skill_data: SkillData, target: Node, skill_path: String)
 
 # ─── 3. ZİNCİR ÇARPMASI (lightning_chain) ───────────────────────────
 func _cast_lightning_chain_vs(skill_data: SkillData, target: Node, skill_path: String) -> void:
-	"""Yıldırım Zinciri: oyuncudan hedefe uçan yıldırım mermisi, 4 düşmana seker."""
+	"""Yıldırım Zinciri: oyuncudan hedefe uçan yıldırım mermisi, düşmanlara seker.
+	
+	Zincir sayısı: skill_data.chain_count + support gem bonusları"""
 	var dmg := _calc_skill_damage(skill_data, skill_path)
-	_fire_lightning_projectile(target, dmg, skill_data, skill_path, true)
+	# Zincir sayısını hesapla (base + support gem bonusları)
+	var base_chains: int = skill_data.get("chain_count", 4)
+	var chain_bonus: int = 0
+	var supports: Array[SupportData] = _get_active_supports_for_skill(skill_path)
+	for sd in supports:
+		if sd and sd.get("chain_count", 0) > 0:
+			chain_bonus += sd.chain_count
+	var total_chains: int = base_chains + chain_bonus
+	# İlk vuruş = 1, sonra remaining_chains = total_chains - 1
+	_fire_lightning_projectile(target, dmg, skill_data, skill_path, total_chains - 1)
 
 ## Yıldırım sheet sabitleri
 const LIGHTNING_SHEET_CAST := "res://assets/vfx/lightning-strike/lightining5-Sheet.png"
@@ -2267,7 +2278,7 @@ const LIGHTNING_SHEET_HIT_2 := "res://assets/vfx/lightning-strike/lightining6-Sh
 ##   2) GPUParticles2D — yolda parçacık izi, doğal loop, hiç sırıtmaz
 ##   3) Sheet 3 + Sheet 6 aynı anda — çarpma patlaması
 ## chain=true ise vurunca 4 kere daha seker.
-func _fire_lightning_projectile(target: Node, damage: float, skill_data: SkillData, skill_path: String, chain: bool = false, from_pos: Vector2 = Vector2.INF) -> void:
+func _fire_lightning_projectile(target: Node, damage: float, skill_data: SkillData, skill_path: String, remaining_chains: int = 0, from_pos: Vector2 = Vector2.INF) -> void:
 	if not is_instance_valid(target):
 		return
 	if not target.has_node("Health"):
@@ -2298,12 +2309,12 @@ func _fire_lightning_projectile(target: Node, damage: float, skill_data: SkillDa
 	tween.tween_property(travel_bolt, "global_position", target_pos, travel_time)
 	tween.tween_callback(func():
 		if is_instance_valid(travel_bolt) and is_instance_valid(target):
-			_on_lightning_arrival(travel_bolt, target, damage, skill_data, chain, skill_path)
+			_on_lightning_arrival(travel_bolt, target, damage, skill_data, remaining_chains, skill_path)
 		elif is_instance_valid(travel_bolt):
 			travel_bolt.queue_free()
 	)
 
-func _on_lightning_arrival(bolt: Node2D, target: Node, damage: float, skill_data: SkillData, chain: bool, skill_path: String) -> void:
+func _on_lightning_arrival(bolt: Node2D, target: Node, damage: float, skill_data: SkillData, remaining_chains: int, skill_path: String) -> void:
 	if is_instance_valid(bolt):
 		bolt.queue_free()
 	
@@ -2318,18 +2329,22 @@ func _on_lightning_arrival(bolt: Node2D, target: Node, damage: float, skill_data
 	_play_yildirim_anim(LIGHTNING_SHEET_HIT_1, target.global_position, false, 1.0, 15.0)
 	_play_yildirim_anim(LIGHTNING_SHEET_HIT_2, target.global_position, false, 1.0, 15.0)
 	
+	# Kalan zincir sayısını göster (debug için)
+	if remaining_chains > 0:
+		_show_damage_number(target.global_position, "⚡%d" % remaining_chains, Color(1.0, 0.9, 0.2))
+	
 	# Hasar
 	h.take_damage(damage, self, skill_data.tags.duplicate(), false, 0.0)
 	_spawn_basic_hit_effect(target.global_position)
 	
-	# Chain — daha uzağa sektir
-	if chain:
+	# Chain — daha uzağa sektir (kalan zincir varsa)
+	if remaining_chains > 0:
 		var next_enemy := _find_nearest_enemy_except(target.global_position, target)
 		if next_enemy and is_instance_valid(next_enemy) and next_enemy.has_node("Health"):
 			var next_health := next_enemy.get_node("Health") as Health
 			if next_health.current_health > 0:
 				# Skip cast (çıkış efekti), devam sheet 4 → 3
-				_fire_lightning_projectile(next_enemy, damage * 0.75, skill_data, skill_path, true, target.global_position)
+				_fire_lightning_projectile(next_enemy, damage * 0.75, skill_data, skill_path, remaining_chains - 1, target.global_position)
 
 ## Sheet 4'ten AnimatedSprite2D yıldırım oluştur (60 FPS, hızlı dönsün diye).
 ## Canlı, çatırdayan bir yıldırım efekti verir (her kare farklı şekil → hızlı geçince
@@ -2725,7 +2740,7 @@ func _cast_thunder_strike_vs(skill_data: SkillData, target: Node, skill_path: St
 	var dmg := _calc_skill_damage(skill_data, skill_path)
 	var center: Vector2 = target.global_position
 	# Ana yıldırım: oyuncudan hedefe mermi
-	_fire_lightning_projectile(target, dmg, skill_data, skill_path, false)
+	_fire_lightning_projectile(target, dmg, skill_data, skill_path, 0)
 	# Hasar
 	var enemies := _find_enemies_in_radius(center, 70.0)
 	for e in enemies:
@@ -2753,7 +2768,7 @@ func _cast_thunder_strike_vs(skill_data: SkillData, target: Node, skill_path: St
 				return
 			var target_e: Node = alive[randi() % alive.size()]
 			# Fırtına yıldırımı: gökten iner (target'in 120px üstünden)
-			_fire_lightning_projectile(target_e, dmg * 0.4, skill_data, skill_path, false, target_e.global_position + Vector2(0, -120))
+			_fire_lightning_projectile(target_e, dmg * 0.4, skill_data, skill_path, 0, target_e.global_position + Vector2(0, -120))
 	, 0.0, 1.0, storm_duration)
 
 # ─── 10. BUZUL ÇAĞI (frost_explosion) ──────────────────────────────

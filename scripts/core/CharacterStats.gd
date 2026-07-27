@@ -27,6 +27,9 @@ signal stats_changed
 ## Seviye atlayınca dağıtılmak üzere biriken stat puanları
 var stat_points: int = 0
 
+## Pasif ağaç için biriken puanlar (her seviye +1)
+	var passive_points: int = 0
+
 @export var base_fire_resistance: float = -75.0
 @export var base_cold_resistance: float = -75.0
 @export var base_lightning_resistance: float = -75.0
@@ -196,6 +199,13 @@ var ailment_duration_on_you: float = 0.0  ## % reduced Ailment Duration on you (
 # --- Skill / AoE / Duration ---
 var skill_effect_duration: float = 0.0  ## % increased Skill Effect Duration
 var area_of_effect: float = 0.0         ## % increased Area of Effect
+
+# --- Utility (Pasif Ağaç) ---
+	var pickup_radius: float = 0.0
+	var gold_find: float = 0.0
+	var experience_gain: float = 0.0
+	var luck: float = 0.0
+	var extra_projectiles: int = 0
 
 # --- Mana / Life Cost & Reservation ---
 var mana_cost_efficiency: float = 0.0  ## % increased Mana Cost Efficiency (lower cost)

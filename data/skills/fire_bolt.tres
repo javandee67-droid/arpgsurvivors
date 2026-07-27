@@ -6,11 +6,10 @@
 script = ExtResource("1")
 id = "fire_bolt"
 display_name = "Ateş Oku (Napalm)"
-icon_path = "res://assets/generated/skill_fireball_frame_0.png"
+icon_path = "res://assets/generated/proj_fire_arrow_frame_0.png"
 skill_type = 0
 tags = Array[String](["Spell", "Fire", "Projectile"])
 base_damage = 10.0
-mana_cost = 0.0
 cooldown = 2.5
 damage_type = "fire"
 damage_buckets = {

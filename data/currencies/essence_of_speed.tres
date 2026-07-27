@@ -6,10 +6,19 @@
 script = ExtResource("1_xxx")
 id = "essence_of_speed"
 display_name = "Hız Özü"
-description = "Rastgele bir hız modifier'ı ekler (attack speed, cast speed, movement speed, cooldown recovery)."
+description = "Saldırı hızı, büyü hızı veya hareket hızı ekler. T6+: Bekleme süresi kısaltması kazanırsın."
 effect_type = 13
 allowed_item_types = []
 allowed_rarities = []
 drop_weight = 30
 tier_min = 2
 tier_max = 10
+effect_params = {
+	"attack_speed_min": 8,
+	"attack_speed_max": 25,
+	"cast_speed_min": 8,
+	"cast_speed_max": 25,
+	"movement_speed_min": 3,
+	"movement_speed_max": 12,
+	"tier6_bonus": "cooldown_recovery"
+}

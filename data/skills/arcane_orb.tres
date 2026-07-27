@@ -6,11 +6,10 @@
 script = ExtResource("1")
 id = "arcane_orb"
 display_name = "Gizem Küresi (Bumerang)"
-icon_path = "res://assets/generated/skill_fireball_frame_0.png"
+icon_path = "res://assets/generated/proj_arcane_frame_0.png"
 skill_type = 1
 tags = Array[String](["Spell", "Arcane", "Area"])
 base_damage = 15.0
-mana_cost = 0.0
 cooldown = 3.5
 damage_type = "physical"
 damage_buckets = {

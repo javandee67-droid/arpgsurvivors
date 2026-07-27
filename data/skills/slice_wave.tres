@@ -10,7 +10,6 @@ icon_path = "res://assets/generated/skill_slice_wave_icon_frame_0.png"
 skill_type = 0
 tags = Array[String](["Attack", "Physical", "Projectile", "Area"])
 base_damage = 12.0
-mana_cost = 0.0
 cooldown = 1.5
 damage_type = "physical"
 damage_buckets = {
