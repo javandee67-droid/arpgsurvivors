@@ -115,8 +115,8 @@ func _start_full_game() -> void:
 		player.level_system.leveled_up.connect(_on_player_leveled_up)
 		_setup_passive_tree_player()
 		
-                # Başlangıç skill seçimini göster
-                _show_initial_skill_selection()
+								# Başlangıç skill seçimini göster
+								_show_initial_skill_selection()
 		
 		# Hotbar
 		player.hotbar.resize(20)
@@ -127,38 +127,34 @@ func _start_full_game() -> void:
 	
 
 func _show_initial_skill_selection() -> void:
-    # Oyuncuyu dondur
-    if player:
-        player.set_physics_process(false)
-        player.set_process_input(false)
-    
-    # Skill seçim ekranını göster
-    var selection_ui := load("res://scripts/ui/InitialSkillSelectionUI.gd").new()
-    selection_ui.name = "InitialSkillSelection"
-    selection_ui.skill_selected.connect(_on_initial_skill_selected)
-    add_child(selection_ui)
+		# Oyuncuyu dondur
+		if player:
+				player.set_physics_process(false)
+				player.set_process_input(false)
+				# Skill seçim ekranını göster
+		var selection_ui := load("res://scripts/ui/InitialSkillSelectionUI.gd").new()
+		selection_ui.name = "InitialSkillSelection"
+		selection_ui.skill_selected.connect(_on_initial_skill_selected)
+		add_child(selection_ui)
 
 func _on_initial_skill_selected(skill_path: String) -> void:
-    print("Başlangıç skill seçildi: ", skill_path)
-    
-    if player:
-        # Seçilen skill'i oyuncuya ekle
-        var skill_data: SkillData = load(skill_path) as SkillData
-        if skill_data:
-            player.skill_setups[skill_path] = {"skill": skill_data, "supports": [null, null, null, null]}
-            player._rebuild_skill_instance()
-            _player_skills.append(skill_path)
-            player._skill_levels[skill_path] = 1
-            
-            # Hotbar'a ekle
-            player.hotbar.resize(20)
-            for i in range(20):
-                player.hotbar[i] = ""
-            player.hotbar[0] = skill_path
-        
-        # Oyuncuyu aktif et
-        player.set_physics_process(true)
-        player.set_process_input(true)
+		print("Başlangıç skill seçildi: ", skill_path)
+				if player:
+				# Seçilen skill'i oyuncuya ekle
+				var skill_data: SkillData = load(skill_path) as SkillData
+				if skill_data:
+						player.skill_setups[skill_path] = {"skill": skill_data, "supports": [null, null, null, null]}
+						player._rebuild_skill_instance()
+						_player_skills.append(skill_path)
+						player._skill_levels[skill_path] = 1
+												# Hotbar'a ekle
+						player.hotbar.resize(20)
+						for i in range(20):
+								player.hotbar[i] = ""
+						player.hotbar[0] = skill_path
+								# Oyuncuyu aktif et
+				player.set_physics_process(true)
+				player.set_process_input(true)
 
 	_setup_floating_damage()
 	_create_in_game_menu()
