@@ -2814,19 +2814,30 @@ func _cast_holy_nova_vs(skill_data: SkillData, target: Node, skill_path: String)
 	tw.tween_property(burst, "scale", burst.scale * 1.5, 0.5)
 	tw.tween_callback(func(): if is_instance_valid(burst): burst.queue_free())
 	
-		# CombatEngine ile hasar ver
-		var hit_result: Dictionary
-		if stats:
-			hit_result = CombatEngine.calculate_hit(stats, null, dmg, skill_data.damage_type, skill_data.tags, true, e, self)
-		else:
-			hit_result = {"hit": true, "damage": dmg}
-		if hit_result.hit:
-			h.take_damage(hit_result.damage, self, skill_data.tags.duplicate(), true, 0.0)
-			_spawn_basic_hit_effect(e.global_position)
-			total_damage_dealt += hit_result.damage
-			if h.current_health <= 0:
-				_trigger_aftermath()
-
+        
+        # Düşmanlara hasar ver
+        var total_damage_dealt: float = 0.0
+        var enemies := _find_enemies_in_radius(global_position, radius)
+        for e in enemies:
+                if not is_instance_valid(e) or not e.has_node("Health"):
+                        continue
+                var h := e.get_node_or_null("Health") as Node
+                if not h:
+                        continue
+        
+                var hit_result: Dictionary
+                if stats:
+                        hit_result = CombatEngine.calculate_hit(stats, null, dmg, skill_data.damage_type, skill_data.tags, true, e, self)
+                else:
+                        hit_result = {"hit": true, "damage": dmg}
+        
+                if hit_result.hit:
+                        h.take_damage(hit_result.damage, self, skill_data.tags.duplicate(), true, 0.0)
+                        _spawn_basic_hit_effect(e.global_position)
+                        total_damage_dealt += hit_result.damage
+                        if h.current_health <= 0:
+                                _trigger_aftermath()
+        
 	# Hasarın %20'sini cana çevir
 	var heal_amt: float = total_damage_dealt * 0.2
 	if heal_amt > 0.0 and health:
