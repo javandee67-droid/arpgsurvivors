@@ -130,8 +130,8 @@ func _create_world_ui() -> void:
 
 func _setup_passive_tree_ui(parent: CanvasLayer) -> void:
 	# Pasif Ağaç paneli (başlangıçta gizli) - dinamik yükleme
-	var PassiveTreePanel := load(PASSIVE_PANEL_SCRIPT_PATH)
-	var passive_panel := PassiveTreePanel.new()
+	var panel_script: Script = load(PASSIVE_PANEL_SCRIPT_PATH)
+	var passive_panel: Node = panel_script.new()
 	passive_panel.name = "PassiveTreePanel"
 	passive_panel.visible = false
 	parent.add_child(passive_panel)

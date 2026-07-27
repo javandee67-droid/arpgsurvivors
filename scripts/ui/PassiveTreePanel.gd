@@ -39,8 +39,8 @@ func _ready() -> void:
 	layer = 100
 	
 	# Pasif ağacı oluştur (dinamik yükleme)
-	var SimplifiedPassiveTree := load(PASSIVE_TREE_SCRIPT)
-	_passive_tree_node = SimplifiedPassiveTree.new()
+	var tree_script: Script = load(PASSIVE_TREE_SCRIPT)
+	_passive_tree_node = tree_script.new()
 	add_child(_passive_tree_node)
 	
 	# Sinyalleri bağla
