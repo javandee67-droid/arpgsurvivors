@@ -15,6 +15,12 @@ const PASSIVE_PANEL_SCRIPT_PATH := "res://scripts/ui/PassiveTreePanel.gd"
 var player: Node = null
 var _game_camera: Camera2D = null
 
+# Main menu system
+var _main_menu = null
+var _in_game_menu = null
+var _game_started: bool = false
+var _in_main_menu: bool = true
+
 # VS sistemi degiskenleri
 var _kill_count: int = 0
 var _difficulty_tier: int = 1
@@ -42,7 +48,119 @@ const BOSS_POOL: Array[String] = ["ogre_boss", "necromancer", "demon_lord", "hyd
 func _ready() -> void:
 	call_deferred("_init_game")
 
+func _show_main_menu() -> void:
+	"""Show main menu overlay"""
+	_in_main_menu = true
+	var menu_script = load("res://scripts/ui/MainMenu.gd")
+	_main_menu = menu_script.new()
+	_main_menu.name = "MainMenu"
+	_main_menu.start_new_game.connect(_on_main_menu_new_game)
+	_main_menu.continue_game.connect(_on_main_menu_continue)
+	_main_menu.quit_game.connect(_on_quit_game)
+	add_child(_main_menu)
+
+func _on_main_menu_new_game() -> void:
+	print("Starting new game...")
+	if _main_menu:
+		_main_menu.visible = false
+	_start_full_game()
+
+func _on_main_menu_continue() -> void:
+	print("Continuing game...")
+	if _main_menu:
+		_main_menu.visible = false
+	_start_full_game()
+
+func _on_quit_game() -> void:
+	get_tree().quit()
+
+func _start_full_game() -> void:
+	"""Initialize game after menu selection"""
+	_game_started = true
+	_in_main_menu = false
+	
+	# Reset state
+	_kill_count = 0
+	_difficulty_tier = 1
+	_next_difficulty_at = 100
+	_game_time = 0.0
+	_spawn_timer = 0.0
+	_game_over = false
+	_player_skills = []
+	_passive_nodes_owned = []
+	_time_difficulty_tier = 1
+	_next_time_difficulty_at = 120.0
+	_boss_active = false
+	_last_boss = null
+	_wave = 1
+	_enemies_killed_in_wave = 0
+	
+	# Generate map
+	_generate_large_map()
+	_create_world_ui()
+	_spawn_player()
+	
+	if player:
+		# Apply persistent upgrades
+		var upgrades = PersistentUpgrades.get_instance()
+		var bonuses = upgrades.get_all_bonuses()
+		
+		player.stats.strength = 10
+		player.stats.dexterity = 10
+		player.stats.intelligence = 10
+		player.stats.stat_points = 20
+		player.stats.passive_points = 5
+		player.stats.recalculate()
+		player.set_class("warrior")
+		player.level_system.leveled_up.connect(_on_player_leveled_up)
+		_setup_passive_tree_player()
+		
+		# Starting skill
+		var na_path = "res://data/skills/normal_attack.tres"
+		if ResourceLoader.exists(na_path):
+			var na_skill = load(na_path)
+			if na_skill:
+				player.skill_setups[na_path] = {"skill": na_skill, "supports": [null, null, null, null]}
+				player._rebuild_skill_instance()
+				_player_skills.append(na_path)
+				player._skill_levels[na_path] = 1
+		
+		# Hotbar
+		player.hotbar.resize(20)
+		for i in range(20):
+			player.hotbar[i] = ""
+		if _player_skills.size() > 0:
+			player.hotbar[0] = _player_skills[0]
+	
+	_setup_floating_damage()
+	_create_in_game_menu()
+
+func _create_in_game_menu() -> void:
+	if _in_game_menu:
+		return
+	var menu_script = load("res://scripts/ui/InGameMenu.gd")
+	_in_game_menu = menu_script.new()
+	_in_game_menu.name = "InGameMenu"
+	_in_game_menu.return_to_menu.connect(_on_return_to_menu)
+	_in_game_menu.quit_to_desktop.connect(_on_quit_game)
+	add_child(_in_game_menu)
+
+func _on_return_to_menu() -> void:
+	_game_started = false
+	_in_main_menu = true
+	if player:
+		player.queue_free()
+		player = null
+	if _in_game_menu:
+		_in_game_menu.queue_free()
+		_in_game_menu = null
+	_show_main_menu()
+
 func _init_game() -> void:
+	# Show main menu first
+	_show_main_menu()
+	return
+	
 	_kill_count = 0
 	_difficulty_tier = 1
 	_next_difficulty_at = 100

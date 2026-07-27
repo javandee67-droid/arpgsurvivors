@@ -2227,6 +2227,12 @@ func _calc_skill_damage(skill_data: SkillData, skill_path: String) -> float:
 	var level_mult: float = 1.0 + (level - 1) * 0.25
 	dmg *= level_mult
 
+
+	# === AFFINITY SYSTEM ===
+	# Equipment affix bonuslari: Fire→Fire skills, Cold→Cold skills, etc.
+	var affinity_mult: float = AffinitySystem.get_affinity_multiplier(stats, skill_data)
+	dmg *= affinity_mult
+
 	return dmg
 
 # ─── 1. NAPALM (fire_bolt) ─────────────────────────────────────────
