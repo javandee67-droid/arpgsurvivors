@@ -240,7 +240,7 @@ func _create_world_ui() -> void:
 		get_tree().root.add_child(wui)
 		
 		# DPS Meter ekle
-		var dps := preload("res://scripts/ui/DPSMeter.gd").new()
+		var dps: DPSMeter = load("res://scripts/ui/DPSMeter.gd").new()
 		wui.add_child(dps)
 		
 		# Pasif Ağaç paneli ve butonu ekle
