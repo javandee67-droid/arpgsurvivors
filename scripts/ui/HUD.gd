@@ -16,6 +16,7 @@ var xp_fill: ColorRect
 var xp_bg: ColorRect
 var xp_label: Label
 var _vignette: ColorRect = null  # Dusuk can efekti
+var _damage_flash: ColorRect = null  # Hasar aldığında kırmızı flash
 var _vs_kill_label: Label = null  # VS kill counter
 var _connected: bool = false
 var _wave_label: Label = null
@@ -124,6 +125,8 @@ func _ready() -> void:
 	var root := get_tree().root
 	if root:
 		root.size_changed.connect(_reposition_ui)
+	# Hasar aldığında damage flash göster
+	EventBus.damage_dealt.connect(_on_damage_dealt)
 
 func _build_ui() -> void:
 	var vp := get_viewport().get_visible_rect().size
@@ -838,3 +841,18 @@ func show_biome_notification(biome_name: String) -> void:
 	# 5 saniye bekle, 2 saniyede fade out
 	var tween := create_tween()
 	tween.tween_property(_biome_label, "modulate", Color(1, 1, 1, 0), 2.0).set_delay(5.0)
+
+func show_damage_flash() -> void:
+	"""Oyuncu hasar aldığında kırmızı ekran efekti göster"""
+	if not is_instance_valid(_damage_flash):
+		return
+	_damage_flash.modulate.a = 0.4
+	# Hızlı fade out
+	var tw := create_tween()
+	tw.tween_property(_damage_flash, "modulate:a", 0.0, 0.3).set_ease(Tween.EASE_OUT)
+
+func _on_damage_dealt(payload: Dictionary) -> void:
+	# Oyuncunun kendine gelen hasarı yakala
+	var target: Node = payload.get("target", null)
+	if target and target.is_in_group("player"):
+		show_damage_flash()
