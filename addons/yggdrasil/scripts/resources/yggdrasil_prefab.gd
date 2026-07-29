@@ -75,28 +75,28 @@ func set_attribute_value(attribute_id: String, index: int, value: Variant, level
 	if typeof(value) != TYPE_INT and typeof(value) != TYPE_FLOAT:
 		push_error("Value is of type %s, expected int or float (attribute_id=%s)" % [type_string(typeof(value)), attribute_id])
 		return
-	
+
 	if not attributes.has(attribute_id):
 		return
-	
+
 	if level != -1:
 		var values = attributes[attribute_id][level]
 		if index < 0 or index >= values.size():
 			return
-		
+
 		values[index] = value
 	else:
 		var values = attributes[attribute_id]
 		if index < 0 or index >= values.size():
 			return
-		
+
 		values[index] = value
 	attribute_changed.emit(self, attribute_id, false)
 
 func set_attribute_value_count(attribute_id: String, new_count: int) -> void:
 	if not attributes.has(attribute_id):
 		return
-	
+
 	for level in range(max_allocations):
 		var values = attributes[attribute_id][level]
 		while values.size() < new_count:

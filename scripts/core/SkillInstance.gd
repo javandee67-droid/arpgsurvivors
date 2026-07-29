@@ -40,7 +40,7 @@ func get_rejected_supports(p_supports: Array[SupportData]) -> Array[SupportData]
 ## Returns Dictionary: {"physical": 13.0, "fire": 5.0} etc.
 func get_final_damage(base_value_provider: Callable) -> Dictionary:
 	var base_total: float = base_value_provider.call(skill)
-	
+
 	# Get damage distribution from skill's buckets
 	var buckets: Dictionary = skill.damage_buckets.duplicate()
 	if buckets.is_empty():
@@ -51,22 +51,22 @@ func get_final_damage(base_value_provider: Callable) -> Dictionary:
 			buckets[dmg_type] = skill.base_damage
 		else:
 			buckets["physical"] = base_total
-	
+
 	# Calculate total bucket weight
 	var bucket_total: float = 0.0
 	for key in buckets:
 		bucket_total += absf(buckets[key])
-	
+
 	if bucket_total <= 0.0:
 		bucket_total = 1.0
 		buckets = {"physical": base_total}
-	
+
 	# Calculate final value for each bucket
 	var result: Dictionary = {}
 	for bucket_type in buckets:
 		var base_bucket: float = (absf(buckets[bucket_type]) / bucket_total) * base_total
 		result[bucket_type] = _calculate_bucket_final(bucket_type, base_bucket)
-	
+
 	return result
 
 ## Calculate total damage (sum of all buckets).
@@ -82,14 +82,14 @@ func _calculate_bucket_final(bucket_type: String, base_value: float) -> float:
 	var flat_total: float = 0.0
 	var increased_total: float = 0.0
 	var more_multipliers: Array[float] = []
-	
+
 	for sd in active_supports:
 		for mod in sd.modifiers:
 			if not _modifier_applies_to_bucket(mod, bucket_type):
 				continue
 			if mod.stat != "damage":
 				continue
-			
+
 			match mod.modifier_type:
 				StatModifier.ModifierType.FLAT:
 					flat_total += mod.value
@@ -97,12 +97,12 @@ func _calculate_bucket_final(bucket_type: String, base_value: float) -> float:
 					increased_total += mod.value
 				StatModifier.ModifierType.MORE:
 					more_multipliers.append(1.0 + mod.value / 100.0)
-	
+
 	# PoE formula: (base + flat) × (1 + increased/100) × more₁ × more₂ × ...
 	var result: float = (base_value + flat_total) * (1.0 + increased_total / 100.0)
 	for m in more_multipliers:
 		result *= m
-	
+
 	return result
 
 ## Check if a modifier applies to a specific damage bucket.
@@ -115,12 +115,12 @@ func _modifier_applies_to_bucket(mod: StatModifier, bucket_type: String) -> bool
 				return false
 		elif mod.damage_type_filter != bucket_type:
 			return false
-	
+
 	# Check skill_tag_filter
 	if mod.skill_tag_filter != "":
 		if mod.skill_tag_filter not in skill.tags:
 			return false
-	
+
 	return true
 
 # ======================== NON-DAMAGE STATS ========================
@@ -132,7 +132,7 @@ func get_final_stat(stat_name: String, base_value: float) -> float:
 	var flat_total: float = 0.0
 	var increased_total: float = 0.0
 	var more_multipliers: Array[float] = []
-	
+
 	for sd in active_supports:
 		for mod in sd.modifiers:
 			if mod.stat != stat_name:
@@ -142,7 +142,7 @@ func get_final_stat(stat_name: String, base_value: float) -> float:
 			if mod.skill_tag_filter != "":
 				if mod.skill_tag_filter not in skill.tags:
 					continue
-			
+
 			match mod.modifier_type:
 				StatModifier.ModifierType.FLAT:
 					flat_total += mod.value
@@ -150,11 +150,11 @@ func get_final_stat(stat_name: String, base_value: float) -> float:
 					increased_total += mod.value
 				StatModifier.ModifierType.MORE:
 					more_multipliers.append(1.0 + mod.value / 100.0)
-	
+
 	var result: float = (base_value + flat_total) * (1.0 + increased_total / 100.0)
 	for m in more_multipliers:
 		result *= m
-	
+
 	return result
 
 

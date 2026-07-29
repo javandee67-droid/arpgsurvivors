@@ -59,14 +59,20 @@ func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
 	_build_ui()
 	# Envanter sinyallerini hemen bagla — ilk item alindiginda UI kapali olsa bile
-	# inventory_changed tetiklensin diye. _open_ui() icinde de ayrica baglanir (cift baglanti zararsiz).
+	# inventory_changed tetiklensin diye.
 	call_deferred("_try_connect_early_inventory_signal")
+
+var _early_connect_retries: int = 0
 
 func _try_connect_early_inventory_signal() -> void:
 	"""Player hazir oldugunda inventory sinyallerini erken bagla.
 	Sadece inventory sinyallerini baglar. _connected=true yapmaz,
 	boylece _open_ui() icindeki _connect_signals() diger sinyalleri
 	de baglayabilir."""
+	_early_connect_retries += 1
+	if _early_connect_retries > 60:
+		# Give up after ~3 seconds to avoid flooding the message queue
+		return
 	var p := get_tree().get_first_node_in_group("player")
 	if p:
 		var inv := p.get_node_or_null("Inventory")
@@ -77,6 +83,7 @@ func _try_connect_early_inventory_signal() -> void:
 				inv.item_added.connect(_on_inventory_item_added)
 	else:
 		call_deferred("_try_connect_early_inventory_signal")
+
 
 func _on_inventory_item_added(item: ItemData) -> void:
 	"""Envantere item eklenince kisa bir bildirim goster."""
@@ -110,7 +117,7 @@ func _panel_style(p: Panel) -> void:
 	bg_top.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bg_top.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	p.add_child(bg_top)
-	
+
 	var bg_bottom := ColorRect.new()
 	bg_bottom.name = "BGBottom2"
 	bg_bottom.color = Color(0.04, 0.03, 0.06, 0.95)  # Alt (biraz daha açık)
@@ -119,7 +126,7 @@ func _panel_style(p: Panel) -> void:
 	bg_bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bg_bottom.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	p.add_child(bg_bottom)
-	
+
 	# İç çerçeve (subtle highlight)
 	var inner_border := StyleBoxFlat.new()
 	inner_border.bg_color = Color(0.0, 0.0, 0.0, 0.0)
@@ -130,7 +137,7 @@ func _panel_style(p: Panel) -> void:
 	inner_border.border_color = Color(0.3, 0.28, 0.35, 0.15)  # Hafif iç parlama
 	inner_border.set_corner_radius_all(6)
 	p.add_theme_stylebox_override("panel", inner_border)
-	
+
 	# Dış çerçeve ve gölge
 	var border := StyleBoxFlat.new()
 	border.bg_color = Color(0.0, 0.0, 0.0, 0.0)
@@ -554,7 +561,7 @@ func _make_equip_btn(slot: int) -> Button:
 	btn.text = Equipment.Slot.keys()[slot].capitalize()
 	btn.add_theme_font_size_override("font_size", 7)
 	btn.set_meta("slot_enum", slot)
-	
+
 	# Slot bazlı renkler
 	var slot_colors := {
 		0: Color(0.8, 0.3, 0.2),   # weapon - kırmızı
@@ -569,7 +576,7 @@ func _make_equip_btn(slot: int) -> Button:
 		9: Color(0.3, 0.6, 0.7),   # ring_2 - cyan
 	}
 	var slot_color: Color = slot_colors.get(slot, Color(0.5, 0.5, 0.5))
-	
+
 	# Slot için özel stil
 	var normal_s := StyleBoxFlat.new()
 	normal_s.bg_color = Color(0.08, 0.06, 0.1, 0.95)
@@ -579,7 +586,7 @@ func _make_equip_btn(slot: int) -> Button:
 	normal_s.set_corner_radius_all(6)
 	normal_s.shadow_color = Color(slot_color.r * 0.2, slot_color.g * 0.2, slot_color.b * 0.2, 0.3)
 	normal_s.shadow_size = 3
-	
+
 	var hover_s := StyleBoxFlat.new()
 	hover_s.bg_color = Color(0.12, 0.1, 0.15, 0.98)
 	hover_s.border_width_left = 2; hover_s.border_width_right = 2
@@ -588,14 +595,14 @@ func _make_equip_btn(slot: int) -> Button:
 	hover_s.set_corner_radius_all(6)
 	hover_s.shadow_color = Color(slot_color.r * 0.3, slot_color.g * 0.3, slot_color.b * 0.3, 0.4)
 	hover_s.shadow_size = 5
-	
+
 	btn.add_theme_stylebox_override("normal", normal_s)
 	btn.add_theme_stylebox_override("pressed", normal_s)
 	btn.add_theme_stylebox_override("hover", hover_s)
 	btn.add_theme_color_override("font_color", slot_color.darkened(0.3))
 	btn.add_theme_color_override("font_hover_color", slot_color)
 	btn.add_theme_color_override("font_pressed_color", slot_color.lightened(0.3))
-	
+
 	equipment_slot_buttons.append(btn)
 	return btn
 
@@ -611,7 +618,7 @@ func _style_inv_btn(btn: Button) -> void:
 	normal_s.shadow_color = Color(0, 0, 0, 0.3)
 	normal_s.shadow_size = 2
 	normal_s.shadow_offset = Vector2(1, 1)
-	
+
 	# Hover state - parlak kenarlık, hafif glow
 	var hover_s := StyleBoxFlat.new()
 	hover_s.bg_color = Color(0.12, 0.1, 0.16, 0.98)
@@ -622,7 +629,7 @@ func _style_inv_btn(btn: Button) -> void:
 	hover_s.shadow_color = Color(0.3, 0.25, 0.4, 0.4)  # Hafif mavi-mor glow
 	hover_s.shadow_size = 4
 	hover_s.shadow_offset = Vector2(0, 2)
-	
+
 	# Pressed state
 	var pressed_s := StyleBoxFlat.new()
 	pressed_s.bg_color = Color(0.06, 0.05, 0.08, 0.98)
@@ -633,7 +640,7 @@ func _style_inv_btn(btn: Button) -> void:
 	pressed_s.shadow_color = Color(0.2, 0.15, 0.3, 0.3)
 	pressed_s.shadow_size = 2
 	pressed_s.shadow_offset = Vector2(0, 1)
-	
+
 	# Disabled state
 	var disabled_s := StyleBoxFlat.new()
 	disabled_s.bg_color = Color(0.05, 0.04, 0.06, 0.9)
@@ -641,7 +648,7 @@ func _style_inv_btn(btn: Button) -> void:
 	disabled_s.border_width_left = 1; disabled_s.border_width_right = 1
 	disabled_s.border_width_top = 1; disabled_s.border_width_bottom = 1
 	disabled_s.set_corner_radius_all(4)
-	
+
 	btn.add_theme_stylebox_override("normal", normal_s)
 	btn.add_theme_stylebox_override("pressed", pressed_s)
 	btn.add_theme_stylebox_override("hover", hover_s)
@@ -675,7 +682,7 @@ func _build_stat_panel(parent: Control, w: float, doll_h: float) -> void:
 	for i in 3:
 		var row_y: float = 4.0 + float(i) * 22.0
 		var stat_key: String = stat_keys[i]
-		
+
 		# "-" button
 		var btn_minus := Button.new()
 		btn_minus.name = stat_names[i] + "_Minus"
@@ -741,19 +748,19 @@ func _on_remaining_points_hover() -> void:
 
 func _show_stat_tooltip(stat_key: String, text: String, global_pos: Vector2) -> void:
 	if not is_instance_valid(_tooltip_panel): return
-	
+
 	var header_color: String = "#ffffff"
 	if stat_key == "strength": header_color = "#e66a5c"
 	elif stat_key == "dexterity": header_color = "#5cb85c"
 	elif stat_key == "intelligence": header_color = "#5c8de6"
 	elif stat_key == "points": header_color = "#ffd700"
-	
+
 	var s: String = "[color=" + header_color + "][b]" + text + "[/b][/color]"
-	
+
 	_tooltip_label.text = s
 	_tooltip_label.size = Vector2(280, 0)
 	_tooltip_panel.size = Vector2(300, max(_tooltip_label.get_content_height() + 20, 50))
-	
+
 	var vp_size: Vector2 = get_viewport().get_visible_rect().size
 	var px: float = global_pos.x - _tooltip_panel.size.x - 10.0
 	var py: float = global_pos.y
@@ -1030,7 +1037,7 @@ func _update_inventory() -> void:
 
 func _on_inv_slot_hover(item: ItemData) -> void:
 	var mp: Vector2 = get_viewport().get_mouse_position()
-	
+
 	# Eğer item giyilemiyorsa, nedenini göster
 	if player and player.inventory and not player.inventory.can_equip_item(item):
 		var failures: String = player.inventory.get_requirement_failures(item)
@@ -1044,17 +1051,17 @@ func _on_inv_slot_hover(item: ItemData) -> void:
 func _show_requirement_warning(item: ItemData, global_pos: Vector2, failures: String) -> void:
 	"""Item'ın giyilememe nedenini gösteren uyarı tooltip'i."""
 	if not is_instance_valid(_tooltip_panel): return
-	
+
 	var s := "[center][color=#ff6b6b][b]⚠ GİYİLEMEZ[/b][/color][/center]\n"
 	s += "[color=#888888]%s[/color]" % item.display_name
 	s += "\n[color=#ffaaaa]" + failures + "[/color]"
 	s += "\n[color=#666666]─────────────────[/color]"
 	s += "\n[color=#aaaaaa]Detaylar için tekrar bak:[/color]"
-	
+
 	_tooltip_label.text = s
 	_tooltip_label.size = Vector2(360, 0)
 	_tooltip_panel.size = Vector2(380, max(_tooltip_label.get_content_height() + 20, 60))
-	
+
 	# Ekrandan taşmaması için pozisyon ayarla
 	var vp_size: Vector2 = get_viewport().get_visible_rect().size
 	var px: float = global_pos.x + 16.0
@@ -1304,18 +1311,18 @@ func _update_drag_slot_highlight(mouse_pos: Vector2) -> void:
 	if not _is_dragging or not _drag_item:
 		_clear_slot_highlight()
 		return
-	
+
 	var valid_slot: int = -1
-	
+
 	# Hangi slot tipi gerekli?
 	var target_slot: String = _drag_item.equip_slot
-	
+
 	# Equipment slotlarını kontrol et
 	for btn in equipment_slot_buttons:
 		if not is_instance_valid(btn): continue
 		var si: int = btn.get_meta("slot_enum", -1)
 		if si < 0: continue
-		
+
 		# Slot tipini kontrol et
 		var slot_name: String = Equipment.Slot.keys()[si] if si < Equipment.Slot.size() else ""
 		if slot_name == target_slot or (target_slot == "weapon" and slot_name in ["weapon", "offhand"]):
@@ -1323,7 +1330,7 @@ func _update_drag_slot_highlight(mouse_pos: Vector2) -> void:
 			if btn.get_global_rect().has_point(mouse_pos):
 				valid_slot = si
 				break
-	
+
 	# Highlight değiştiyse güncelle
 	if valid_slot != _valid_slot_highlighted:
 		_clear_slot_highlight()
@@ -1337,10 +1344,10 @@ func _highlight_slot(slot_idx: int, highlight: bool) -> void:
 		if not is_instance_valid(btn): continue
 		var si: int = btn.get_meta("slot_enum", -1)
 		if si != slot_idx: continue
-		
+
 		var normal_s: StyleBoxFlat = btn.get_theme_stylebox("normal") as StyleBoxFlat
 		var hover_s: StyleBoxFlat = btn.get_theme_stylebox("hover") as StyleBoxFlat
-		
+
 		if highlight:
 			# Yeşil gölgeli parlak highlight
 			if normal_s:
@@ -1369,7 +1376,7 @@ func _slot_reset_style(btn: Button, slot_idx: int) -> void:
 		9: Color(0.3, 0.6, 0.7),   # ring_2
 	}
 	var slot_color: Color = slot_colors.get(slot_idx, Color(0.5, 0.5, 0.5))
-	
+
 	var normal_s := StyleBoxFlat.new()
 	normal_s.bg_color = Color(0.08, 0.06, 0.1, 0.95)
 	normal_s.border_width_left = 2; normal_s.border_width_right = 2
@@ -1378,7 +1385,7 @@ func _slot_reset_style(btn: Button, slot_idx: int) -> void:
 	normal_s.set_corner_radius_all(6)
 	normal_s.shadow_color = Color(slot_color.r * 0.2, slot_color.g * 0.2, slot_color.b * 0.2, 0.3)
 	normal_s.shadow_size = 3
-	
+
 	var hover_s := StyleBoxFlat.new()
 	hover_s.bg_color = Color(0.12, 0.1, 0.15, 0.98)
 	hover_s.border_width_left = 2; hover_s.border_width_right = 2
@@ -1387,7 +1394,7 @@ func _slot_reset_style(btn: Button, slot_idx: int) -> void:
 	hover_s.set_corner_radius_all(6)
 	hover_s.shadow_color = Color(slot_color.r * 0.3, slot_color.g * 0.3, slot_color.b * 0.3, 0.4)
 	hover_s.shadow_size = 5
-	
+
 	btn.add_theme_stylebox_override("normal", normal_s)
 	btn.add_theme_stylebox_override("pressed", normal_s)
 	btn.add_theme_stylebox_override("hover", hover_s)
@@ -1583,7 +1590,7 @@ func _create_drag_ghost() -> void:
 func _update_drag_position(mouse_pos: Vector2) -> void:
 	if is_instance_valid(_drag_ghost):
 		_drag_ghost.position = mouse_pos - Vector2(18, 18)
-	
+
 	# Highlight valid equipment slot during drag
 	_update_drag_slot_highlight(mouse_pos)
 
@@ -1740,7 +1747,7 @@ func _handle_anvil_drop() -> void:
 			player.inventory.unequip_item(sn, player.equipment)
 	else:
 		return
-	
+
 	# Item parçalandı! Rastgele orb sayısı
 	var orb_count: int = 1
 	match _drag_item.rarity:
@@ -1748,7 +1755,7 @@ func _handle_anvil_drop() -> void:
 		"rare": orb_count = randi_range(2, 3)
 		"unique": orb_count = randi_range(3, 5)
 		_: orb_count = 1
-	
+
 	# Orbları ÖZLER (EssenceInventory) envanterine ekle
 	var orbs_added: int = 0
 	for i in range(orb_count):
@@ -1758,5 +1765,5 @@ func _handle_anvil_drop() -> void:
 			if player and player.essence_inventory:
 				if player.essence_inventory.add_essence(orb_item):
 					orbs_added += 1
-	
+
 	_show_equip_note(item_name + " parçalandı! " + str(orbs_added) + " orb envantere eklendi.", true)

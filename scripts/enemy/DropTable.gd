@@ -31,7 +31,7 @@ func try_drop(pos: Vector2) -> void:
 		if stats:
 			rarity_boost = stats.item_rarity
 			quantity_boost = stats.item_quantity
-	
+
 	# Item quantity drop şansını artırır
 	var effective_chance: float = drop_chance * (1.0 + quantity_boost / 100.0)
 	if randf() > effective_chance:
@@ -50,5 +50,5 @@ func try_drop(pos: Vector2) -> void:
 		# Fallback: direkt envantere ekle
 		if player and player.inventory:
 			player.inventory.add_item(generated)
-	
+
 	# Currency düşüşü kaldırıldı: orblar sadece örs'te item parçalayarak elde edilir

@@ -20,12 +20,12 @@ func _load_tree_data() -> void:
 	if not FileAccess.file_exists(PASSIVE_TREE_PATH):
 		push_error("Passive tree data not found: " + PASSIVE_TREE_PATH)
 		return
-	
+
 	var file := FileAccess.open(PASSIVE_TREE_PATH, FileAccess.READ)
 	if file == null:
 		push_error("Failed to load passive tree: " + str(FileAccess.get_open_error()))
 		return
-	
+
 	var json_text: String = file.get_as_text()
 	file.close()
 	var json := JSON.new()
@@ -47,40 +47,40 @@ func set_passive_points(points: int) -> void:
 func can_unlock_node(node_id: String) -> bool:
 	if node_id in unlocked_nodes:
 		return false
-	
+
 	if _passive_points <= 0:
 		return false
-	
+
 	var node: Dictionary = _find_node(node_id)
 	if node.is_empty():
 		return false
-	
+
 	# Gereksinim kontrolü
 	if node.has("requires"):
 		var req_id: String = node["requires"]
 		if req_id not in unlocked_nodes:
 			return false
-	
+
 	return true
 
 ## Bir node'u açar
 func unlock_node(node_id: String) -> bool:
 	if not can_unlock_node(node_id):
 		return false
-	
+
 	var node: Dictionary = _find_node(node_id)
 	if node.is_empty():
 		return false
-	
+
 	var cost: int = node.get("cost", 1) as int
 	if _passive_points < cost:
 		return false
-	
+
 	_passive_points -= cost
 	unlocked_nodes.append(node_id)
 	passive_points_changed.emit(_passive_points)
 	passive_unlocked.emit(node_id)
-	
+
 	return true
 
 ## Node'u kapatır (puan iade edilmez)
@@ -95,25 +95,25 @@ func get_node_info(node_id: String) -> Dictionary:
 ## Açılmış node'ların toplam etkilerini hesaplar
 func get_total_modifiers() -> Array[Dictionary]:
 	var modifiers: Array[Dictionary] = []
-	
+
 	for node_id in unlocked_nodes:
 		var node: Dictionary = _find_node(node_id)
 		if node.is_empty():
 			continue
-		
+
 		if node.has("effects"):
 			for effect in node["effects"]:
 				modifiers.append(effect.duplicate())
-	
+
 	return modifiers
 
 ## Tüm kategorileri ve node'ları döndürür
 func get_all_nodes() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
-	
+
 	if not tree_data.has("categories"):
 		return result
-	
+
 	for category in tree_data["categories"]:
 		for node in category["nodes"]:
 			var node_copy: Dictionary = node.duplicate()
@@ -123,16 +123,16 @@ func get_all_nodes() -> Array[Dictionary]:
 			node_copy["is_unlocked"] = node_copy["id"] in unlocked_nodes
 			node_copy["can_unlock"] = can_unlock_node(node_copy["id"])
 			result.append(node_copy)
-	
+
 	return result
 
 ## Belirli bir kategorideki node'ları döndürür
 func get_category_nodes(category_id: String) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
-	
+
 	if not tree_data.has("categories"):
 		return result
-	
+
 	for category in tree_data["categories"]:
 		if category["id"] == category_id:
 			for node in category["nodes"]:
@@ -144,7 +144,7 @@ func get_category_nodes(category_id: String) -> Array[Dictionary]:
 				node_copy["can_unlock"] = can_unlock_node(node_copy["id"])
 				result.append(node_copy)
 			break
-	
+
 	return result
 
 ## İstatistik etkilerini formatlı string olarak döndürür
@@ -152,15 +152,15 @@ func get_stat_display(node_id: String) -> String:
 	var node: Dictionary = _find_node(node_id)
 	if node.is_empty():
 		return ""
-	
+
 	var parts: Array[String] = []
 	var effects: Array = node.get("effects", [])
-	
+
 	for effect in effects:
 		var stat: String = effect.get("stat", "")
 		var value: float = effect.get("value", 0.0)
 		var eff_type: String = effect.get("type", "")
-		
+
 		var stat_names: Dictionary = {
 			"all_damage": "Hasar",
 			"physical_damage_increased": "Fiziksel Hasar",
@@ -189,10 +189,10 @@ func get_stat_display(node_id: String) -> String:
 			"extra_projectiles": "Ek Mermi",
 			"area_of_effect": "Alan Etkisi"
 		}
-		
+
 		var display_name: String = stat_names.get(stat, stat.replace("_", " ").capitalize())
 		var prefix: String = "+" if value >= 0 else ""
-		
+
 		match eff_type:
 			"flat":
 				parts.append("%s%.0f %s" % [prefix, value, display_name])
@@ -200,19 +200,19 @@ func get_stat_display(node_id: String) -> String:
 				parts.append("%s%.0f%% %s" % [prefix, value, display_name])
 			"more":
 				parts.append("%s%.0f%% %s (More)" % [prefix, value, display_name])
-	
+
 	return ", ".join(parts)
 
 ## Node'u veri dosyasında bulur
 func _find_node(node_id: String) -> Dictionary:
 	if not tree_data.has("categories"):
 		return {}
-	
+
 	for category in tree_data["categories"]:
 		for node in category["nodes"]:
 			if node.get("id") == node_id:
 				return node.duplicate()
-	
+
 	return {}
 
 ## Oyuncunun açtığı toplam node sayısını döndürür
@@ -222,17 +222,17 @@ func get_unlocked_count() -> int:
 ## Tüm açılmış node'ların bir özetini döndürür
 func get_summary() -> String:
 	var lines: Array[String] = []
-	
+
 	if not tree_data.has("categories"):
 		return "Pasif ağaç yüklenemedi."
-	
+
 	for category in tree_data["categories"]:
 		var cat_nodes: Array = get_category_nodes(category["id"])
 		var unlocked_in_cat: int = 0
 		for node in cat_nodes:
 			if node["id"] in unlocked_nodes:
 				unlocked_in_cat += 1
-		
+
 		if unlocked_in_cat > 0:
 			lines.append("%s [%d/%d]: %s" % [
 				category["name"],
@@ -240,32 +240,32 @@ func get_summary() -> String:
 				cat_nodes.size(),
 				_aggregate_category_stats(category["id"])
 			])
-	
+
 	if lines.is_empty():
 		return "Henüz pasif node açılmadı. (_passive_points) puan mevcut."
-	
+
 	return "\n".join(lines)
 
 ## Bir kategorinin istatistiklerini toplu olarak gösterir
 func _aggregate_category_stats(category_id: String) -> String:
 	var stats: Dictionary = {}
-	
+
 	for node_id in unlocked_nodes:
 		var node: Dictionary = _find_node(node_id)
 		if node.is_empty() or node.get("category_id") != category_id:
 			continue
-		
+
 		for effect in node.get("effects", []):
 			var stat: String = effect.get("stat", "")
 			var value: float = effect.get("value", 0.0)
 			var eff_type: String = effect.get("type", "")
-			
+
 			if eff_type == "flat":
 				stats[stat] = stats.get(stat, 0.0) + value
 			else:  # increased or more
 				var existing: float = stats.get(stat, 0.0)
 				stats[stat] = existing + value
-	
+
 	var stat_names: Dictionary = {
 		"all_damage": "Hasar",
 		"physical_damage_increased": "Fiz.Hasar",
@@ -280,7 +280,7 @@ func _aggregate_category_stats(category_id: String) -> String:
 		"critical_chance": "Kritik",
 		"critical_multiplier": "KritHasar"
 	}
-	
+
 	var parts: Array[String] = []
 	for stat in stats:
 		var display: String = stat_names.get(stat, stat)
@@ -289,5 +289,5 @@ func _aggregate_category_stats(category_id: String) -> String:
 			parts.append("%s:%.0f%%" % [display, val])
 		else:
 			parts.append("%s:%.0f" % [display, val])
-	
+
 	return ", ".join(parts) if not parts.is_empty() else "—"

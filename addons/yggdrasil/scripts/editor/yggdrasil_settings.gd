@@ -109,7 +109,7 @@ func load_tree(tree_data: YggdrasilTree):
 	size_y_input.set_value_no_signal(tree_data.size.y)
 
 	border_scale_input.set_value_no_signal(tree_data.border_scale)
-	
+
 	bg_color_picker.color = tree_data.bg_color
 
 	if tree_data.bg_texture:
@@ -161,7 +161,7 @@ func load_tree(tree_data: YggdrasilTree):
 		line_active_input.texture_rect.texture = null
 		line_active_input.empty_label.show()
 		line_active_input.clear_button.hide()
-	
+
 	revelead_checkbox.set_pressed_no_signal(tree_data.revealed)
 	allocation_checkbox.set_pressed_no_signal(tree_data.allocation)
 	preallocation_checkbox.set_pressed_no_signal(tree_data.preallocation)
@@ -242,7 +242,7 @@ func _on_line_normal_changed(path: String):
 	if path.is_empty():
 		_on_line_normal_cleared()
 		return
-	
+
 	var texture = ResourceLoader.load(path)
 	if texture and texture is Texture2D:
 		line_normal_input.texture_rect.texture = texture
@@ -264,7 +264,7 @@ func _on_line_intermediate_changed(path: String):
 	if path.is_empty():
 		_on_line_intermediate_cleared()
 		return
-	
+
 	var texture = ResourceLoader.load(path)
 	if texture and texture is Texture2D:
 		line_intermediate_input.texture_rect.texture = texture
@@ -286,7 +286,7 @@ func _on_line_active_changed(path: String):
 	if path.is_empty():
 		_on_line_active_cleared()
 		return
-	
+
 	var texture = ResourceLoader.load(path)
 	if texture and texture is Texture2D:
 		line_active_input.texture_rect.texture = texture

@@ -480,13 +480,13 @@ func generate_arena(biome_idx: int = Biome.FOREST) -> void:
 	grid_width = ARENA_SIZE
 	grid_height = ARENA_SIZE
 	grid = []
-	
+
 	# Tum gridi once FLOOR yap
 	for x in range(grid_width):
 		grid.append([])
 		for y in range(grid_height):
 			grid[x].append(CellType.FLOOR)
-	
+
 	# Dairesel arena duvarlari (merkezden uzaklik > yaricap ise WALL)
 	var cx: float = grid_width / 2.0
 	var cy: float = grid_height / 2.0
@@ -501,24 +501,24 @@ func generate_arena(biome_idx: int = Biome.FOREST) -> void:
 			elif dist > radius - 1.5:
 				# Ic duvar halkasi - BOSS_AREA olarak isaretle (ozel zemin)
 				grid[x][y] = CellType.BOSS_AREA
-	
+
 	# Giris: sol tarafta — 3x3 genis alan ac, hicbir dekor/carpisma girmesin
 	var entrance_y: int = grid_height / 2
 	for ey in range(entrance_y - 1, entrance_y + 2):
 		for ex in range(0, 4):
 			if ex >= 0 and ex < grid_width and ey >= 0 and ey < grid_height:
 				grid[ex][ey] = CellType.ENTRANCE
-	
+
 	# Boss: arena merkezinde cikisla ayni yerde
 	if cx_int >= 0 and cx_int < grid_width and cy_int >= 0 and cy_int < grid_height:
 		grid[cx_int][cy_int] = CellType.BOSS_AREA
-	
+
 	# Icine boss floor dokusu dok
 	for x in range(1, grid_width - 1):
 		for y in range(1, grid_height - 1):
 			if grid[x][y] == CellType.FLOOR:
 				grid[x][y] = CellType.BOSS_AREA
-	
+
 	_build_arena_visuals()
 
 func _generate_border_walls() -> void:
@@ -578,7 +578,7 @@ func _generate_obstacles() -> void:
 	var density: float = layout.get("obstacle_density", 0.15)
 	var clusters: int = layout.get("clusters", 2)
 	var corridor_chance: float = layout.get("corridor_chance", 0.0)
-	
+
 	# 1. Temel rastgele engeller (yoğunluk biyoma göre değişir)
 	var base_count: int = int(grid_width * grid_height * density / 10.0)
 	for i in range(base_count):
@@ -589,7 +589,7 @@ func _generate_obstacles() -> void:
 			continue
 		if grid[wx][wy] == CellType.FLOOR and randf() < density:
 			grid[wx][wy] = CellType.WALL
-	
+
 	# 2. Biyom-spesifik kümeler (ör: bataklıkta yoğun kümeler, çölde seyrek)
 	for c in range(clusters):
 		var cx: int = randi() % (grid_width - 10) + 5
@@ -601,7 +601,7 @@ func _generate_obstacles() -> void:
 			if dx >= 5 and dx < grid_width - 2 and dy >= 2 and dy < grid_height - 2:
 				if grid[dx][dy] == CellType.FLOOR:
 					grid[dx][dy] = CellType.WALL
-	
+
 	# 3. Koridor engelleri (çöl, volkan, zindan gibi biyomlarda)
 	if corridor_chance > 0.0:
 		for ci in range(grid_width * grid_height / 30):
@@ -623,12 +623,12 @@ func _generate_obstacles() -> void:
 func _build_arena_visuals() -> void:
 	"""Arena icin ozel goruntu olusturucu: dis orman yok, duvar dekorasyonlari, isiltili zemin."""
 	var biome_data: Dictionary = BIOME_DATA.get(current_biome, BIOME_DATA[Biome.FOREST])
-	
+
 	# Boss zemin dokusunu yukle (arena'nin her yeri boss floor)
 	var boss_tex: Texture2D = _load_tex(biome_data.get("boss_floor", ""))
 	var boss_tint: Color = biome_data.get("boss_tint", Color(1.0, 0.85, 0.75))
 	var entrance_tex: Texture2D = _load_tex(biome_data.get("entrance_floor", ""))
-	
+
 	# Duvar dekorasyonlari
 	var wall_decor_list: Array = biome_data.get("wall_decor", [])
 	var wall_tex_arr: Array = []
@@ -636,19 +636,19 @@ func _build_arena_visuals() -> void:
 		var tex := _load_tex(entry[0] as String)
 		if tex:
 			wall_tex_arr.append([tex, entry[1] as int])
-	
+
 	# === FLOOR TILES ===
 	for x in range(grid_width):
 		for y in range(grid_height):
 			var world_pos := Vector2(x, y) * TILE_SIZE + Vector2(half, half)
 			var cell: CellType = grid[x][y]
-			
+
 			if cell == CellType.WALL:
 				continue
-			
+
 			var floor_tex: Texture2D
 			var floor_mod := Color.WHITE
-			
+
 			match cell:
 				CellType.ENTRANCE:
 					floor_tex = entrance_tex if entrance_tex else boss_tex
@@ -667,10 +667,10 @@ func _build_arena_visuals() -> void:
 				_:
 					floor_tex = boss_tex
 					floor_mod = boss_tint
-			
+
 			if not floor_tex:
 				continue
-			
+
 			var gnd := Sprite2D.new()
 			gnd.texture = floor_tex
 			gnd.position = world_pos
@@ -680,14 +680,14 @@ func _build_arena_visuals() -> void:
 			if lm_arena_floor:
 				gnd.material = lm_arena_floor
 			add_child(gnd)
-	
+
 	# === WALL TILES (decor) ===
 	for x in range(grid_width):
 		for y in range(grid_height):
 			if grid[x][y] != CellType.WALL:
 				continue
 			var world_pos := Vector2(x, y) * TILE_SIZE + Vector2(half, half)
-			
+
 			if wall_tex_arr.is_empty():
 				continue
 			var total_w: int = 0
@@ -701,7 +701,7 @@ func _build_arena_visuals() -> void:
 				if rw < acc:
 					decor_tex = wt[0]
 					break
-			
+
 			# Duvara bakan tarafa gore yon ver (arena ici tarafa bakmali)
 			# Basit: x=0 veya x=max sol/sag duvar, y=0 veya y=max ust/alt duvar
 			var mirror_x: bool = x >= grid_width - 2
@@ -715,7 +715,7 @@ func _build_arena_visuals() -> void:
 			if mirror_x:
 				spr.flip_h = true
 			add_child(spr)
-	
+
 	# === ARENA COLLISION (cevre duvari) ===
 	for x in range(grid_width):
 		for y in range(grid_height):
@@ -733,7 +733,7 @@ func _build_arena_visuals() -> void:
 			wall_col.shape = wall_shape
 			wall_body.add_child(wall_col)
 			add_child(wall_body)
-	
+
 	# === IC HALKADA DEKORATIF TORCH/YILDIZ ISIGI ===
 	# Ic halkadaki BOSS_AREA hucresine kucuk dekor ekle
 	var deco_chance: float = biome_data.get("floor_decor_chance", 0.03) * 3.0
@@ -743,7 +743,7 @@ func _build_arena_visuals() -> void:
 		var tex := _load_tex(path)
 		if tex:
 			floor_decor_tex_arr.append(tex)
-	
+
 	for x in range(1, grid_width - 1):
 		for y in range(1, grid_height - 1):
 			var world_pos := Vector2(x, y) * TILE_SIZE + Vector2(half, half)
@@ -770,7 +770,7 @@ func _load_tex(path: String) -> Texture2D:
 
 func _build_visuals() -> void:
 	var biome_data: Dictionary = BIOME_DATA.get(current_biome, BIOME_DATA[Biome.FOREST])
-	
+
 	# Load floor textures
 	var fl: Dictionary = biome_data.get("floors", {}) as Dictionary
 	var floor_tex_map: Array = [
@@ -782,45 +782,45 @@ func _build_visuals() -> void:
 	var floor_weights: Array = biome_data.get("floor_weights", [25, 25, 25, 25])
 	var floor_tint_base: Color = biome_data.get("floor_tint", Color.WHITE)
 	var floor_var: float = biome_data.get("floor_var", 0.2)
-	
+
 	var entrance_tex: Texture2D = _load_tex(biome_data.get("entrance_floor", ""))
 	var boss_tex: Texture2D = _load_tex(biome_data.get("boss_floor", ""))
 	var boss_tint: Color = biome_data.get("boss_tint", Color.WHITE)
 	var exit_tex: Texture2D = _load_tex(biome_data.get("exit_floor", ""))
-	
+
 	# Load wall decor textures
 	var wall_decor_list: Array = biome_data.get("wall_decor", [])
-	
+
 	# Load floor decor textures
 	var floor_decor_list: Array = biome_data.get("floor_decor", [])
 	var floor_decor_chance: float = biome_data.get("floor_decor_chance", 0.03)
-	
+
 	# Build wall decor weight table
 	var wall_tex_arr: Array = []
 	for entry in wall_decor_list:
 		var tex := _load_tex(entry[0] as String)
 		if tex:
 			wall_tex_arr.append([tex, entry[1] as int])
-	
+
 	# Build floor decor texture array
 	var floor_decor_tex_arr: Array = []
 	for path in floor_decor_list:
 		var tex := _load_tex(path)
 		if tex:
 			floor_decor_tex_arr.append(tex)
-	
+
 	# === FLOOR TILES ===
 	for x in range(grid_width):
 		for y in range(grid_height):
 			var world_pos := Vector2(x, y) * TILE_SIZE + Vector2(half, half)
 			var cell: CellType = grid[x][y]
-			
+
 			if cell == CellType.WALL:
 				continue
-			
+
 			var floor_tex: Texture2D
 			var floor_mod := Color.WHITE
-			
+
 			match cell:
 				CellType.ENTRANCE:
 					floor_tex = entrance_tex
@@ -848,10 +848,10 @@ func _build_visuals() -> void:
 						floor_tint_base.g + randf() * floor_var - floor_var * 0.5,
 						floor_tint_base.b + randf() * floor_var - floor_var * 0.5,
 					)
-			
+
 			if not floor_tex:
 				continue
-			
+
 			var gnd := Sprite2D.new()
 			gnd.texture = floor_tex
 			gnd.position = world_pos
@@ -861,7 +861,7 @@ func _build_visuals() -> void:
 			if lm_floor:
 				gnd.material = lm_floor
 			add_child(gnd)
-			
+
 			# === GIRIS NOKTASI DEKORU ===
 			# Doğduğumuz yerde (entrance merkezi) özel bir spawn stone göster
 			# get_entrance_world() = (TILE_SIZE * 2, TILE_SIZE * (grid_height / 2))
@@ -883,7 +883,7 @@ func _build_visuals() -> void:
 						if lm_stone:
 							stone_spr.material = lm_stone
 						add_child(stone_spr)
-			
+
 			# Occasional small decor on FLOOR cells
 			if cell == CellType.FLOOR and randf() < floor_decor_chance and not floor_decor_tex_arr.is_empty():
 				var small_decor: Texture2D = floor_decor_tex_arr[randi() % floor_decor_tex_arr.size()]
@@ -897,16 +897,16 @@ func _build_visuals() -> void:
 					if lm_decor:
 						d_spr.material = lm_decor
 					add_child(d_spr)
-	
+
 	# === WALL TILES (decor) ===
 	for x in range(grid_width):
 		for y in range(grid_height):
 			var world_pos := Vector2(x, y) * TILE_SIZE + Vector2(half, half)
 			var cell: CellType = grid[x][y]
-			
+
 			if cell != CellType.WALL:
 				continue
-			
+
 			# Weighted random wall decor
 			if wall_tex_arr.is_empty():
 				continue
@@ -921,7 +921,7 @@ func _build_visuals() -> void:
 				if rw < acc:
 					decor_tex = wt[0]
 					break
-			
+
 			var spr := Sprite2D.new()
 			spr.texture = decor_tex
 			spr.position = world_pos
@@ -930,7 +930,7 @@ func _build_visuals() -> void:
 			if lm_wall:
 				spr.material = lm_wall
 			add_child(spr)
-	
+
 	# === TUM DUVARLAR ICIN COLLISION (ic duvarlar dahil) ===
 	for x in range(grid_width):
 		for y in range(grid_height):
@@ -948,28 +948,28 @@ func _build_visuals() -> void:
 			wall_col.shape = wall_shape
 			wall_body.add_child(wall_col)
 			add_child(wall_body)
-	
+
 	# === OUTSIDE FOREST (biyom renkleriyle) ===
 	var forest_ring := 16
 	var outside_ground_list: Array = biome_data.get("outside_ground", [])
 	var outside_ground_tint_base: Color = biome_data.get("outside_ground_tint", Color(0.6, 0.7, 0.5))
 	var outside_trees_list: Array = biome_data.get("outside_trees", [])
 	var outside_tree_tint_base: Color = biome_data.get("outside_tree_tint", Color(0.8, 0.9, 0.7))
-	
+
 	# Load outside ground textures
 	var og_tex_arr: Array = []
 	for entry in outside_ground_list:
 		var tex := _load_tex(entry[0])
 		if tex:
 			og_tex_arr.append([tex, entry[1]])
-	
+
 	# Load outside tree textures
 	var ot_tex_arr: Array = []
 	for path in outside_trees_list:
 		var tex := _load_tex(path)
 		if tex:
 			ot_tex_arr.append(tex)
-	
+
 	for ox in range(-forest_ring, grid_width + forest_ring):
 		for oy in range(-forest_ring, grid_height + forest_ring):
 			if ox >= 0 and ox < grid_width and oy >= 0 and oy < grid_height:
@@ -980,7 +980,7 @@ func _build_visuals() -> void:
 			)
 			if dist_to_edge > forest_ring:
 				continue
-			
+
 			# Ground tile
 			if not og_tex_arr.is_empty() and randf() < 0.95:
 				var chosen_entry: Array = og_tex_arr[0]
@@ -1002,7 +1002,7 @@ func _build_visuals() -> void:
 				if lm_og:
 					gnd.material = lm_og
 				add_child(gnd)
-			
+
 			# Trees with deterministic position hash
 			if ot_tex_arr.is_empty():
 				continue

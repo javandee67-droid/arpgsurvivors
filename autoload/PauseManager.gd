@@ -37,7 +37,7 @@ func _toggle_pause() -> void:
 	else:
 		# We were not paused, now pause
 		_pause_ui_show()
-		
+
 func _pause_ui_show() -> void:
 	var tree = get_tree()
 	if not tree:
@@ -71,7 +71,7 @@ func _create_pause_ui() -> CanvasLayer:
 	ui.name = "PauseUI"
 	ui.layer = 100
 	ui.mouse_filter = Control.MOUSE_FILTER_STOP
-	
+
 	# Background panel
 	var bg := Panel.new()
 	bg.name = "Background"
@@ -104,16 +104,16 @@ func _create_pause_ui() -> CanvasLayer:
 	bg.offset_top = -150
 	bg.offset_right = 200
 	bg.offset_bottom = 150
-	
+
 	var bg_style := StyleBoxFlat.new()
 	bg_style.bg_color = Color(0.0, 0.0, 0.0, 0.8)
 	bg_style.border_width_all = 2
 	bg_style.border_color = Color(0.8, 0.8, 0.8)
 	bg_style.set_corner_radius_all(8)
 	bg.add_theme_stylebox_override("panel", bg_style)
-	
+
 	ui.add_child(bg)
-	
+
 	# Title label
 	var title := Label.new()
 	title.name = "Title"
@@ -128,7 +128,7 @@ func _create_pause_ui() -> CanvasLayer:
 	title.anchor_bottom = 0.5
 	title.add_theme_constant_override("alignment", 2)  # center
 	ui.add_child(title)
-	
+
 	# Resume button
 	var btn_resume := Button.new()
 	btn_resume.name = "ResumeButton"
@@ -152,7 +152,7 @@ func _create_pause_ui() -> CanvasLayer:
 	btn_resume.add_theme_stylebox_override("normal", btn_style)
 	btn_resume.pressed.connect(_on_resume_pressed)
 	ui.add_child(btn_resume)
-	
+
 	# Settings button
 	var btn_settings := Button.new()
 	btn_settings.name = "SettingsButton"
@@ -171,7 +171,7 @@ func _create_pause_ui() -> CanvasLayer:
 	btn_settings.add_theme_stylebox_override("normal", btn_style.duplicate())
 	btn_settings.pressed.connect(_on_settings_pressed)
 	ui.add_child(btn_settings)
-	
+
 	# Quit button
 	var btn_quit := Button.new()
 	btn_quit.name = "QuitButton"
@@ -190,7 +190,7 @@ func _create_pause_ui() -> CanvasLayer:
 	btn_quit.add_theme_stylebox_override("normal", btn_style.duplicate())
 	btn_quit.pressed.connect(_on_quit_pressed)
 	ui.add_child(btn_quit)
-	
+
 	return ui
 
 func _on_resume_pressed() -> void:

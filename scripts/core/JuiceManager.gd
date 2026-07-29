@@ -1,5 +1,5 @@
-class_name JuiceManager
 extends CanvasLayer
+class_name JuiceManager
 ## Merkezi görsel/işitsel geri bildirim (juice) yöneticisi.
 ## EventBus üzerinden gelen olayları dinler ve görsel efektleri tetikler.
 
@@ -22,7 +22,7 @@ var _particle_tex: Texture2D = null
 func _ready() -> void:
 	layer = 80  # FloatingDamage'in (60) ustunde
 	process_mode = PROCESS_MODE_ALWAYS
-	
+
 	# Create shared particle texture
 	var img := Image.create(8, 8, false, Image.FORMAT_RGBA8)
 	for x in 8:
@@ -34,7 +34,7 @@ func _ready() -> void:
 			else:
 				img.set_pixel(x, y, Color(0, 0, 0, 0))
 	_particle_tex = ImageTexture.create_from_image(img)
-	
+
 	# EventBus baglantilari
 	EventBus.damage_dealt.connect(_on_damage_dealt)
 	EventBus.damage_taken.connect(_on_damage_taken)
@@ -60,16 +60,16 @@ func _on_damage_dealt(payload: Dictionary) -> void:
 	var target: Node = payload.get("target", null)
 	if not target or target.is_in_group("player"):
 		return
-	
+
 	var is_crit: bool = payload.get("is_crit", false)
 	var amount: float = payload.get("amount", 0.0)
-	
+
 	# Screen shake
 	if is_crit:
 		_do_screen_shake(4.0, 0.2)
 	else:
 		_do_screen_shake(1.5, 0.08)
-	
+
 	# Increment combo
 	if amount > 0:
 		_combo_count += 1
@@ -124,7 +124,7 @@ func _do_screen_shake(intensity: float, duration: float) -> void:
 	var tw := create_tween()
 	tw.set_trans(Tween.TRANS_SINE)
 	tw.set_ease(Tween.EASE_OUT)
-	
+
 	# Rastgele sallanti
 	var shake_count: int = maxi(3, int(duration / 0.033))
 	for i in shake_count:
@@ -142,7 +142,7 @@ func _do_screen_flash(color: Color, duration: float) -> void:
 	flash.anchor_bottom = 1.0
 	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(flash)
-	
+
 	var tw := create_tween()
 	tw.tween_property(flash, "modulate", Color(color.r, color.g, color.b, 0.0), duration)
 	tw.tween_callback(flash.queue_free).set_delay(duration + 0.05)
@@ -152,7 +152,7 @@ func _do_screen_flash(color: Color, duration: float) -> void:
 func _spawn_hit_effect(pos: Vector2, damage_type: String, is_crit: bool) -> void:
 	var em := GPUParticles2D.new()
 	var mat := ParticleProcessMaterial.new()
-	
+
 	# Damage type'e gore renk
 	var color: Color
 	match damage_type:
@@ -161,13 +161,13 @@ func _spawn_hit_effect(pos: Vector2, damage_type: String, is_crit: bool) -> void
 		"lightning": color = Color(1.0, 0.9, 0.2)
 		"chaos": color = Color(0.6, 0.2, 0.8)
 		_: color = Color(1.0, 0.8, 0.5)  # physical
-	
+
 	if is_crit:
 		color = Color(1.0, 0.9, 0.1)
 		em.amount = 16
 	else:
 		em.amount = 6
-	
+
 	mat.direction = Vector3(0, -1, 0)
 	mat.spread = 180.0
 	mat.gravity = Vector3(0, 60, 0)
@@ -182,7 +182,7 @@ func _spawn_hit_effect(pos: Vector2, damage_type: String, is_crit: bool) -> void
 	gtex.width = 8
 	gtex.height = 8
 	mat.color_ramp = gtex
-	
+
 	em.texture = _particle_tex
 	em.process_material = mat
 	em.one_shot = true
@@ -190,7 +190,7 @@ func _spawn_hit_effect(pos: Vector2, damage_type: String, is_crit: bool) -> void
 	em.lifetime = 0.5
 	em.position = pos
 	em.z_index = 100
-	
+
 	get_tree().current_scene.add_child(em)
 	em.emitting = true
 	# Auto cleanup
@@ -219,7 +219,7 @@ func _spawn_death_effect(pos: Vector2, enemy: Node) -> void:
 	get_tree().current_scene.add_child(em)
 	em.emitting = true
 	get_tree().create_timer(1.0).timeout.connect(em.queue_free)
-	
+
 	# Rarity glow on death - item drop icin
 	var rarity := 0  # NORMAL
 	if enemy.has_method("get_rarity"):
@@ -257,7 +257,7 @@ func _spawn_light_pillar(pos: Vector2, rarity: int) -> void:
 		2: color = Color(1.0, 0.8, 0.2)   # RARE - gold
 		3: color = Color(1.0, 0.5, 0.1)   # UNIQUE - orange
 		_: color = Color(0.4, 0.6, 1.0)   # MAGIC - blue
-	
+
 	# Light pillar using a tall thin ColorRect
 	var pillar := ColorRect.new()
 	pillar.color = Color(color.r, color.g, color.b, 0.6)
@@ -265,7 +265,7 @@ func _spawn_light_pillar(pos: Vector2, rarity: int) -> void:
 	pillar.position = pos - Vector2(3, 400)
 	pillar.z_index = 40
 	get_tree().current_scene.add_child(pillar)
-	
+
 	var tw := create_tween()
 	tw.set_parallel(true)
 	tw.tween_property(pillar, "modulate", Color(color.r, color.g, color.b, 0.0), 1.5)
@@ -277,17 +277,17 @@ func _update_combo_aura() -> void:
 	if _combo_aura and is_instance_valid(_combo_aura):
 		_combo_aura.queue_free()
 		_combo_aura = null
-	
+
 	if _combo_count < 3 or not player:
 		return
-	
+
 	# Create a pulsing ring around player
 	var aura := ColorRect.new()
 	aura.name = "ComboAura"
 	var min_dim := 48.0  # player height estimate
 	var aura_size := min_dim + float(mini(_combo_count, 20)) * 4.0
 	aura.size = Vector2(aura_size, aura_size)
-	
+
 	# StyleBoxFlat to make it circular
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(1.0, 0.8, 0.3, 0.12)
@@ -295,16 +295,16 @@ func _update_combo_aura() -> void:
 	style.set_border_width_all(2)
 	style.border_color = Color(1.0, 0.9, 0.3, 0.5)
 	aura.add_theme_stylebox_override("panel", style)
-	
+
 	player.add_child(aura)
 	aura.position = -aura.size * 0.5 + Vector2(0, -24)  # Center on player, slight upward
-	
+
 	# Pulsing animation
 	var tw := create_tween().set_loops()
 	tw.set_parallel(true)
 	tw.tween_property(aura, "modulate", Color(1, 1, 1, 0.25), 0.5).set_ease(Tween.EASE_IN_OUT)
 	tw.tween_property(aura, "modulate", Color(1, 1, 1, 0.1), 0.5).set_delay(0.5).set_ease(Tween.EASE_IN_OUT)
-	
+
 	_combo_aura = aura
 
 # ==================== LEVEL UP ====================
@@ -326,7 +326,7 @@ func _spawn_level_up_burst(pos: Vector2) -> void:
 	mat.scale_min = 1.5
 	mat.scale_max = 3.5
 	mat.color = Color(1.0, 0.85, 0.2)
-	
+
 	var grad := Gradient.new()
 	grad.offsets = PackedFloat32Array([0.0, 0.5, 1.0])
 	grad.colors = PackedColorArray([Color(1, 1, 0.6), Color(1, 0.7, 0.15), Color(1, 1, 1, 0)])
@@ -335,7 +335,7 @@ func _spawn_level_up_burst(pos: Vector2) -> void:
 	gtex.width = 8
 	gtex.height = 8
 	mat.color_ramp = gtex
-	
+
 	em.texture = _particle_tex
 	em.process_material = mat
 	em.amount = 16

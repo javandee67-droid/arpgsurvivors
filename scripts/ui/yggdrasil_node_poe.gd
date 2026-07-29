@@ -1,5 +1,5 @@
-class_name PoENodeButton
 extends YggdrasilNodeButton
+class_name PoENodeButton
 
 func _ready():
 	super._ready()

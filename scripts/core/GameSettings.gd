@@ -34,25 +34,25 @@ func load_settings() -> void:
 	if not FileAccess.file_exists(SETTINGS_FILE):
 		_set_defaults()
 		return
-	
+
 	var save_file := FileAccess.open(SETTINGS_FILE, FileAccess.READ)
 	if save_file == null:
 		_set_defaults()
 		return
-	
+
 	var json_str := save_file.get_as_text()
 	save_file.close()
-	
+
 	var json := JSON.new()
 	if json.parse(json_str) != OK:
 		_set_defaults()
 		return
-	
+
 	var data: Dictionary = json.data
 	if data.is_empty():
 		_set_defaults()
 		return
-	
+
 	master_volume = data.get("master_volume", 1.0)
 	music_volume = data.get("music_volume", 0.8)
 	sfx_volume = data.get("sfx_volume", 1.0)
@@ -63,7 +63,7 @@ func load_settings() -> void:
 	screen_shake = data.get("screen_shake", true)
 	auto_pickup = data.get("auto_pickup", true)
 	show_tips = data.get("show_tips", true)
-	
+
 	_apply_settings()
 	print("Settings loaded!")
 
@@ -80,12 +80,12 @@ func save_settings() -> void:
 		"auto_pickup": auto_pickup,
 		"show_tips": show_tips,
 	}
-	
+
 	var save_file := FileAccess.open(SETTINGS_FILE, FileAccess.WRITE)
 	if save_file == null:
 		push_error("Cannot save settings: " + str(FileAccess.get_open_error()))
 		return
-	
+
 	var json_str := JSON.stringify(save_data, "\t")
 	save_file.store_line(json_str)
 	save_file.close()
@@ -118,9 +118,9 @@ func _apply_settings() -> void:
 		AudioServer.get_bus_index("SFX"),
 		linear_to_db(sfx_volume)
 	)
-	
+
 	# Apply graphics
-	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_VSYNC, vsync)
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if vsync else DisplayServer.VSYNC_DISABLED)
 	if fullscreen:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	else:
@@ -160,7 +160,7 @@ func set_fullscreen(value: bool) -> void:
 
 func set_vsync(value: bool) -> void:
 	vsync = value
-	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_VSYNC, vsync)
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if vsync else DisplayServer.VSYNC_DISABLED)
 	save_settings()
 
 func set_show_fps(value: bool) -> void:

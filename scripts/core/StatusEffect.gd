@@ -58,7 +58,7 @@ func configure(type: Type, mag: float, dur: float, src: Node = null, _tags: Arra
 	total_duration = dur
 	source = src
 	_aggravated = aggravated
-	
+
 	match type:
 		Type.IGNITE:
 			damage_type = "fire"
@@ -88,9 +88,9 @@ func tick(delta: float, is_moving: bool = false) -> float:
 	if duration <= 0.0:
 		_ticks_remaining = 0  # Force expiry
 		return 0.0
-	
+
 	var dot_damage: float = 0.0
-	
+
 	if _ticks_remaining > 0:
 		# Bleed only deals damage while moving (unless Aggravated)
 		if effect_type == Type.BLEED and not is_moving and not _aggravated:
@@ -99,13 +99,13 @@ func tick(delta: float, is_moving: bool = false) -> float:
 				_tick_timer -= tick_interval
 				_ticks_remaining -= 1
 			return 0.0
-		
+
 		_tick_timer += delta
 		if _tick_timer >= tick_interval:
 			_tick_timer -= tick_interval
 			dot_damage = _damage_per_tick_constant * tick_interval
 			_ticks_remaining -= 1
-	
+
 	return dot_damage
 
 func is_expired() -> bool:

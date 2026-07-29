@@ -19,8 +19,8 @@ enum Category {
 const UPGRADES := {
 	# === GENERAL ===
 	"starting_gold": {
-		"name": "Baslangic Altini",
-		"description": "Yeni oyuna baslarken +{value} altin ile basla",
+		"name": "Başlangıç Altını",
+		"description": "Yeni oyuna başlarken +{value} altın ile başla",
 		"category": Category.GENERAL,
 		"base_cost": 100,
 		"cost_scale": 1.8,
@@ -30,8 +30,8 @@ const UPGRADES := {
 		"icon": "✦",
 	},
 	"starting_essence": {
-		"name": "Baslangic Özü",
-		"description": "Yeni oyuna baslarken +{value} öz ile basla",
+		"name": "Başlangıç Özü",
+		"description": "Yeni oyuna başlarken +{value} öz ile başla",
 		"category": Category.GENERAL,
 		"base_cost": 150,
 		"cost_scale": 2.0,
@@ -40,11 +40,11 @@ const UPGRADES := {
 		"value_per_level": 5,
 		"icon": "✧",
 	},
-	
+
 	# === OFFENSE ===
 	"damage_boost": {
 		"name": "Hasar Gücü",
-		"description": "Tüm skill hasari +{value}%",
+		"description": "Tüm yetenek hasarı +{value}%",
 		"category": Category.OFFENSE,
 		"base_cost": 200,
 		"cost_scale": 2.2,
@@ -55,7 +55,7 @@ const UPGRADES := {
 	},
 	"critical_chance": {
 		"name": "Keskin Göz",
-		"description": "Kritik vurus sansi +{value}%",
+		"description": "Kritik vuruş şansı +{value}%",
 		"category": Category.OFFENSE,
 		"base_cost": 175,
 		"cost_scale": 1.9,
@@ -66,7 +66,7 @@ const UPGRADES := {
 	},
 	"critical_multiplier": {
 		"name": "Savurgan Hasar",
-		"description": "Kritik hasar carpani +{value}%",
+		"description": "Kritik hasar çarpanı +{value}%",
 		"category": Category.OFFENSE,
 		"base_cost": 250,
 		"cost_scale": 2.0,
@@ -75,9 +75,11 @@ const UPGRADES := {
 		"value_per_level": 5.0,
 		"icon": "💥",
 	},
+
+	# === UTILITY (movement/loot) ===
 	"pickup_radius": {
-		"name": "Altin Toplayici",
-		"description": "Pickup mesafesi +{value}",
+		"name": "Altın Toplayıcı",
+		"description": "Toplama mesafesi +{value}",
 		"category": Category.UTILITY,
 		"base_cost": 80,
 		"cost_scale": 1.5,
@@ -88,7 +90,7 @@ const UPGRADES := {
 	},
 	"xp_bonus": {
 		"name": "Bilgelik",
-		"description": "Tecrübe kazanci +{value}%",
+		"description": "Tecrübe kazancı +{value}%",
 		"category": Category.GENERAL,
 		"base_cost": 150,
 		"cost_scale": 1.7,
@@ -98,8 +100,8 @@ const UPGRADES := {
 		"icon": "⭐",
 	},
 	"gold_find": {
-		"name": "Refik",
-		"description": "Altin düsme sansi +{value}%",
+		"name": "Defineci",
+		"description": "Altın düşme şansı +{value}%",
 		"category": Category.UTILITY,
 		"base_cost": 120,
 		"cost_scale": 1.6,
@@ -108,10 +110,10 @@ const UPGRADES := {
 		"value_per_level": 2.0,
 		"icon": "💰",
 	},
-	
+
 	# === DEFENSE ===
 	"max_life": {
-		"name": "Dayaniklilik",
+		"name": "Dayanıklılık",
 		"description": "Maksimum can +{value}",
 		"category": Category.DEFENSE,
 		"base_cost": 100,
@@ -122,7 +124,7 @@ const UPGRADES := {
 		"icon": "❤️",
 	},
 	"life_regen": {
-		"name": "Iyilesme",
+		"name": "İyileşme",
 		"description": "Can yenilenmesi +{value}/saniye",
 		"category": Category.DEFENSE,
 		"base_cost": 130,
@@ -134,7 +136,7 @@ const UPGRADES := {
 	},
 	"armor_boost": {
 		"name": "Sert Deri",
-		"description": "Zirh +{value}",
+		"description": "Zırh +{value}",
 		"category": Category.DEFENSE,
 		"base_cost": 90,
 		"cost_scale": 1.5,
@@ -144,8 +146,8 @@ const UPGRADES := {
 		"icon": "🛡️",
 	},
 	"movement_speed": {
-		"name": "Ceviklik",
-		"description": "Hareket hizi +{value}%",
+		"name": "Çeviklik",
+		"description": "Hareket hızı +{value}%",
 		"category": Category.UTILITY,
 		"base_cost": 110,
 		"cost_scale": 1.7,
@@ -154,11 +156,11 @@ const UPGRADES := {
 		"value_per_level": 1.5,
 		"icon": "⚡",
 	},
-	
-	# === UTILITY ===
+
+	# === UTILITY (cooldown/duration) ===
 	"cooldown_reduction": {
-		"name": "Hizli El",
-		"description": "Skill bekleme suresi -{value}%",
+		"name": "Hızlı El",
+		"description": "Yetenek bekleme süresi -{value}%",
 		"category": Category.UTILITY,
 		"base_cost": 200,
 		"cost_scale": 2.0,
@@ -168,8 +170,8 @@ const UPGRADES := {
 		"icon": "⏱️",
 	},
 	"skill_duration": {
-		"name": "Uzun Süren",
-		"description": "Buff/skill süresi +{value}%",
+		"name": "Uzun Süreli",
+		"description": "Güçlendirme/beceri süresi +{value}%",
 		"category": Category.UTILITY,
 		"base_cost": 140,
 		"cost_scale": 1.8,
@@ -179,8 +181,8 @@ const UPGRADES := {
 		"icon": "⏳",
 	},
 	"item_rarity": {
-		"name": "Shaper's Eye",
-		"description": "Eşya nadirligi +{value}%",
+		"name": "Bereket",
+		"description": "Eşya nadirliği +{value}%",
 		"category": Category.UTILITY,
 		"base_cost": 180,
 		"cost_scale": 1.9,
@@ -189,11 +191,125 @@ const UPGRADES := {
 		"value_per_level": 3.0,
 		"icon": "💎",
 	},
+	# === NEW: OFFENSE ===
+	"attack_speed_bonus": {
+		"name": "Çevik Vuruş",
+		"description": "Saldırı hızı +{value}%",
+		"category": Category.OFFENSE,
+		"base_cost": 150,
+		"cost_scale": 1.8,
+		"max_level": 20,
+		"effect": "attack_speed_bonus",
+		"value_per_level": 2.0,
+		"icon": "⚡",
+	},
+	"cast_speed_bonus": {
+		"name": "Büyü Hızı",
+		"description": "Büü hızı +{value}%",
+		"category": Category.OFFENSE,
+		"base_cost": 150,
+		"cost_scale": 1.8,
+		"max_level": 20,
+		"effect": "cast_speed_bonus",
+		"value_per_level": 2.0,
+		"icon": "✨",
+	},
+	"fire_damage_bonus": {
+		"name": "Kor Ateşi",
+		"description": "Ateş hasarı +{value}%",
+		"category": Category.OFFENSE,
+		"base_cost": 130,
+		"cost_scale": 1.7,
+		"max_level": 20,
+		"effect": "fire_damage_bonus",
+		"value_per_level": 3.0,
+		"icon": "🔥",
+	},
+	"cold_damage_bonus": {
+		"name": "Buzul Güç",
+		"description": "Buz hasarı +{value}%",
+		"category": Category.OFFENSE,
+		"base_cost": 130,
+		"cost_scale": 1.7,
+		"max_level": 20,
+		"effect": "cold_damage_bonus",
+		"value_per_level": 3.0,
+		"icon": "❄️",
+	},
+	"lightning_damage_bonus": {
+		"name": "Yıldırım Gücü",
+		"description": "Yıldırım hasarı +{value}%",
+		"category": Category.OFFENSE,
+		"base_cost": 130,
+		"cost_scale": 1.7,
+		"max_level": 20,
+		"effect": "lightning_damage_bonus",
+		"value_per_level": 3.0,
+		"icon": "⚡",
+	},
+	# === NEW: DEFENSE ===
+	"armour_flat_bonus": {
+		"name": "Zırh Takviyesi",
+		"description": "Ek zırh +{value}",
+		"category": Category.DEFENSE,
+		"base_cost": 100,
+		"cost_scale": 1.6,
+		"max_level": 30,
+		"effect": "armour_flat_bonus",
+		"value_per_level": 20.0,
+		"icon": "🛡️",
+	},
+	"all_resistance_bonus": {
+		"name": "Element Direnci",
+		"description": "Tüm element dirençleri +{value}%",
+		"category": Category.DEFENSE,
+		"base_cost": 160,
+		"cost_scale": 1.8,
+		"max_level": 20,
+		"effect": "all_resistance_bonus",
+		"value_per_level": 2.0,
+		"icon": "🔰",
+	},
+	"evasion_bonus": {
+		"name": "Gölge Adımı",
+		"description": "Kaçınma +{value}%",
+		"category": Category.DEFENSE,
+		"base_cost": 110,
+		"cost_scale": 1.7,
+		"max_level": 20,
+		"effect": "evasion_bonus",
+		"value_per_level": 3.0,
+		"icon": "🌙",
+	},
+	"max_life_pct_bonus": {
+		"name": "Can Havuzu",
+		"description": "Maksimum can +{value}%",
+		"category": Category.DEFENSE,
+		"base_cost": 200,
+		"cost_scale": 2.0,
+		"max_level": 15,
+		"effect": "max_life_pct_bonus",
+		"value_per_level": 3.0,
+		"icon": "❤️",
+	},
+	# === NEW: UTILITY ===
+	"life_recovery_bonus": {
+		"name": "Canlanma",
+		"description": "Can yenilenme hızı +{value}%",
+		"category": Category.UTILITY,
+		"base_cost": 140,
+		"cost_scale": 1.7,
+		"max_level": 20,
+		"effect": "life_recovery_bonus",
+		"value_per_level": 2.0,
+		"icon": "💚",
+	},
 }
 
 ## Save data structure
 var upgrade_levels: Dictionary = {}  # {upgrade_id: level}
 var total_gold_earned: float = 0.0
+var gold_spent: float = 0.0
 var total_kills: int = 0
 var games_played: int = 0
 
@@ -247,6 +363,7 @@ func purchase_upgrade(upgrade_id: String, gold: float) -> bool:
 	if cost < 0:
 		return false
 	upgrade_levels[upgrade_id] = get_level(upgrade_id) + 1
+	gold_spent += float(cost)
 	save_data()
 	return true
 
@@ -286,9 +403,13 @@ func increment_games_played() -> void:
 	games_played += 1
 	save_data()
 
-## Get total gold available for spending (lifetime earned - this would need persistence)
+## Get total gold available for spending (lifetime earned - spent)
 func get_lifetime_gold() -> float:
 	return total_gold_earned
+
+## Get spendable gold (earned - spent, minimum 0)
+func get_spendable_gold() -> float:
+	return max(0.0, total_gold_earned - gold_spent)
 
 ## Save data to file
 func save_data() -> void:
@@ -296,10 +417,11 @@ func save_data() -> void:
 	if save_file == null:
 		push_error("Cannot save persistent upgrades: " + str(FileAccess.get_open_error()))
 		return
-	
+
 	var save_data := {
 		"upgrade_levels": upgrade_levels,
 		"total_gold_earned": total_gold_earned,
+		"gold_spent": gold_spent,
 		"total_kills": total_kills,
 		"games_played": games_played,
 	}
@@ -313,26 +435,27 @@ func load_data() -> void:
 	if not FileAccess.file_exists(SAVE_FILE):
 		print("No save file found, starting fresh")
 		return
-	
+
 	var save_file := FileAccess.open(SAVE_FILE, FileAccess.READ)
 	if save_file == null:
 		push_error("Cannot load persistent upgrades: " + str(FileAccess.get_open_error()))
 		return
-	
+
 	var json_str := save_file.get_as_text()
 	save_file.close()
-	
+
 	var json := JSON.new()
 	if json.parse(json_str) != OK:
 		push_error("Failed to parse save data")
 		return
-	
+
 	var data: Dictionary = json.data
 	if data.is_empty():
 		return
-	
+
 	upgrade_levels = data.get("upgrade_levels", {})
 	total_gold_earned = data.get("total_gold_earned", 0.0)
+	gold_spent = data.get("gold_spent", 0.0)
 	total_kills = data.get("total_kills", 0)
 	games_played = data.get("games_played", 0)
 	print("Persistent upgrades loaded! Games played: ", games_played)
@@ -341,6 +464,7 @@ func load_data() -> void:
 func reset_all() -> void:
 	upgrade_levels.clear()
 	total_gold_earned = 0.0
+	gold_spent = 0.0
 	total_kills = 0
 	games_played = 0
 	save_data()
@@ -350,19 +474,19 @@ func get_upgrade_description(upgrade_id: String) -> String:
 	var def: Dictionary = UPGRADES.get(upgrade_id, {})
 	if def.is_empty():
 		return ""
-	
+
 	var current_level: int = get_level(upgrade_id)
 	var max_level: int = def.get("max_level", 1)
 	var value_per_level: float = def.get("value_per_level", 1.0)
 	var current_value: float = value_per_level * current_level
-	
+
 	var desc_template: String = def.get("description", "")
 	var desc: String = desc_template.format({"value": "%.1f" % current_value})
-	
+
 	if current_level >= max_level:
 		desc += " [MAX]"
 	else:
 		var next_value: float = value_per_level * (current_level + 1)
 		desc += "\nSonraki: " + desc_template.format({"value": "%.1f" % next_value})
-	
+
 	return desc

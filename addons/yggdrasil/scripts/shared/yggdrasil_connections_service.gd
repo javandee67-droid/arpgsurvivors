@@ -36,7 +36,7 @@ func load_tree(tree_data: YggdrasilTree) -> void:
 						new_line_data.segments = line_data.segments
 						new_line_data.reversed = line_data.reversed
 						node_data.line_data[out_node_id] = new_line_data
-			
+
 			var line_data = node_data.line_data.get(out_node_id, YggdrasilLineData.new())
 			_connect_nodes(line, node, target_node, line_data)
 			_tree_view.lines_container.add_child(line)
@@ -44,7 +44,7 @@ func load_tree(tree_data: YggdrasilTree) -> void:
 				line.visible = false
 			line_created.emit(line, node_data.id, out_node_id)
 			node_connected.emit(node, out_node_id)
-	
+
 	for node_data in _tree_data.nodes:
 		for invalid_node_id in invalid_nodes:
 			if node_data.out_nodes.has(invalid_node_id):
@@ -67,7 +67,7 @@ func create_connection(from_node: YggdrasilNodeButton, to_node: YggdrasilNodeBut
 	line.texture = _tree_data.line_texture_normal
 	line.texture_mode = Line2D.LINE_TEXTURE_TILE
 	line.joint_mode = Line2D.LINE_JOINT_BEVEL
-	
+
 	var line_data = YggdrasilLineData.new()
 	line_data.line_type = YggdrasilLineData.LineType.STRAIGHT
 
@@ -130,13 +130,13 @@ func _connect_nodes(line: Line2D, node1: Control, node2: Control, line_data: Ygg
 func _bezier_points(segments: int, p0: Vector2, p1: Vector2, p2: Vector2) -> PackedVector2Array:
 	var pts = PackedVector2Array()
 	pts.resize(segments + 1)
-	
+
 	for i in range(segments + 1):
 		var t = float(i) / float(segments)
 		var a = p0.lerp(p1, t)
 		var b = p1.lerp(p2, t)
 		pts[i] = a.lerp(b, t)
-	
+
 	return pts
 
 func _arc_points(segments: int, center: Vector2, reversed: bool) -> PackedVector2Array:
@@ -149,13 +149,13 @@ func _arc_points(segments: int, center: Vector2, reversed: bool) -> PackedVector
 	for i in range(segments + 1):
 		var angle: float = sign * step * float(i)
 		pts[i] = center + center.rotated(angle)
-	
+
 	return pts
 
 func update_connected_lines(node: YggdrasilNodeButton):
 	if node.type == YggdrasilNode.NodeType.DECORATION:
 		return
-	
+
 	for node_id in node.out_nodes:
 		var line: YggdrasilConnection = _tree_view.lines_container.get_node_or_null("Line_%d_%d" % [node.id, node_id])
 		if line:
@@ -163,7 +163,7 @@ func update_connected_lines(node: YggdrasilNodeButton):
 			if target_node:
 				line.clear_points()
 				_connect_nodes(line, node, target_node, node.line_data[node_id])
-	
+
 	for node_id in node.in_nodes:
 		var line: YggdrasilConnection = _tree_view.lines_container.get_node_or_null("Line_%d_%d" % [node_id, node.id])
 		if line:
@@ -171,7 +171,7 @@ func update_connected_lines(node: YggdrasilNodeButton):
 			if source_node:
 				line.clear_points()
 				_connect_nodes(line, source_node, node, source_node.line_data[node.id])
-	
+
 func _get_center_position(node: Control) -> Vector2:
 	return node.position + (node.size / 2)
 
@@ -219,29 +219,29 @@ func restore_connections(from_node: YggdrasilNodeButton) -> void:
 		var to_node = _tree_view.nodes_service.get_node(to_node_id)
 		if not to_node:
 			continue
-		
+
 		var existing_line = _tree_view.lines_container.get_node_or_null("Line_%d_%d" % [from_node.id, to_node.id])
 		if existing_line:
 			continue
-		
+
 		var line = _scene.instantiate()
 		line.name = "Line_%d_%d" % [from_node.id, to_node.id]
 		line.texture = _tree_data.line_texture_normal
 		line.texture_mode = Line2D.LINE_TEXTURE_TILE
 		line.joint_mode = Line2D.LINE_JOINT_BEVEL
-		
+
 		_connect_nodes(line, from_node, to_node, from_node.line_data[to_node.id])
 		_tree_view.lines_container.add_child(line)
 
 		to_node.in_nodes.append(from_node.id)
 		line_created.emit(line, from_node.id, to_node.id)
 		node_connected.emit(from_node, to_node.id)
-	
+
 	for from_node_id in from_node.in_nodes:
 		var source_node = _tree_view.nodes_service.get_node(from_node_id)
 		if not source_node:
 			continue
-		
+
 		var existing_line = _tree_view.lines_container.get_node_or_null("Line_%d_%d" % [source_node.id, from_node.id])
 		if existing_line:
 			continue
@@ -251,7 +251,7 @@ func restore_connections(from_node: YggdrasilNodeButton) -> void:
 		line.texture = _tree_data.line_texture_normal
 		line.texture_mode = Line2D.LINE_TEXTURE_TILE
 		line.joint_mode = Line2D.LINE_JOINT_BEVEL
-		
+
 		_connect_nodes(line, source_node, from_node, source_node.line_data[from_node.id])
 		_tree_view.lines_container.add_child(line)
 

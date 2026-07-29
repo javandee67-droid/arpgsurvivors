@@ -16,7 +16,7 @@ func _process(_delta: float) -> void:
 func _draw() -> void:
 	if not is_inside_tree():
 		return
-	
+
 	var s: Vector2 = parent.offset_transform_scale
 	var pan: Vector2 = parent.offset_transform_position
 	var size: Vector2 = get_rect().size
@@ -35,7 +35,7 @@ func _draw() -> void:
 	while y <= size.y:
 		draw_line(Vector2(0, y), Vector2(size.x, y), line_color, line_width)
 		y += step.y
-	
+
 	if primary_line_step > 0:
 		var primary_step: Vector2 = cell_size * primary_line_step * s
 		var off_x_primary: float = fposmod(origin_space.x, primary_step.x)
@@ -45,7 +45,7 @@ func _draw() -> void:
 		while x_primary <= size.x:
 			draw_line(Vector2(x_primary, 0), Vector2(x_primary, size.y), line_color, line_width * 1.5)
 			x_primary += primary_step.x
-		
+
 		var y_primary: float = off_y_primary
 		while y_primary <= size.y:
 			draw_line(Vector2(0, y_primary), Vector2(size.x, y_primary), line_color, line_width * 1.5)

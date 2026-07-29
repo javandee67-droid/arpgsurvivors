@@ -86,7 +86,7 @@ func _setup_projectile_sprite(texture_path: String) -> void:
 				var fps: float = json.get("fps", proj_anim_fps)
 				_apply_anim_frames(texture_path, fw, fh, cols, cnt, fps)
 				return
-	
+
 	# Animasyon yoksa veya metadata yoksa — statik AnimatedSprite2D olarak ayarla
 	if ResourceLoader.exists(texture_path):
 		var tex: Texture2D = load(texture_path)
@@ -133,7 +133,7 @@ func _physics_process(delta: float) -> void:
 func _on_body_entered(body: Node) -> void:
 	if body == _source or _hit_bodies.has(body):
 		return
-	
+
 	# If source is enemy, projectile hits player; if source is player, hits enemy
 	if _source and _source.is_in_group("enemy"):
 		if not body.is_in_group("player") and not body.is_in_group("enemy"):
@@ -145,7 +145,7 @@ func _on_body_entered(body: Node) -> void:
 		# Fallback: hit anything with Health
 		if not body.has_node("Health"):
 			return
-	
+
 	if body.has_node("Health"):
 		var health: Health = body.get_node("Health")
 		# Accuracy check for player projectiles (not spells)
@@ -188,21 +188,21 @@ func _on_body_entered(body: Node) -> void:
 		if valid_source and valid_source is Player and skill_id != "":
 			EventBus.skill_damage.emit(skill_id, final_damage, _tags)
 		_hit_bodies.append(body)
-		
+
 		# Vuruş anında player affix'lerini uygula (life_gain_on_hit, leech)
 		if valid_source:
 			Health.apply_on_hit_effects_to_attacker(valid_source, final_damage)
-		
+
 		# Çarpma efekti spawnla
 		_spawn_hit_effect(body.global_position)
-		
+
 		# Apply ailments from tags
 		_apply_ailments(body)
-		
+
 		# Area damage on hit
 		if area_damage_radius > 0.0:
 			_deal_area_damage(body.global_position)
-		
+
 		# Handle chain — oncelik: en yakin dusmana yon degistir
 		if _remaining_chain > 0:
 			_remaining_chain -= 1
@@ -210,19 +210,19 @@ func _on_body_entered(body: Node) -> void:
 				print("CHAIN: ", skill_id, " -> ", body.name)
 				return  # Hedef bulundu, yon degistir
 			# Hedef bulunamadi — pierce/fork'a dus
-		
+
 		# Handle pierce — sadece chain kalmadiysa
 		if _remaining_pierce > 0:
 			_remaining_pierce -= 1
 			return  ## Continue flying
-		
+
 		# Handle fork
 		if _remaining_fork > 0:
 			_remaining_fork -= 1
 			_fork_projectiles()
 			queue_free()
 			return
-	
+
 	queue_free()
 
 func _spawn_hit_effect(_pos: Vector2) -> void:
@@ -321,7 +321,7 @@ func _apply_ailments(target: Node) -> void:
 	var caster_stats: CharacterStats = null
 	if valid_source and valid_source.has_node("CharacterStats"):
 		caster_stats = valid_source.get_node("CharacterStats") as CharacterStats
-	
+
 	# Hit result benzeri bir dict olustur
 	var ap: float = _ailment_power_override if _ailment_power_override > 0.0 else _damage * 0.5
 	var hit_result: Dictionary = {
@@ -330,7 +330,7 @@ func _apply_ailments(target: Node) -> void:
 		"ailment_power": ap,
 		"damage_type": _damage_type,
 	}
-	
+
 	AilmentUtils.apply_ailments_for_tags(ac, hit_result, caster_stats, max_life, _tags, valid_source)
 
 func _spawn_miss_effect(pos: Vector2) -> void:
@@ -377,7 +377,7 @@ func _chain_to_nearest(hit_body: Node) -> bool:
 	var enemies: Array[Node] = get_tree().get_nodes_in_group("enemy")
 	var nearest: Node = null
 	var nearest_dist: float = 500.0  ## Max chain range
-	
+
 	for enemy in enemies:
 		if not is_instance_valid(enemy) or enemy == hit_body or _hit_bodies.has(enemy):
 			continue
@@ -385,13 +385,13 @@ func _chain_to_nearest(hit_body: Node) -> bool:
 		if dist < nearest_dist:
 			nearest_dist = dist
 			nearest = enemy
-	
+
 	if nearest:
 		# Redirect to nearest enemy
 		global_position = hit_body.global_position
 		_velocity = (nearest.global_position - global_position).normalized() * speed
 		rotation = _velocity.angle()
 		return true
-	
+
 	# Hedef yok, mermi pierce/fork ile devam etsin
 	return false

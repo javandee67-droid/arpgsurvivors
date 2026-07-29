@@ -29,7 +29,7 @@ func _build_ui() -> void:
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(bg)
-	
+
 	# Center panel
 	var panel := Panel.new()
 	panel.name = "Panel"
@@ -41,7 +41,7 @@ func _build_ui() -> void:
 	panel.offset_right = 180
 	panel.offset_top = -200
 	panel.offset_bottom = 200
-	
+
 	var panel_style := StyleBoxFlat.new()
 	panel_style.bg_color = Color(0.05, 0.05, 0.1, 0.98)
 	panel_style.border_color = ACCENT_COLOR
@@ -52,7 +52,7 @@ func _build_ui() -> void:
 	panel_style.set_corner_radius_all(8)
 	panel.add_theme_stylebox_override("panel", panel_style)
 	add_child(panel)
-	
+
 	# Title
 	var title := Label.new()
 	title.text = "DURAKLATILDI"
@@ -66,7 +66,7 @@ func _build_ui() -> void:
 	title.add_theme_font_size_override("font_size", 28)
 	title.add_theme_color_override("font_color", ACCENT_COLOR)
 	panel.add_child(title)
-	
+
 	# Menu buttons
 	var vbox := VBoxContainer.new()
 	vbox.name = "MenuVBox"
@@ -81,7 +81,7 @@ func _build_ui() -> void:
 	vbox.add_theme_constant_override("separation", 10)
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	panel.add_child(vbox)
-	
+
 	# Button configs
 	var button_configs := [
 		{"text": "▶  DEVAM ET", "id": "resume", "color": Color(0.4, 0.9, 0.5, 1.0)},
@@ -89,7 +89,7 @@ func _build_ui() -> void:
 		{"text": "🏠  ANA MENÜ", "id": "menu", "color": Color(0.85, 0.65, 0.25, 1.0)},
 		{"text": "✕  CIKIS", "id": "quit", "color": DANGER_COLOR},
 	]
-	
+
 	for config in button_configs:
 		var btn := _create_menu_button(config)
 		vbox.add_child(btn)
@@ -101,7 +101,7 @@ func _create_menu_button(config: Dictionary) -> Button:
 	btn.custom_minimum_size = Vector2(260, 50)
 	btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	btn.add_theme_font_size_override("font_size", 15)
-	
+
 	var normal := StyleBoxFlat.new()
 	normal.bg_color = Color(0.08, 0.08, 0.12, 0.9)
 	normal.border_color = Color(0.25, 0.25, 0.3, 0.6)
@@ -111,7 +111,7 @@ func _create_menu_button(config: Dictionary) -> Button:
 	normal.border_width_bottom = 1
 	normal.set_corner_radius_all(4)
 	btn.add_theme_stylebox_override("normal", normal)
-	
+
 	var hover := StyleBoxFlat.new()
 	hover.bg_color = Color(0.12, 0.12, 0.18, 0.95)
 	hover.border_color = config["color"]
@@ -121,7 +121,7 @@ func _create_menu_button(config: Dictionary) -> Button:
 	hover.border_width_bottom = 2
 	hover.set_corner_radius_all(4)
 	btn.add_theme_stylebox_override("hover", hover)
-	
+
 	var pressed := StyleBoxFlat.new()
 	pressed.bg_color = Color(0.15, 0.12, 0.1, 0.98)
 	pressed.border_color = config["color"]
@@ -131,11 +131,11 @@ func _create_menu_button(config: Dictionary) -> Button:
 	pressed.border_width_bottom = 2
 	pressed.set_corner_radius_all(4)
 	btn.add_theme_stylebox_override("pressed", pressed)
-	
+
 	btn.add_theme_color_override("font_color", config["color"])
 	btn.add_theme_color_override("font_hover_color", Color(1, 1, 1, 1))
 	btn.pressed.connect(_on_button_pressed.bind(config["id"]))
-	
+
 	return btn
 
 func _on_button_pressed(button_id: String) -> void:
@@ -160,7 +160,7 @@ func show_menu() -> void:
 	_visible_state = true
 	visible = true
 	get_tree().paused = true
-	
+
 	# Animate in
 	var panel := get_node_or_null("Panel") as Panel
 	if panel:
@@ -175,7 +175,7 @@ func hide_menu() -> void:
 	if not _visible_state:
 		return
 	_visible_state = false
-	
+
 	var panel := get_node_or_null("Panel") as Panel
 	if panel:
 		var tween := create_tween()
@@ -183,7 +183,7 @@ func hide_menu() -> void:
 		tween.tween_property(panel, "modulate:a", 0.0, 0.15)
 		tween.tween_property(panel, "offset_top", -20.0, 0.2).set_trans(Tween.TRANS_BACK)
 		await tween.finished
-	
+
 	visible = false
 	get_tree().paused = false
 
@@ -193,7 +193,7 @@ func toggle_menu() -> void:
 	else:
 		show_menu()
 
-func is_visible() -> bool:
+func is_menu_visible() -> bool:
 	return _visible_state
 
 func _input(event: InputEvent) -> void:

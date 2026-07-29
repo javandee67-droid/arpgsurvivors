@@ -43,14 +43,14 @@ const INNER_ARC: Color = Color(1.0, 0.7, 0.1, 0.65)
 func _ready() -> void:
 	collision_layer = 0
 	collision_mask = 1  # enemy layer (dusmanlar default layer 1'de)
-	
+
 	# CollisionShape2D — daire
 	var collision := CollisionShape2D.new()
 	var shape := CircleShape2D.new()
 	shape.radius = radius
 	collision.shape = shape
 	add_child(collision)
-	
+
 	# Animasyonlu alev halkası sprite
 	_fire_sprite = AnimatedSprite2D.new()
 	_fire_sprite.name = "FireRingSprite"
@@ -80,24 +80,24 @@ func _ready() -> void:
 			_fire_sprite.sprite_frames = sf
 			_fire_sprite.play("fire_ring")
 	add_child(_fire_sprite)
-	
+
 	_is_active = true
 
 
 func _process(delta: float) -> void:
 	if not _is_active:
 		return
-	
+
 	# Oyuncu olmadan calisma
 	if not player_stats or not player_health:
 		queue_free()
 		return
-	
+
 	# Oyuncu olmus mu?
 	if player_health.current_health <= 0.0:
 		deactivate()
 		return
-	
+
 	# Animasyonlu sprite yoksa _draw ile çiz
 	if _fire_sprite and _fire_sprite.sprite_frames:
 		if not _fire_sprite.is_playing():
@@ -106,7 +106,7 @@ func _process(delta: float) -> void:
 		# _draw fallback — animasyon spritesiz pulse
 		_pulse_phase += delta * 2.0
 		queue_redraw()
-	
+
 	# Periyodik hasar
 	_damage_timer += delta
 	if _damage_timer >= DAMAGE_INTERVAL:
@@ -118,23 +118,23 @@ func _draw() -> void:
 	var center := Vector2.ZERO
 	# Collision shape sabit — gorsel de sabit radius'te cizilir
 	# Sadece ic dolgu ve ates noktalari pulse yapar (dis halka sabit)
-	
+
 	# En dis soluk halka (SABIT — collision ile eslesir)
 	draw_arc(center, radius, 0.0, TAU, 48, OUTER_ARC, 3.0)
 	# Orta halka (sabit)
 	draw_arc(center, radius * 0.95, 0.0, TAU, 48, MID_ARC, 2.5)
-	
+
 	# Ic dolgu (ates rengi, pulse ile oynar — sadece gorsel)
 	var fill_r: float = radius * 0.85
 	var fill_a: float = INNER_FILL.a * (0.5 + 0.5 * sin(_pulse_phase * 0.7))
 	var fill_c := Color(INNER_FILL.r, INNER_FILL.g, INNER_FILL.b, fill_a)
 	draw_circle(center, fill_r, fill_c)
-	
+
 	# En ic halka (parlak, hafif pulse — sadece gorsel)
 	var inner_r: float = fill_r * 0.85
 	var inner_pulse: float = 0.9 + 0.1 * sin(_pulse_phase * 1.3 + 1.0)
 	draw_arc(center, inner_r * inner_pulse, 0.0, TAU, 36, INNER_ARC, 2.0)
-	
+
 	# Ates noktalari (halka boyunca doner, pulse sadece parlaklik)
 	var dot_count: int = 8
 	var dot_phase: float = _pulse_phase * 0.5
@@ -150,18 +150,18 @@ func _draw() -> void:
 func _deal_area_damage() -> void:
 	if not player_stats or not player_health:
 		return
-	
+
 	var overlapping: Array[Node2D] = get_overlapping_bodies()
 	if overlapping.is_empty():
 		return
-	
+
 	# Fire damage scaling (Spell + Fire + Area + Elemental + All tags)
 	var total_inc: float = player_stats.fire_damage_increased \
 			+ player_stats.area_damage_increased \
 			+ player_stats.elemental_damage_increased \
 			+ player_stats.all_damage_increased
 	var inc_pct: float = total_inc / 100.0
-	
+
 	# Support gem FLAT damage (added_fire_damage, added_cold_damage, etc.)
 	var support_flat: float = 0.0
 	for sd in _active_supports:
@@ -171,11 +171,11 @@ func _deal_area_damage() -> void:
 			if mod.stat == "damage" and mod.modifier_type == StatModifier.ModifierType.FLAT:
 				if mod.damage_type_filter == "fire" or mod.damage_type_filter == "elemental" or mod.damage_type_filter == "":
 					support_flat += mod.value
-	
+
 	# Life regen = extra damage (2x life_regen)
 	var life_regen_bonus: float = player_stats.life_regen_per_second * 2.0
 	var tick_dmg: float = (base_damage_per_tick + support_flat + life_regen_bonus) * (1.0 + inc_pct)
-	
+
 	for body in overlapping:
 		if not is_instance_valid(body):
 			continue
@@ -184,7 +184,7 @@ func _deal_area_damage() -> void:
 		var health: Health = body.get_node_or_null("Health") as Health
 		if not health or health.current_health <= 0.0:
 			continue
-		
+
 		# Dogrudan hasar uygula (Health.take_damage resistanslari otomatik uygular)
 		var _result: Dictionary = health.take_damage(tick_dmg, player_health.get_parent(), ["fire", "spell", "area", "infernal_circle"], true, player_stats.penetration_fire)
 		# Not: Ailment uygulamasi icin AilmentUtils.try_ignite hit_result Dictionary gerektirir.

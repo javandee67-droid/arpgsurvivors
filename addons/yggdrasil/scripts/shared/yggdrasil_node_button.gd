@@ -129,7 +129,7 @@ func _ready():
 func _gui_input(event):
 	if not is_visible_in_tree():
 		return
-	
+
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and (button_mask & MOUSE_BUTTON_MASK_LEFT):
 			print("GUI_INPUT: pressed=", event.pressed, " is_mouse_over=", is_mouse_over, " id=", id, " nm=", node_name)
@@ -162,7 +162,7 @@ func format_tooltip():
 		if matches.size() != attribute.value_count:
 			push_error("Attribute (id=%s) effect string has mismatched number (found=%d, expected=%d) of placeholders (char=#) for attribute values." % [attribute.id, matches.size(), attribute.value_count])
 			continue
-		
+
 		str += "[color=#8a8aff]%s[/color]\n" % format_attribute_effect(regex, attribute, attr_id)
 
 	if not description.is_empty():

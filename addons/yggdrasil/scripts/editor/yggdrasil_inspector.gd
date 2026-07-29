@@ -60,7 +60,7 @@ func init(tree_view: YggdrasilTreeView):
 	name_input.text_changed.connect(_on_name_changed)
 	description_input.text_changed.connect(_on_description_changed)
 	max_allocation_input.value_changed.connect(_on_max_allocation_changed)
-	
+
 	icon_selector.init()
 	icon_selector.icon_selected.connect(_on_icon_selected)
 
@@ -106,7 +106,7 @@ func _on_node_selected(node: YggdrasilNodeButton):
 
 	for child in connection_panel.get_node("VBoxContainer").get_children():
 		child.free()
-	
+
 	root_panel.hide()
 	attributes_panel.hide()
 	info_panel.hide()
@@ -134,13 +134,13 @@ func _on_node_selected(node: YggdrasilNodeButton):
 		root_panel.show()
 		if editor.tree.multiallocation:
 			max_allocation_input.get_parent().show()
-	
+
 	transform_panel.show()
 
 	var pos = _tree_view.translate_node_position(node)
 	position_x.value = pos.x
 	position_y.value = pos.y
-	
+
 	visuals_panel.show()
 	if node.icon:
 		icon_input.texture_rect.texture = node.icon
@@ -150,7 +150,7 @@ func _on_node_selected(node: YggdrasilNodeButton):
 		icon_input.texture_rect.texture = null
 		icon_input.empty_label.show()
 		icon_input.clear_button.hide()
-	
+
 	if node.border_normal:
 		border_normal_input.texture_rect.texture = node.border_normal
 		border_normal_input.empty_label.hide()
@@ -159,7 +159,7 @@ func _on_node_selected(node: YggdrasilNodeButton):
 		border_normal_input.texture_rect.texture = null
 		border_normal_input.empty_label.show()
 		border_normal_input.clear_button.hide()
-	
+
 	if node.border_intermediate:
 		border_intermediate_input.texture_rect.texture = node.border_intermediate
 		border_intermediate_input.empty_label.hide()
@@ -168,7 +168,7 @@ func _on_node_selected(node: YggdrasilNodeButton):
 		border_intermediate_input.texture_rect.texture = null
 		border_intermediate_input.empty_label.show()
 		border_intermediate_input.clear_button.hide()
-	
+
 	if node.border_active:
 		border_active_input.texture_rect.texture = node.border_active
 		border_active_input.empty_label.hide()
@@ -184,10 +184,10 @@ func _on_node_selected(node: YggdrasilNodeButton):
 
 			for to_node_id in node.line_data.keys():
 				_create_connection_entry(node, to_node_id)
-		
+
 		if not node.attributes.is_empty():
 			_update_attributes(node)
-	
+
 	if node.prefab and not node.prefab.name_changed.is_connected(_on_prefab_name_changed):
 		node.prefab.name_changed.connect(_on_prefab_name_changed)
 
@@ -198,17 +198,17 @@ func _on_icon_picker_pressed():
 	if _selected_node.type == YggdrasilNode.NodeType.DECORATION:
 		EditorInterface.popup_quick_open(_on_icon_texture_changed, ["Texture2D"])
 		return
-	
+
 	icon_selector.load_icons(_selected_node.type)
 	icon_selector.popup_centered()
 
 func _on_icon_texture_changed(path: String):
 	if not _selected_node:
 		return
-	
+
 	if _selected_node.type != YggdrasilNode.NodeType.DECORATION:
 		return
-	
+
 	if path.is_empty():
 		_on_icon_texture_cleared()
 		return
@@ -228,38 +228,38 @@ func _on_node_moved(node: YggdrasilNodeButton, new_position: Vector2):
 func _on_name_changed(new_text: String):
 	if not _selected_node:
 		return
-	
+
 	if _selected_node.type == YggdrasilNode.NodeType.DECORATION:
 		return
-	
+
 	if _selected_node.prefab and _selected_node.prefab.name_changed.is_connected(_on_prefab_name_changed):
 		_selected_node.prefab.name_changed.disconnect(_on_prefab_name_changed)
-	
+
 	if new_text.is_empty():
 		new_text = "Node_%d" % _selected_node.id
-	
+
 	id_input.text = new_text.to_snake_case()
 	update_node_name(_selected_node, new_text)
-	
+
 	if _selected_node.prefab and not _selected_node.prefab.name_changed.is_connected(_on_prefab_name_changed):
 		_selected_node.prefab.name_changed.connect(_on_prefab_name_changed)
 
 func _on_description_changed():
 	if not _selected_node:
 		return
-	
+
 	if _selected_node.type == YggdrasilNode.NodeType.DECORATION:
 		return
-	
+
 	update_node_description(_selected_node, description_input.text)
 
 func _on_max_allocation_changed(value: float):
 	if not _selected_node:
 		return
-	
+
 	if _selected_node.type == YggdrasilNode.NodeType.DECORATION:
 		return
-	
+
 	if _selected_node.prefab:
 		_selected_node.prefab.set_max_allocations(int(value))
 	else:
@@ -279,7 +279,7 @@ func _on_max_allocation_changed(value: float):
 func _on_icon_selected(node_type: int, texture: Texture2D, region: Vector2):
 	if not _selected_node:
 		return
-	
+
 	update_node_texture(node_type, texture, region)
 	icon_input.texture_rect.texture = _selected_node.icon
 	icon_input.empty_label.hide()
@@ -288,7 +288,7 @@ func _on_icon_selected(node_type: int, texture: Texture2D, region: Vector2):
 func _on_icon_texture_cleared():
 	if not _selected_node:
 		return
-	
+
 	icon_input.texture_rect.texture = null
 	icon_input.empty_label.show()
 	icon_input.clear_button.hide()
@@ -298,11 +298,11 @@ func _on_icon_texture_cleared():
 func _on_border_normal_changed(path: String):
 	if not _selected_node:
 		return
-	
+
 	if path.is_empty():
 		_on_border_normal_cleared()
 		return
-	
+
 	var texture = ResourceLoader.load(path)
 	if texture and texture is Texture2D:
 		border_normal_input.texture_rect.texture = texture
@@ -314,11 +314,11 @@ func _on_border_normal_changed(path: String):
 func _on_border_intermediate_changed(path: String):
 	if not _selected_node:
 		return
-	
+
 	if path.is_empty():
 		_on_border_intermediate_cleared()
 		return
-	
+
 	var texture = ResourceLoader.load(path)
 	if texture and texture is Texture2D:
 		border_intermediate_input.texture_rect.texture = texture
@@ -330,11 +330,11 @@ func _on_border_intermediate_changed(path: String):
 func _on_border_active_changed(path: String):
 	if not _selected_node:
 		return
-	
+
 	if path.is_empty():
 		_on_border_active_cleared()
 		return
-	
+
 	var texture = ResourceLoader.load(path)
 	if texture and texture is Texture2D:
 		border_active_input.texture_rect.texture = texture
@@ -346,7 +346,7 @@ func _on_border_active_changed(path: String):
 func _on_border_normal_cleared():
 	if not _selected_node:
 		return
-	
+
 	border_normal_input.texture_rect.texture = null
 	border_normal_input.empty_label.show()
 	border_normal_input.clear_button.hide()
@@ -356,7 +356,7 @@ func _on_border_normal_cleared():
 func _on_border_intermediate_cleared():
 	if not _selected_node:
 		return
-	
+
 	border_intermediate_input.texture_rect.texture = null
 	border_intermediate_input.empty_label.show()
 	border_intermediate_input.clear_button.hide()
@@ -366,7 +366,7 @@ func _on_border_intermediate_cleared():
 func _on_border_active_cleared():
 	if not _selected_node:
 		return
-	
+
 	border_active_input.texture_rect.texture = null
 	border_active_input.empty_label.show()
 	border_active_input.clear_button.hide()
@@ -376,18 +376,18 @@ func _on_border_active_cleared():
 func _on_node_connected(node: YggdrasilNodeButton, to_node_id: int):
 	if not _selected_node or _selected_node != node:
 		return
-	
+
 	connection_panel.show()
 	_create_connection_entry(node, to_node_id)
 
 func _on_node_disconnected(node: YggdrasilNodeButton, to_node_id: int):
 	if not _selected_node or _selected_node != node:
 		return
-	
+
 	var entry = connection_panel.get_node("VBoxContainer/ConnectionEntry_%d" % to_node_id)
 	if entry:
 		entry.queue_free()
-	
+
 	if node.line_data.is_empty():
 		connection_panel.hide()
 
@@ -437,7 +437,7 @@ func _create_connection_entry(node, to_node_id):
 func _on_line_type_changed(index: int, to_node_id: int):
 	if not _selected_node or not _selected_node.line_data:
 		return
-	
+
 	var panel = connection_panel.get_node("VBoxContainer/ConnectionEntry_%d" % to_node_id)
 	var inputs = panel.get_node("Inputs")
 	var curve_panel: HBoxContainer = inputs.get_node("Curve")
@@ -472,13 +472,13 @@ func _on_line_type_changed(index: int, to_node_id: int):
 			segments.set_value_no_signal(16)
 			reversed.set_pressed_no_signal(false)
 			_tree_view.connections_service.update_connected_lines(_selected_node)
-	
+
 	changed.emit()
 
 func _on_curve_height_changed(value: float, to_node_id: int):
 	if not _selected_node or not _selected_node.line_data:
 		return
-	
+
 	_selected_node.line_data[to_node_id].curve_height = value
 	_tree_view.connections_service.update_connected_lines(_selected_node)
 	changed.emit()
@@ -486,7 +486,7 @@ func _on_curve_height_changed(value: float, to_node_id: int):
 func _on_segments_changed(value: int, to_node_id: int):
 	if not _selected_node or not _selected_node.line_data:
 		return
-	
+
 	_selected_node.line_data[to_node_id].segments = value
 	_tree_view.connections_service.update_connected_lines(_selected_node)
 	changed.emit()
@@ -494,7 +494,7 @@ func _on_segments_changed(value: int, to_node_id: int):
 func _on_reversed_toggled(pressed: bool, to_node_id: int):
 	if not _selected_node or not _selected_node.line_data:
 		return
-	
+
 	_selected_node.line_data[to_node_id].reversed = pressed
 	_tree_view.connections_service.update_connected_lines(_selected_node)
 	changed.emit()
@@ -530,7 +530,7 @@ func _update_attributes(node: YggdrasilNodeButton):
 				expression_item.set_text(0, "Set all \"Value %d\"" % [i + 1])
 				expression_item.set_metadata(0, attr_id)
 				expression_item.set_tooltip_text(0, expression_tooltip)
-			
+
 			var level_index = 0
 			for values in node.attributes[attr_id]:
 				var level_item = item.create_child()
@@ -542,7 +542,7 @@ func _update_attributes(node: YggdrasilNodeButton):
 					value_item.set_text(0, "Value %d: %s" % [i + 1, str(value)])
 					value_item.set_metadata(0, attr_id)
 				level_index += 1
-				
+
 				var tooltip = node.format_attribute_effect(regex, attribute, attr_id)
 				level_item.set_tooltip_text(0, tooltip)
 		else:
@@ -556,7 +556,7 @@ func _update_attributes(node: YggdrasilNodeButton):
 func _on_node_attribute_changed(node: YggdrasilNodeButton, attribute_id: String, removed: bool):
 	if not _selected_node or _selected_node != node:
 		return
-	
+
 	if not node.attributes.is_empty():
 		_update_attributes(node)
 	else:
@@ -565,7 +565,7 @@ func _on_node_attribute_changed(node: YggdrasilNodeButton, attribute_id: String,
 func _on_attribute_button_clicked(item: TreeItem, column: int, id: int, mouse_button_index: int):
 	if mouse_button_index != MOUSE_BUTTON_LEFT:
 		return
-	
+
 	var attr_id = item.get_metadata(0)
 	editor.undo_redo.create_action("Remove Attribute")
 	editor.undo_redo.add_do_method(_do_remove_attribute.bind(_selected_node, attr_id))
@@ -599,13 +599,13 @@ func _on_attribute_activated():
 	if selected.get_parent() == attributes_tree.get_root():
 		selected.set_collapsed(not selected.is_collapsed())
 		return
-	
+
 	if editor.tree.multiallocation:
 		var metadata = selected.get_metadata(0)
 		if metadata and metadata is Dictionary and metadata.has("level"):
 			selected.set_collapsed(not selected.is_collapsed())
 			return
-		
+
 		if selected.get_parent().get_parent() == attributes_tree.get_root():
 			var index = selected.get_index()
 			var attribute: YggdrasilAttribute = editor.tree.attributes[metadata]
@@ -635,7 +635,7 @@ func _edit_attribute(item: TreeItem):
 	else:
 		var attribute_id = item.get_metadata(0)
 		value = _selected_node.attributes[attribute_id][item.get_index()]
-	
+
 	item.set_cell_mode(0, TreeItem.CELL_MODE_RANGE)
 	item.set_range_config(0, 0, INT64_MAX, 0.01, true)
 	item.set_range(0, value)
@@ -653,7 +653,7 @@ func _on_attribute_edited():
 		if error != OK:
 			editor.node_attribute_changed.connect(_on_node_attribute_changed)
 			return
-		
+
 		for level in range(_selected_node.max_allocations):
 			var result = expression.execute([level + 1])
 			if not expression.has_execute_failed():
@@ -665,13 +665,13 @@ func _on_attribute_edited():
 		editor.node_attribute_changed.connect(_on_node_attribute_changed)
 		_update_attributes(_selected_node)
 		return
-	
+
 	var index = edited.get_index()
 	var value = edited.get_range(0)
 
 	if str(value).ends_with(".0"):
 		value = int(value)
-	
+
 	if editor.tree.multiallocation:
 		var attribute_id = edited.get_metadata(0)
 		var level_index = edited.get_parent().get_metadata(0)["level"]
@@ -687,7 +687,7 @@ func _on_attribute_edited():
 		else:
 			_selected_node.attributes[attribute_id][index] = value
 			editor.node_attribute_changed.emit(_selected_node, attribute_id, false)
-	
+
 	changed.emit()
 	editor.node_attribute_changed.connect(_on_node_attribute_changed)
 	_update_attributes(_selected_node)
@@ -696,20 +696,20 @@ func _on_attribute_edit_started(item: TreeItem):
 	if item.get_parent() == attributes_tree.get_root():
 		attributes_tree.deselect_all()
 		return
-	
+
 	if editor.tree.multiallocation:
 		var metadata = item.get_metadata(0)
 		if metadata and metadata is Dictionary and metadata.has("level"):
 			attributes_tree.deselect_all()
 			return
-		
+
 		if item.get_parent().get_parent() == attributes_tree.get_root():
 			var index = item.get_index()
 			var attribute: YggdrasilAttribute = editor.tree.attributes[metadata]
 			if index < attribute.value_count:
 				_edit_expression(item)
 				return
-		
+
 		_edit_attribute(item)
 	else:
 		_edit_attribute(item)
@@ -735,7 +735,7 @@ func _on_attribute_edit_canceled(item: TreeItem):
 func _on_root_toggled(toggled_on: bool):
 	if not _selected_node:
 		return
-	
+
 	_selected_node.is_root = toggled_on
 	if editor.tree.allocation:
 		if toggled_on:
@@ -781,7 +781,7 @@ func update_node_border_normal(node: YggdrasilNodeButton, texture: Texture2D):
 			border.set_anchors_and_offsets_preset(PRESET_CENTER, PRESET_MODE_KEEP_SIZE)
 		else:
 			border.texture = null
-		
+
 		node.border_normal = texture
 	changed.emit()
 
@@ -817,7 +817,7 @@ func update_node_texture(node_type: YggdrasilNode.NodeType, texture: Texture2D, 
 func update_multiallocation(multiallocation: bool):
 	if not _selected_node:
 		return
-	
+
 	max_allocation_input.get_parent().visible = multiallocation
 	attributes_tree.clear()
 	attributes_tree.create_item()

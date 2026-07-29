@@ -21,7 +21,7 @@ func init():
 	editor.node_selected.connect(_on_node_selected)
 	editor.node_attribute_changed.connect(_on_node_attribute_changed)
 	tree.init()
-	
+
 	tree.item_activated.connect(_on_item_activated)
 	tree.item_edited.connect(_on_item_edited)
 	tree.edit_canceled.connect(_on_edit_canceled)
@@ -64,7 +64,7 @@ func _on_filter_text_changed(new_text: String):
 
 	for attr_item in tree.get_root().get_children():
 		ids.append(attr_item.get_index())
-	
+
 	var targets_by_id = PackedStringArray(ids.map(func(id: int) -> String:
 		var target_item = tree.get_root().get_child(id)
 		var attribute = target_item.get_metadata(0)
@@ -98,10 +98,10 @@ func _on_filter_text_changed(new_text: String):
 	for r in results_by_effect:
 		var item = tree.get_root().get_child(ids[r.original_index])
 		results.append(item)
-	
+
 	for attr_item in tree.get_root().get_children():
 		attr_item.visible = false
-	
+
 	for result_item in results:
 		result_item.visible = true
 
@@ -126,10 +126,10 @@ func _on_node_selected(node: YggdrasilNodeButton):
 func _on_node_attribute_changed(node: YggdrasilNodeButton, attribute_id: String, removed: bool):
 	if not removed:
 		return
-	
+
 	if not _current_node or _current_node != node:
 		return
-	
+
 	for child in tree.get_root().get_children():
 		var attribute = child.get_metadata(0)
 		if attribute.id == attribute_id:
@@ -147,7 +147,7 @@ func _on_add_button_pressed():
 
 func _on_item_edited():
 	var edited = tree.get_edited()
-	
+
 	var metadata = edited.get_metadata(0)
 	if not metadata:
 		var index = edited.get_index()
@@ -183,7 +183,7 @@ func _on_item_edited():
 		if text.is_empty():
 			edited.free()
 			return
-		
+
 		var new_attr = YggdrasilAttribute.new()
 		new_attr.id = text.to_snake_case()
 		new_attr.name = text
@@ -191,7 +191,7 @@ func _on_item_edited():
 		new_attr.value_count = 0
 
 		editor.tree.attributes[new_attr.id] = new_attr
-		
+
 		if _current_node:
 			edited.set_cell_mode(0, TreeItem.CELL_MODE_CHECK)
 			edited.set_editable(0, true)
@@ -199,7 +199,7 @@ func _on_item_edited():
 			edited.set_editable(0, false)
 		edited.set_metadata(0, new_attr)
 		edited.set_text(0, new_attr.id)
-		
+
 		var name_item = edited.create_child()
 		name_item.set_text(0, "Name: %s" % new_attr.name)
 
@@ -209,16 +209,16 @@ func _on_item_edited():
 		var value_count_item = edited.create_child()
 		value_count_item.set_text(0, "Value Count: %s" % str(new_attr.value_count))
 		return
-	
+
 	if edited.get_cell_mode(0) == TreeItem.CELL_MODE_CHECK:
 		if not _current_node:
 			return
-		
+
 		if edited.is_checked(0):
 			var values = []
 			for i in metadata.value_count:
 				values.append(0)
-			
+
 			if _current_node.prefab:
 				if editor.tree.multiallocation:
 					var multiallocation_values = []
@@ -253,7 +253,7 @@ func _on_item_edited():
 			return
 
 		metadata.id = new_id
-		
+
 		var old_attr = editor.tree.attributes[old_id]
 		editor.tree.attributes.erase(old_id)
 		editor.tree.attributes[metadata.id] = old_attr
@@ -265,15 +265,15 @@ func _on_item_edited():
 				editor.node_attribute_changed.emit(node, old_id, true)
 				node.attributes[metadata.id] = values
 				editor.node_attribute_changed.emit(node, metadata.id, false)
-		
+
 		for p_key in editor.tree.prefabs.keys():
 			if p_key == YggdrasilNode.NodeType.DECORATION:
 				continue
-			
+
 			for prefab: YggdrasilPrefab in editor.tree.prefabs[p_key]:
 				if not prefab.attributes.has(old_id):
 					continue
-				
+
 				var values = prefab.attributes[old_id].duplicate()
 				if prefab.reference_id.is_empty():
 					prefab.attributes.erase(old_id)
@@ -287,7 +287,7 @@ func _on_item_edited():
 						prefab.set_attribute(metadata.id, multiallocation_values, true)
 					else:
 						prefab.set_attribute(metadata.id, values, editor.tree.multiallocation)
-		
+
 		if _current_node:
 			edited.set_cell_mode(0, TreeItem.CELL_MODE_CHECK)
 			edited.set_checked(0, _current_node.attributes.has(new_id))
@@ -307,7 +307,7 @@ func _on_item_activated():
 	var attribute = selected.get_parent().get_metadata(0)
 	if not attribute:
 		return
-	
+
 	var index = selected.get_index()
 	match index:
 		0:
@@ -327,7 +327,7 @@ func _on_item_edit_started(item: TreeItem):
 		item.set_cell_mode(0, TreeItem.CELL_MODE_STRING)
 		item.set_text(0, text)
 		return
-	
+
 	var attribute = item.get_parent().get_metadata(0)
 	var index = item.get_index()
 	match index:
@@ -354,7 +354,7 @@ func _on_edit_canceled(item: TreeItem):
 				item.set_cell_mode(0, TreeItem.CELL_MODE_STRING)
 				item.set_text(0, "Value Count: %d" % attribute.value_count)
 		return
-	
+
 	if metadata is Dictionary and metadata.has("new_attr"):
 		item.free()
 		return

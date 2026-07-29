@@ -13,15 +13,15 @@ func init():
 func _gui_input(event):
 	if not is_visible_in_tree():
 		return
-	
+
 	if event.is_action_released("ui_cancel"):
 		if not has_focus():
 			return
-		
+
 		var selected = get_selected()
 		if not selected:
 			return
-		
+
 		edit_canceled.emit(selected)
 
 func _shortcut_input(event):

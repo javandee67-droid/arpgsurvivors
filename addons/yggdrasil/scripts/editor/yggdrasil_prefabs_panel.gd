@@ -33,13 +33,13 @@ func _ready():
 func _shortcut_input(event):
 	if not is_visible_in_tree():
 		return
-	
+
 	if not event.is_echo() and event.pressed:
 		if rename_shortcut.matches_event(event):
 			var selected = list.get_selected_items()
 			if selected.size() == 0:
 				return
-			
+
 			rename_line_edit.text = list.get_item_text(selected[0])
 			rename_popup.popup_centered()
 			rename_line_edit.grab_focus()
@@ -51,9 +51,9 @@ func add_prefab(prefab: YggdrasilPrefab, is_copy: bool = false) -> void:
 	if not _icons_cache.has(prefab.reference_id):
 		icon = DrawableTexture2D.new()
 		icon.setup(ICON_SIZE.x, ICON_SIZE.y, DrawableTexture2D.DRAWABLE_FORMAT_RGBA8, Color(0, 0, 0, 0))
-		
+
 		_generate_icon(icon, prefab)
-		
+
 		_icons_cache[prefab.reference_id] = icon
 	else:
 		icon = _icons_cache[prefab.reference_id]
@@ -64,11 +64,11 @@ func add_prefab(prefab: YggdrasilPrefab, is_copy: bool = false) -> void:
 			text = "New Copy"
 		else:
 			text = "New Prefab"
-		
+
 		prefab.node_name = text
 	else:
 		text = prefab.node_name
-	
+
 	var id = list.add_item(text, icon)
 	list.set_item_metadata(id, prefab)
 
@@ -84,7 +84,7 @@ func _on_apply_rename_pressed():
 	var selected = list.get_selected_items()
 	if selected.size() == 0:
 		return
-	
+
 	var id = selected[0]
 	var prefab = list.get_item_metadata(id)
 	prefab.set_node_name(rename_line_edit.text)
@@ -97,7 +97,7 @@ func _on_cancel_rename_pressed():
 
 func _on_filter_text_changed(new_text: String):
 	list.clear()
-	
+
 	var search_text = new_text.strip_edges()
 	if search_text.is_empty():
 		_refresh_list()
@@ -121,7 +121,7 @@ func _on_filter_text_changed(new_text: String):
 	var result: Array[int] = []
 	for r in results:
 		result.append(ids[r.original_index])
-	
+
 	for id in result:
 		add_prefab(prefabs[id])
 
@@ -131,7 +131,7 @@ func _on_prefab_name_changed(prefab: YggdrasilPrefab, id: int):
 func _on_prefab_icon_changed(prefab: YggdrasilPrefab, id: int):
 	var icon = DrawableTexture2D.new()
 	icon.setup(ICON_SIZE.x, ICON_SIZE.y, DrawableTexture2D.DRAWABLE_FORMAT_RGBA8, Color(0, 0, 0, 0))
-	
+
 	_generate_icon(icon, prefab)
 
 	list.set_item_icon(id, icon)
@@ -140,7 +140,7 @@ func _on_prefab_icon_changed(prefab: YggdrasilPrefab, id: int):
 func _on_prefab_border_changed(prefab: YggdrasilPrefab, id: int):
 	var icon = DrawableTexture2D.new()
 	icon.setup(ICON_SIZE.x, ICON_SIZE.y, DrawableTexture2D.DRAWABLE_FORMAT_RGBA8, Color(0, 0, 0, 0))
-	
+
 	_generate_icon(icon, prefab)
 
 	list.set_item_icon(id, icon)
@@ -152,35 +152,35 @@ func _refresh_list():
 
 func _generate_icon(icon: DrawableTexture2D, prefab: YggdrasilPrefab):
 	var p = (ICON_SIZE.x - ICON_CENTER_SIZE.x) / 2
-	
+
 	if not prefab.icon:
 		icon.blit_rect(Rect2(Vector2(p, p), ICON_CENTER_SIZE), Yggdrasil.BlankIcon)
 	else:
 		if prefab.icon is AtlasTexture:
 			var image = Image.create(prefab.icon.region.size.x, prefab.icon.region.size.y, false, Image.FORMAT_RGBA8)
 			image.blit_rect(prefab.icon.atlas.get_image(), prefab.icon.region, Vector2i(0, 0))
-			
+
 			var image_texture = ImageTexture.create_from_image(image)
 			icon.blit_rect(Rect2(Vector2(p, p), ICON_CENTER_SIZE), image_texture)
 		else:
 			icon.blit_rect(Rect2(Vector2(p, p), ICON_CENTER_SIZE), prefab.icon)
-	
+
 	if prefab.border_normal:
 		icon.blit_rect(Rect2(Vector2.ZERO, ICON_SIZE), prefab.border_normal)
-	
+
 	var mini_icon
 	if prefab.reference_id.is_empty():
 		mini_icon = EditorInterface.get_editor_theme().get_icon("ActionCopy", Yggdrasil.ICON_THEME)
 	else:
 		mini_icon = EditorInterface.get_editor_theme().get_icon("ResourcePreloader", Yggdrasil.ICON_THEME)
-	
+
 	icon.blit_rect(Rect2i(Vector2i(2, 2), Vector2i(16, 16)), mini_icon)
 
 func get_drag_data(at_position: Vector2) -> Variant:
 	var selected = list.get_item_at_position(at_position, true)
 	if selected == -1:
 		return null
-	
+
 	var item = list.get_item_text(selected)
 	var prefab = list.get_item_metadata(selected)
 
@@ -198,7 +198,7 @@ func get_drag_data(at_position: Vector2) -> Variant:
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.custom_minimum_size = node_size
 	preview.add_child(icon)
-	
+
 	var border = TextureRect.new()
 	border.name = "Border"
 	border.mouse_filter = MOUSE_FILTER_IGNORE
@@ -210,7 +210,7 @@ func get_drag_data(at_position: Vector2) -> Variant:
 		border.texture = prefab.border_normal
 		border.size = node_size * editor.tree.border_scale
 		border.set_anchors_and_offsets_preset(PRESET_CENTER, PRESET_MODE_KEEP_SIZE)
-	
+
 	var label = Label.new()
 	label.text = item
 	label.mouse_filter = MOUSE_FILTER_IGNORE

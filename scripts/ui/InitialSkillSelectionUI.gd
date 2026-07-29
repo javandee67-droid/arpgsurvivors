@@ -1,7 +1,7 @@
 extends CanvasLayer
 class_name InitialSkillSelectionUI
 ## Oyun başında gösterilen başlangıç skill seçim ekranı.
-## Vampire Survivors tarzı - 3 skill kartı arasından seçim yapılır.
+## Başlangıçta 3 skill kartı arasından seçim yapılır.
 
 signal skill_selected(skill_path: String)
 
@@ -62,30 +62,29 @@ func _build_ui() -> void:
 	title.text = "YETENEK SEÇ"
 	title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
 	title.add_theme_font_size_override("font_size", 42)
-	title.add_theme_font_style_override("font_style", Label.TEXT_SERVER_SETTINGS_FONT_STYLE_BOLD)
 	title.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 	title.add_theme_constant_override("shadow_outline_size", 4)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.position = Vector2(0, vp.y * 0.06)
-	title.size = Vector2(vp.x, 60)
+	title.position = Vector2(0, vp.y * 0.04)
+	title.size = Vector2(vp.x, 50)
 	add_child(title)
 	
 	var subtitle := Label.new()
 	subtitle.text = "Başlamak için bir yetenek seç"
 	subtitle.add_theme_color_override("font_color", Color(0.7, 0.65, 0.6, 0.7))
-	subtitle.add_theme_font_size_override("font_size", 16)
+	subtitle.add_theme_font_size_override("font_size", 15)
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	subtitle.position = Vector2(0, vp.y * 0.06 + 65)
-	subtitle.size = Vector2(vp.x, 30)
+	subtitle.position = Vector2(0, vp.y * 0.04 + 55)
+	subtitle.size = Vector2(vp.x, 25)
 	add_child(subtitle)
 	
-	# Kartları oluştur
-	var card_w: float = 300.0
-	var card_h: float = 420.0
-	var gap: float = 40.0
+	# Kartları oluştur - ekrana sığacak şekilde responsive
+	var card_w: float = min(340.0, vp.x * 0.22)
+	var card_h: float = min(380.0, vp.y * 0.55)
+	var gap: float = min(30.0, vp.x * 0.025)
 	var total_w: float = _skill_options.size() * card_w + (_skill_options.size() - 1) * gap
-	var start_x: float = (vp.x - total_w) / 2.0
-	var card_y: float = vp.y * 0.22
+	var start_x: float = max(10.0, (vp.x - total_w) / 2.0)
+	var card_y: float = vp.y * 0.15
 	
 	for i in range(_skill_options.size()):
 		var skill_path: String = _skill_options[i]
@@ -95,10 +94,10 @@ func _build_ui() -> void:
 	var hint := Label.new()
 	hint.text = "Fare ile üzerine gel ve tıkla veya 1-2-3 tuşlarına bas"
 	hint.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55, 0.6))
-	hint.add_theme_font_size_override("font_size", 13)
+	hint.add_theme_font_size_override("font_size", 12)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint.position = Vector2(0, vp.y * 0.88)
-	hint.size = Vector2(vp.x, 25)
+	hint.position = Vector2(0, vp.y * 0.94)
+	hint.size = Vector2(vp.x, 20)
 	add_child(hint)
 
 func _create_skill_card(skill_path: String, index: int, pos: Vector2, size: Vector2) -> void:
@@ -122,7 +121,7 @@ func _create_skill_card(skill_path: String, index: int, pos: Vector2, size: Vect
 	card_style.border_width_top = 3
 	card_style.border_width_bottom = 3
 	card_style.border_color = dmg_color.darkened(0.3)
-	card_style.set_corner_radius_all(16)
+	card_style.set_corner_radius_all(12)
 	card_style.shadow_color = Color(dmg_color.r * 0.3, dmg_color.g * 0.3, dmg_color.b * 0.3, 0.4)
 	card_style.shadow_size = 12
 	card_style.shadow_offset = Vector2(0, 6)
@@ -132,18 +131,18 @@ func _create_skill_card(skill_path: String, index: int, pos: Vector2, size: Vect
 	card.mouse_entered.connect(_on_card_hover.bind(index, card, dmg_color))
 	card.mouse_exited.connect(_on_card_exit.bind(index, card, dmg_color))
 	
-	# İkon alanı (üst kısım)
+	# İkon alanı (üst kısım) - daha kompakt
 	var icon_bg := ColorRect.new()
 	icon_bg.name = "IconBg"
 	icon_bg.color = Color(dmg_color.r * 0.15, dmg_color.g * 0.15, dmg_color.b * 0.15, 1.0)
-	icon_bg.position = Vector2(20, 20)
-	icon_bg.size = Vector2(size.x - 40, 100)
+	icon_bg.position = Vector2(20, 14)
+	icon_bg.size = Vector2(size.x - 40, 80)
 	card.add_child(icon_bg)
 	
 	var icon_rect := TextureRect.new()
 	icon_rect.name = "SkillIcon"
-	icon_rect.position = Vector2((size.x - 80) / 2.0, 30)
-	icon_rect.size = Vector2(80, 80)
+	icon_rect.position = Vector2((size.x - 64) / 2.0, 22)
+	icon_rect.size = Vector2(64, 64)
 	icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	if skill_data.icon_path and ResourceLoader.exists(skill_data.icon_path):
@@ -158,12 +157,11 @@ func _create_skill_card(skill_path: String, index: int, pos: Vector2, size: Vect
 	var name_lbl := Label.new()
 	name_lbl.text = skill_data.display_name
 	name_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 0.95))
-	name_lbl.add_theme_font_size_override("font_size", 22)
-	name_lbl.add_theme_font_style_override("font_style", Label.TEXT_SERVER_SETTINGS_FONT_STYLE_BOLD)
+	name_lbl.add_theme_font_size_override("font_size", 18)
 	name_lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_lbl.position = Vector2(0, 130)
-	name_lbl.size = Vector2(size.x, 32)
+	name_lbl.position = Vector2(0, 100)
+	name_lbl.size = Vector2(size.x, 26)
 	card.add_child(name_lbl)
 	
 	# Yetenek tipi
@@ -171,17 +169,17 @@ func _create_skill_card(skill_path: String, index: int, pos: Vector2, size: Vect
 	var type_lbl := Label.new()
 	type_lbl.text = type_names[skill_data.skill_type] if skill_data.skill_type < type_names.size() else "?"
 	type_lbl.add_theme_color_override("font_color", dmg_color)
-	type_lbl.add_theme_font_size_override("font_size", 12)
+	type_lbl.add_theme_font_size_override("font_size", 11)
 	type_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	type_lbl.position = Vector2(0, 162)
-	type_lbl.size = Vector2(size.x, 20)
+	type_lbl.position = Vector2(0, 126)
+	type_lbl.size = Vector2(size.x, 18)
 	card.add_child(type_lbl)
 	
 	# Ayırıcı çizgi
 	var sep := ColorRect.new()
 	sep.color = Color(dmg_color.r, dmg_color.g, dmg_color.b, 0.25)
-	sep.position = Vector2(25, 192)
-	sep.size = Vector2(size.x - 50, 2)
+	sep.position = Vector2(25, 150)
+	sep.size = Vector2(size.x - 50, 1)
 	card.add_child(sep)
 	
 	# Hasar bilgisi
@@ -189,9 +187,9 @@ func _create_skill_card(skill_path: String, index: int, pos: Vector2, size: Vect
 	var dmg_lbl := Label.new()
 	dmg_lbl.text = "⚔ %s" % dmg_str
 	dmg_lbl.add_theme_color_override("font_color", Color(0.9, 0.8, 0.7))
-	dmg_lbl.add_theme_font_size_override("font_size", 14)
-	dmg_lbl.position = Vector2(20, 205)
-	dmg_lbl.size = Vector2(size.x - 40, 24)
+	dmg_lbl.add_theme_font_size_override("font_size", 13)
+	dmg_lbl.position = Vector2(20, 158)
+	dmg_lbl.size = Vector2(size.x - 40, 22)
 	card.add_child(dmg_lbl)
 	
 	# Cooldown bilgisi
@@ -199,9 +197,9 @@ func _create_skill_card(skill_path: String, index: int, pos: Vector2, size: Vect
 	var cd_str := "%.1fs" % skill_data.cooldown if skill_data.cooldown > 0 else "Anlık"
 	cd_lbl.text = "⏱ %s" % cd_str
 	cd_lbl.add_theme_color_override("font_color", Color(0.6, 0.75, 0.9))
-	cd_lbl.add_theme_font_size_override("font_size", 14)
-	cd_lbl.position = Vector2(20, 230)
-	cd_lbl.size = Vector2(size.x - 40, 24)
+	cd_lbl.add_theme_font_size_override("font_size", 13)
+	cd_lbl.position = Vector2(20, 180)
+	cd_lbl.size = Vector2(size.x - 40, 22)
 	card.add_child(cd_lbl)
 	
 	# Ekstra özellikler
@@ -213,14 +211,16 @@ func _create_skill_card(skill_path: String, index: int, pos: Vector2, size: Vect
 	if "projectile_count" in skill_data and skill_data.projectile_count > 0:
 		extra_parts.append("🏹 %d Mermi" % skill_data.projectile_count)
 	
+	var desc_y: float = 210
 	if not extra_parts.is_empty():
 		var extra_lbl := Label.new()
 		extra_lbl.text = " • ".join(extra_parts)
 		extra_lbl.add_theme_color_override("font_color", Color(0.7, 0.85, 1.0, 0.85))
-		extra_lbl.add_theme_font_size_override("font_size", 12)
-		extra_lbl.position = Vector2(20, 255)
-		extra_lbl.size = Vector2(size.x - 40, 22)
+		extra_lbl.add_theme_font_size_override("font_size", 11)
+		extra_lbl.position = Vector2(20, 202)
+		extra_lbl.size = Vector2(size.x - 40, 20)
 		card.add_child(extra_lbl)
+		desc_y = 225
 	
 	# Açıklama
 	var desc_map: Dictionary = {
@@ -241,18 +241,18 @@ func _create_skill_card(skill_path: String, index: int, pos: Vector2, size: Vect
 	var desc_lbl := Label.new()
 	desc_lbl.text = desc_map.get(skill_data.id, "Güçlü bir yetenek")
 	desc_lbl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.65, 0.9))
-	desc_lbl.add_theme_font_size_override("font_size", 12)
+	desc_lbl.add_theme_font_size_override("font_size", 11)
 	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc_lbl.position = Vector2(20, 290)
-	desc_lbl.size = Vector2(size.x - 40, 60)
+	desc_lbl.position = Vector2(20, desc_y)
+	desc_lbl.size = Vector2(size.x - 40, 50)
 	card.add_child(desc_lbl)
 	
 	# Seç butonu
 	var select_btn := Button.new()
 	select_btn.name = "Btn_%d" % index
 	select_btn.text = "SEÇ  [%d]" % (index + 1)
-	select_btn.position = Vector2(30, size.y - 65)
-	select_btn.size = Vector2(size.x - 60, 45)
+	select_btn.position = Vector2(30, size.y - 55)
+	select_btn.size = Vector2(size.x - 60, 38)
 	
 	var btn_normal := StyleBoxFlat.new()
 	btn_normal.bg_color = Color(dmg_color.r * 0.3, dmg_color.g * 0.3, dmg_color.b * 0.3, 0.9)
@@ -286,7 +286,6 @@ func _create_skill_card(skill_path: String, index: int, pos: Vector2, size: Vect
 	
 	select_btn.add_theme_color_override("font_color", Color.WHITE)
 	select_btn.add_theme_font_size_override("font_size", 16)
-	select_btn.add_theme_font_style_override("font_style", Label.TEXT_SERVER_SETTINGS_FONT_STYLE_BOLD)
 	select_btn.pressed.connect(_on_skill_chosen.bind(skill_path))
 	card.add_child(select_btn)
 	

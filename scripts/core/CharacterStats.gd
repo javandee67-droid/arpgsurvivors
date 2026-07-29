@@ -395,15 +395,15 @@ func recalculate() -> void:
 
 	var life_from_str: float = total_strength * 2.0
 	var phys_from_str: float = total_strength * 1.0
-	
+
 	# Intelligence: +2 Mana per point, +1 flat Energy Shield per point
 	var mana_from_int: float = total_intelligence * 2.0
 	var es_from_int_flat: float = total_intelligence * 1.0
-	
+
 	# Dexterity: +0.1% evasion per point, +0.2% attack speed per point
 	var dex_evasion_pct: float = total_dexterity * 0.1
 	var dex_attack_speed_pct: float = total_dexterity * 0.2
-	
+
 	var accuracy_from_dex: float = total_dexterity * 2.0
 
 	# --- Life / Mana / ES ---
@@ -506,7 +506,7 @@ func recalculate() -> void:
 	life_gain_on_hit = flat.get("life_gain_on_hit", 0.0)
 	life_on_kill = flat.get("life_on_kill", 0.0)
 	mana_on_kill = flat.get("mana_on_kill", 0.0)
-	
+
 	# --- ES Recharge (default: 5 sn gecikme, %33/sn hız) ---
 	# Pasif ağacı: "es_recharge_delay_reduction" flat düşüş, "es_recharge_rate" % artış
 	es_recharge_delay = maxf(0.5, 5.0 - flat.get("es_recharge_delay_reduction", 0.0))
@@ -523,11 +523,11 @@ func recalculate() -> void:
 	ailment_magnitude = increased.get("ailment_magnitude", 0.0)
 	# flask_effect kaldırıldı
 	cooldown_recovery = increased.get("cooldown_recovery", 0.0)
-	
+
 	# Passive tree bonuses
 	melee_range_bonus = flat.get("melee_range", 0.0)
 	armour_elemental_pct = flat.get("armour_elemental_pct", 0.0)
-	
+
 	# --- New mechanic stats ---
 	penetration_fire = flat.get("penetration_fire", 0.0)
 	penetration_cold = flat.get("penetration_cold", 0.0)
@@ -663,7 +663,7 @@ func recalculate() -> void:
 	damage_vs_maimed = increased.get("damage_vs_maimed", 0.0)
 	lucky_hits = flat.get("lucky_hits", 0.0)
 	unlucky_hits = flat.get("enemy_unlucky", 0.0)
-	
+
 	item_rarity = increased.get("item_rarity", 0.0)
 	item_quantity = increased.get("item_quantity", 0.0)
 

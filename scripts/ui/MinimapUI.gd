@@ -30,11 +30,11 @@ func _ready() -> void:
 	var vp := get_viewport()
 	if vp:
 		_viewport_size = vp.get_visible_rect().size
-	
+
 	# Ana harita erişimi
 	_mapgen = get_tree().current_scene.get_node_or_null("MapGenerator")
 	_dungeongen = get_tree().current_scene.get_node_or_null("DungeonGenerator")
-	
+
 	# Küçük harita (sağ üst köşe)
 	_mini_rect = TextureRect.new()
 	_mini_rect.size = Vector2(MINIMAP_SIZE, MINIMAP_SIZE * GRID_H / GRID_W)
@@ -45,7 +45,7 @@ func _ready() -> void:
 	_mini_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_mini_rect.mouse_filter = Control.MOUSE_FILTER_PASS
 	add_child(_mini_rect)
-	
+
 	# Minimal border
 	# Minimap border with style
 	var border_panel := Panel.new()
@@ -69,14 +69,14 @@ func _ready() -> void:
 	_player_marker.color = Color(0.3, 1.0, 0.3)
 	_player_marker.mouse_filter = Control.MOUSE_FILTER_PASS
 	add_child(_player_marker)
-	
+
 	# Fullscreen için arka plan (gizli)
 	_fullscreen_panel = Panel.new()
 	_fullscreen_panel.size = _viewport_size
 	_fullscreen_panel.add_theme_stylebox_override("panel", _make_fullscreen_style())
 	_fullscreen_panel.visible = false
 	add_child(_fullscreen_panel)
-	
+
 	# Fullscreen başlık
 	var fs_title := Label.new()
 	fs_title.text = "HARİTA [ESC kapat]"
@@ -86,7 +86,7 @@ func _ready() -> void:
 	fs_title.position = Vector2(0, 10)
 	fs_title.size = Vector2(_viewport_size.x, 30)
 	_fullscreen_panel.add_child(fs_title)
-	
+
 	# Fullscreen harita
 	_fullscreen_rect = TextureRect.new()
 	var fs_size := mini(FULLSCREEN_SIZE, int(_viewport_size.y * 0.85))
@@ -108,11 +108,11 @@ func _process(_delta: float) -> void:
 	if _refresh_timer > 0.5:
 		_refresh_timer = 0.0
 		_dirty = true
-	
+
 	if _dirty:
 		_render_minimap()
 		_dirty = false
-	
+
 	# Player pozisyonunu güncelle
 	_update_player_marker()
 
@@ -121,7 +121,7 @@ func _update_player_marker() -> void:
 	if not player:
 		_player_marker.visible = false
 		return
-	
+
 	# Harita grid boyutlarını al
 	var grid_w := GRID_W
 	var grid_h := GRID_H
@@ -130,7 +130,7 @@ func _update_player_marker() -> void:
 		if dg.grid is Array and dg.grid.size() > 0:
 			grid_w = dg.grid.size()
 			grid_h = dg.grid[0].size() if dg.grid[0] is Array and dg.grid[0].size() > 0 else GRID_H
-	
+
 	if _is_fullscreen:
 		var rect: TextureRect = _fullscreen_rect
 		var ratio_x: float = rect.size.x / (grid_w * TILE_SIZE)
@@ -141,7 +141,7 @@ func _update_player_marker() -> void:
 										  clampf(py, rect.position.y, rect.position.y + rect.size.y - 4.0))
 		_player_marker.visible = true
 		return
-	
+
 	var rect: TextureRect = _mini_rect
 	var ratio_x: float = rect.size.x / (grid_w * TILE_SIZE)
 	var ratio_y: float = rect.size.y / (grid_h * TILE_SIZE)
@@ -162,7 +162,7 @@ func _render_minimap() -> void:
 			map_h = dg.grid[0].size() if dg.grid[0] is Array and dg.grid[0].size() > 0 else GRID_H
 	var img := Image.create(map_w, map_h, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0.1, 0.08, 0.05))
-	
+
 	# DungeonGenerator grid verisi
 	if _dungeongen and is_instance_valid(_dungeongen):
 		var dg = _dungeongen
@@ -201,7 +201,7 @@ func _render_minimap() -> void:
 					var wy := int(parts[1])
 					if wx >= 0 and wx < GRID_W and wy >= 0 and wy < GRID_H:
 						img.set_pixel(wx, wy, Color(0.4, 0.3, 0.15))
-	
+
 	# Border walls (dinamik boyut)
 	for x in range(map_w):
 		img.set_pixel(x, 0, Color(0.4, 0.3, 0.2))
@@ -209,7 +209,7 @@ func _render_minimap() -> void:
 	for y in range(map_h):
 		img.set_pixel(0, y, Color(0.4, 0.3, 0.2))
 		img.set_pixel(map_w - 1, y, Color(0.4, 0.3, 0.2))
-	
+
 	# Entity tracking
 	var world := get_tree().current_scene
 	if world:
@@ -225,7 +225,7 @@ func _render_minimap() -> void:
 					if gx > 0: img.set_pixel(gx-1, gy, Color(0.9, 0.15, 0.1))
 					if gy + 1 < map_h: img.set_pixel(gx, gy+1, Color(0.9, 0.15, 0.1))
 					if gy > 0: img.set_pixel(gx, gy-1, Color(0.9, 0.15, 0.1))
-		
+
 		# Chests (yellow)
 		for ch in world.get_children():
 			if ch.name.begins_with("Chest") and "global_position" in ch:
@@ -234,7 +234,7 @@ func _render_minimap() -> void:
 				var gy := int(pos.y / TILE_SIZE)
 				if gx >= 0 and gx < map_w and gy >= 0 and gy < map_h:
 					img.set_pixel(gx, gy, Color(1.0, 0.8, 0.2))
-		
+
 		# Waypoint (cyan)
 		var wp := world.get_node_or_null("Waypoint")
 		if wp and "global_position" in wp:
@@ -245,7 +245,7 @@ func _render_minimap() -> void:
 				img.set_pixel(gx, gy, Color(0.3, 0.9, 0.7))
 				if gx + 1 < map_w: img.set_pixel(gx+1, gy, Color(0.3, 0.9, 0.7))
 				if gy + 1 < map_h: img.set_pixel(gx, gy+1, Color(0.3, 0.9, 0.7))
-		
+
 		# Stairs (white)
 		var stairs := world.get_node_or_null("Stairs")
 		if stairs and "global_position" in stairs:
@@ -258,7 +258,7 @@ func _render_minimap() -> void:
 				if gx > 0: img.set_pixel(gx-1, gy, Color(1, 1, 1))
 				if gy + 1 < map_h: img.set_pixel(gx, gy+1, Color(1, 1, 1))
 				if gy > 0: img.set_pixel(gx, gy-1, Color(1, 1, 1))
-		
+
 		# NPCs (purple) — demirci, vb.
 		for ch in world.get_children():
 			if ch.is_in_group("npc") and "global_position" in ch:
@@ -269,9 +269,9 @@ func _render_minimap() -> void:
 					img.set_pixel(gx, gy, Color(0.7, 0.3, 0.9))
 					if gx + 1 < map_w: img.set_pixel(gx+1, gy, Color(0.7, 0.3, 0.9))
 					if gx > 0: img.set_pixel(gx-1, gy, Color(0.7, 0.3, 0.9))
-	
+
 	_map_tex = ImageTexture.create_from_image(img)
-	
+
 	_mini_rect.texture = _map_tex
 	if _is_fullscreen and _fullscreen_rect:
 		_fullscreen_rect.texture = _map_tex

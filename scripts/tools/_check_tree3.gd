@@ -4,7 +4,7 @@ func _init():
 	var tree = load("res://yggdrasil_data/trees/main_tree.tres")
 	print("Nodes: ", tree.nodes.size())
 	print("Tree size: ", tree.size)
-	
+
 	# Find min/max positions
 	var min_pos := Vector2(INF, INF)
 	var max_pos := Vector2(-INF, -INF)
@@ -13,13 +13,13 @@ func _init():
 		min_pos = Vector2(min(min_pos.x, p.x), min(min_pos.y, p.y))
 		max_pos = Vector2(max(max_pos.x, p.x), max(max_pos.y, p.y))
 	print("Content: ", min_pos, " to ", max_pos)
-	
+
 	# Count root nodes
 	var roots = 0
 	for n in tree.nodes:
 		if n.is_root: roots += 1
 	print("Root nodes: ", roots)
-	
+
 	# Check a location - root node
 	for n in tree.nodes:
 		if n.is_root:

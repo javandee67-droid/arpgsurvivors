@@ -989,14 +989,14 @@ static func get_random_enemy_for_map(map_tier: int = 1) -> String:
 ## map_tier: 1-5, enemy_count: toplam dusman sayisi
 static func generate_spawn_list(map_tier: int, enemy_count: int) -> Array[String]:
 	var list: Array[String] = []
-	
+
 	# Harita tier'ina gore % dagilim
 	var tier1_pct: float = 0.0
 	var tier2_pct: float = 0.0
 	var tier3_pct: float = 0.0
 	var tier4_pct: float = 0.0
 	var tier5_pct: float = 0.0
-	
+
 	match map_tier:
 		1: tier1_pct = 0.5; tier2_pct = 0.35; tier3_pct = 0.15
 		2: tier1_pct = 0.2; tier2_pct = 0.4; tier3_pct = 0.3; tier4_pct = 0.1
@@ -1004,9 +1004,9 @@ static func generate_spawn_list(map_tier: int, enemy_count: int) -> Array[String
 		4: tier2_pct = 0.1; tier3_pct = 0.3; tier4_pct = 0.4; tier5_pct = 0.2
 		5: tier3_pct = 0.2; tier4_pct = 0.4; tier5_pct = 0.4
 		_: tier1_pct = 0.3; tier2_pct = 0.3; tier3_pct = 0.3; tier4_pct = 0.1
-	
+
 	var tier_pcts := {1: tier1_pct, 2: tier2_pct, 3: tier3_pct, 4: tier4_pct, 5: tier5_pct}
-	
+
 	for i in range(enemy_count):
 		var roll := randf()
 		var cumulative := 0.0
@@ -1021,5 +1021,5 @@ static func generate_spawn_list(map_tier: int, enemy_count: int) -> Array[String
 			tier_enemies = get_enemies_by_tier(1)
 		var eid := tier_enemies[randi() % tier_enemies.size()]
 		list.append(eid)
-	
+
 	return list

@@ -35,7 +35,7 @@ static func get_slot_for_essence_id(_essence_id: String) -> int:
 func add_essence(item: ItemData) -> bool:
 	if not is_essence(item):
 		return false
-	
+
 	# Önce aynı ID'ye sahip var mı kontrol et (stackleme)
 	for i in range(slots.size()):
 		var existing: ItemData = slots[i]
@@ -43,20 +43,20 @@ func add_essence(item: ItemData) -> bool:
 			existing.stack_count += item.stack_count
 			essence_inventory_changed.emit()
 			return true
-	
+
 	# Boş slot bul
 	var empty_idx: int = slots.find(null)
 	if empty_idx >= 0:
 		slots[empty_idx] = item
 		essence_inventory_changed.emit()
 		return true
-	
+
 	# Yeni slot ekle (MAX_SLOTS'a kadar)
 	if slots.size() < MAX_SLOTS:
 		slots.append(item)
 		essence_inventory_changed.emit()
 		return true
-	
+
 	return false  # Dolu
 
 ## Bir slot'taki item'dan 1 tane tüketir.

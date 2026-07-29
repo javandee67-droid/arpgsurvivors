@@ -32,7 +32,7 @@ var _hovered_effect_row: int = -1  # index of hovered effect for tooltip
 var _ailment_ctrl: AilmentController = null
 var _effect_rows: Array[Control] = []  # cached rows for updating timers
 var _biome_label: Label = null          # Biyom bildirimi etiketi
-var _boss_bar: ColorRect = null         # Boss can çubuğu arkaplanı
+var _boss_bar: Panel = null         # Boss can çubuğu arkaplanı
 var _boss_fill: ColorRect = null        # Boss can çubuğu dolgusu
 var _boss_name: Label = null            # Boss adı
 var _boss_hp_label: Label = null        # Boss can yazısı
@@ -870,7 +870,7 @@ func _on_damage_dealt(payload: Dictionary) -> void:
 		show_damage_flash()
 
 func _on_damage_number_spawned(text: String, position: Vector2, color: Color, is_crit: bool) -> void:
-	if not GameSettings.damage_numbers:
+	if not GameSettings.get_instance().damage_numbers:
 		return
 	# Kritik vuruşta hafif altın parlama efekti
 	if is_crit and is_instance_valid(_damage_flash):

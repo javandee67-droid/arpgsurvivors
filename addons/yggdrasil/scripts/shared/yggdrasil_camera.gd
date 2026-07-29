@@ -46,16 +46,16 @@ func set_camera_zoom(zoom: float, _unused: Vector2 = Vector2(-1, -1)):
 	var view_size = _viewport.get_parent().get_rect().size
 	var ratio = _zoom / previous_zoom
 	var old_pos = _viewport.position
-	
+
 	# Zoom toward viewport center (maintains current pan position)
 	var center = view_size * 0.5
 	var new_pos = center - (center - old_pos) * ratio
 	_viewport.position = new_pos
-	
+
 	_viewport.scale = Vector2(_zoom, _zoom)
 	# _clamp() devre disi - kullanici konumunu koru
 	# _clamp()
-	
+
 	zoom_changed.emit(_zoom, previous_zoom)
 
 	_viewport.scale = Vector2(_zoom, _zoom)

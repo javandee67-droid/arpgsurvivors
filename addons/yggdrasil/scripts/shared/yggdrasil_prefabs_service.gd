@@ -11,7 +11,7 @@ var _ref_id_to_prefab: Dictionary[String, YggdrasilPrefab] = {}
 
 func load_tree(tree_data: YggdrasilTree) -> void:
 	_tree_data = tree_data
-	
+
 	for node_type in _tree_data.prefabs.keys():
 		prefabs[node_type] = []
 		var prefabs_list = _tree_data.prefabs[node_type]
@@ -53,7 +53,7 @@ func create_prefab(node: YggdrasilNodeButton, is_copy: bool = false):
 func make_unique(node: YggdrasilNodeButton) -> void:
 	if not node.prefab:
 		return
-	
+
 	node.prefab.remove_node(node)
 	node.reference_id = ""
 	node.prefab = null

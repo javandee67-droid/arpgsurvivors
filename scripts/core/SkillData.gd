@@ -20,7 +20,7 @@ enum SkillType {
 @export var skill_type: SkillType = SkillType.PROJECTILE
 @export var tags: Array[String] = []
 @export var base_damage: float = 10.0
-## ⚠️ DEPRECATED: Artık mana kullanılmıyor (Vampire Survivors modu - ücretsiz otomatik yetenekler)
+## ⚠️ DEPRECATED: Artık mana kullanılmıyor (ücretsiz otomatik yetenekler)
 @export var mana_cost: float = 0.0
 @export var cooldown: float = 0.0
 @export var damage_type: String = "physical"

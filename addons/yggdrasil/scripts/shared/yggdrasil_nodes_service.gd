@@ -12,7 +12,7 @@ var _nodes: Dictionary[int, YggdrasilNodeButton] = {}
 
 func load_tree(tree_data: YggdrasilTree) -> void:
 	_tree_data = tree_data
-	
+
 	for node_data in _tree_data.nodes:
 		_create_node_from_data(node_data)
 
@@ -22,7 +22,7 @@ func delete_node(node: YggdrasilNodeButton) -> void:
 
 func _build_node(node_type: YggdrasilNode.NodeType, icon_texture: Texture2D = null, border_texture: Texture2D = null) -> YggdrasilNodeButton:
 	var node = _scene.instantiate()
-	
+
 	var node_size: Vector2 = _tree_data.get_node_size(node_type)
 	node.size = node_size
 
@@ -40,7 +40,7 @@ func _build_node(node_type: YggdrasilNode.NodeType, icon_texture: Texture2D = nu
 		border.texture = border_texture
 		border.size = node.size * _tree_data.border_scale
 		border.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_KEEP_SIZE)
-	
+
 	node.node_hovered.connect(node_hovered.emit)
 
 	return node
@@ -50,12 +50,12 @@ func _create_node_from_data(node_data: YggdrasilNode) -> YggdrasilNodeButton:
 	node.node_data = node_data
 	node.external_id = node_data.name
 	_tree_view.nodes_container.add_child(node)
-	
+
 	_position(node, node_data.position)
-	
+
 	node.id = node_data.id
 	node.name = "Node_%d" % node.id
-	
+
 	_nodes[node.id] = node
 
 	if node.is_root and _tree_data.allocation:
@@ -72,7 +72,7 @@ func create_node(position: Vector2, node_type: YggdrasilNode.NodeType) -> Yggdra
 	var node = _build_node(node_type)
 
 	node.node_data = YggdrasilNode.new()
-	
+
 	node.id = _tree_data.get_next_id()
 	node.name = "Node_%d" % node.id
 	node.node_name = node.name
@@ -83,19 +83,19 @@ func create_node(position: Vector2, node_type: YggdrasilNode.NodeType) -> Yggdra
 	_nodes[node.id] = node
 
 	_tree_view.nodes_container.add_child(node)
-	
+
 	_position(node, position)
 
 	node.node_data.position = _tree_view.translate_node_position(node)
 	_tree_data.nodes.append(node.node_data)
 	node.pressed.connect(_on_node_pressed.bind(node))
 	node_created.emit(node)
-	
+
 	return node
 
 func create_from_prefab(position: Vector2, prefab: YggdrasilPrefab) -> YggdrasilNodeButton:
 	var node = _build_node(prefab.type, prefab.icon, prefab.border_normal)
-	
+
 	node.node_data = YggdrasilNode.new()
 
 	node.id = _tree_data.get_next_id()
@@ -111,7 +111,7 @@ func create_from_prefab(position: Vector2, prefab: YggdrasilPrefab) -> Yggdrasil
 	_nodes[node.id] = node
 
 	_tree_view.nodes_container.add_child(node)
-	
+
 	_position(node, position)
 
 	node.node_data.position = _tree_view.translate_node_position(node)
@@ -128,7 +128,7 @@ func create_from_prefab(position: Vector2, prefab: YggdrasilPrefab) -> Yggdrasil
 		node.prefab = prefab
 		node.reference_id = prefab.reference_id
 		prefab.add_node(node)
-	
+
 	return node
 
 func _on_node_pressed(node: YggdrasilNodeButton):
@@ -159,10 +159,10 @@ func duplicate_node(original_node: YggdrasilNodeButton) -> YggdrasilNodeButton:
 	_tree_data.nodes.append(node_data)
 
 	_position(node, original_node.node_data.position + Vector2(20, 20))
-	
+
 	node.id = node_data.id
 	node.name = "Node_%d" % node.id
-	
+
 	_nodes[node.id] = node
 
 	node.pressed.connect(_on_node_pressed.bind(node))
@@ -172,13 +172,13 @@ func duplicate_node(original_node: YggdrasilNodeButton) -> YggdrasilNodeButton:
 		var prefab = _tree_view.prefabs_service.get_prefab_by_reference_id(node_data.reference_id)
 		node.prefab = prefab
 		prefab.add_node(node)
-	
+
 	return node
 
 func on_node_preallocated(node: YggdrasilNodeButton):
 	if node.type == YggdrasilNode.NodeType.DECORATION:
 		return
-	
+
 	node.set_state(Yggdrasil.AllocationState.PREALLOCATED_ACTIVE)
 
 	var neighbors = node.out_nodes + node.in_nodes
@@ -189,7 +189,7 @@ func on_node_preallocated(node: YggdrasilNodeButton):
 func on_node_unpreallocated(node: YggdrasilNodeButton):
 	if node.type == YggdrasilNode.NodeType.DECORATION:
 		return
-	
+
 	if node.allocated:
 		node.set_state(Yggdrasil.AllocationState.ACTIVE)
 	else:
@@ -203,7 +203,7 @@ func on_node_unpreallocated(node: YggdrasilNodeButton):
 func on_node_allocated(node: YggdrasilNodeButton):
 	if node.type == YggdrasilNode.NodeType.DECORATION:
 		return
-	
+
 	node.set_state(Yggdrasil.AllocationState.ACTIVE)
 
 	var neighbors = node.out_nodes + node.in_nodes
@@ -214,7 +214,7 @@ func on_node_allocated(node: YggdrasilNodeButton):
 func on_node_deallocated(node: YggdrasilNodeButton):
 	if node.type == YggdrasilNode.NodeType.DECORATION:
 		return
-	
+
 	if _tree_data.multiallocation:
 		if node.allocation_level > 0:
 			node.set_state(Yggdrasil.AllocationState.ACTIVE)

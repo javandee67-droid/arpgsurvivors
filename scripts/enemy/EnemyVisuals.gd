@@ -26,7 +26,7 @@ const ENEMY_DATA: Dictionary = {
 	"necromancer":    {"walk": "res://assets/generated/enemy_necromancer_walk.png",    "attack": "res://assets/generated/enemy_necromancer_attack.png"},
 	"hydra":          {"walk": "res://assets/generated/enemy_hydra_walk.png",           "attack": "res://assets/generated/enemy_hydra_attack.png"},
 	"demon_lord":     {"walk": "res://assets/generated/enemy_demon_lord_walk.png",     "attack": "res://assets/generated/enemy_demon_lord_attack.png"},
-	
+
 	# ===== NEW TIER 1 =====
 	"mole":           {"walk": "res://assets/generated/enemy_mole_walk.png",           "attack": "res://assets/generated/enemy_mole_attack.png"},
 	"frog":           {"walk": "res://assets/generated/enemy_frog_walk.png",           "attack": "res://assets/generated/enemy_frog_attack.png"},
@@ -36,7 +36,7 @@ const ENEMY_DATA: Dictionary = {
 	"bee":            {"walk": "res://assets/generated/enemy_bee_walk.png",            "attack": "res://assets/generated/enemy_bee_attack.png"},
 	"worm":           {"walk": "res://assets/generated/enemy_worm_walk.png",           "attack": "res://assets/generated/enemy_worm_attack.png"},
 	"mushroom":       {"walk": "res://assets/generated/enemy_mushroom_walk.png",       "attack": "res://assets/generated/enemy_mushroom_attack.png"},
-	
+
 	# ===== NEW TIER 2 =====
 	"bandit":         {"walk": "res://assets/generated/enemy_bandit_walk.png",         "attack": "res://assets/generated/enemy_bandit_attack.png"},
 	"cultist":        {"walk": "res://assets/generated/enemy_cultist_walk.png",        "attack": "res://assets/generated/enemy_cultist_attack.png"},
@@ -46,7 +46,7 @@ const ENEMY_DATA: Dictionary = {
 	"turtle":         {"walk": "res://assets/generated/enemy_turtle_walk.png",         "attack": "res://assets/generated/enemy_turtle_attack.png"},
 	"mummy":          {"walk": "res://assets/generated/enemy_mummy_walk.png",          "attack": "res://assets/generated/enemy_mummy_attack.png"},
 	"salamander":     {"walk": "res://assets/generated/enemy_salamander_walk.png",     "attack": "res://assets/generated/enemy_salamander_attack.png"},
-	
+
 	# ===== NEW TIER 3 =====
 	"minotaur":       {"walk": "res://assets/generated/enemy_minotaur_walk.png",       "attack": "res://assets/generated/enemy_minotaur_attack.png"},
 	"harpy":          {"walk": "res://assets/generated/enemy_harpy_walk.png",          "attack": "res://assets/generated/enemy_harpy_attack.png"},
@@ -62,7 +62,7 @@ const ENEMY_DATA: Dictionary = {
 	"crab":           {"walk": "res://assets/generated/enemy_crab_walk.png",           "attack": "res://assets/generated/enemy_crab_attack.png"},
 	"scarab":         {"walk": "res://assets/generated/enemy_scarab_walk.png",         "attack": "res://assets/generated/enemy_scarab_attack.png"},
 	"mandrake":       {"walk": "res://assets/generated/enemy_mandrake_walk.png",       "attack": "res://assets/generated/enemy_mandrake_attack.png"},
-	
+
 	# ===== NEW TIER 4 =====
 	"drake":          {"walk": "res://assets/generated/enemy_drake_walk.png",          "attack": "res://assets/generated/enemy_drake_attack.png"},
 	"beholder":       {"walk": "res://assets/generated/enemy_beholder_walk.png",       "attack": "res://assets/generated/enemy_beholder_attack.png"},
@@ -76,7 +76,7 @@ const ENEMY_DATA: Dictionary = {
 	"siren":          {"walk": "res://assets/generated/enemy_siren_walk.png",          "attack": "res://assets/generated/enemy_siren_attack.png"},
 	"shadow":         {"walk": "res://assets/generated/enemy_shadow_walk.png",         "attack": "res://assets/generated/enemy_shadow_attack.png"},
 	"banshee":        {"walk": "res://assets/generated/enemy_banshee_walk.png",        "attack": "res://assets/generated/enemy_banshee_attack.png"},
-	
+
 	# ===== NEW TIER 5: Boss =====
 	"dragon":         {"walk": "res://assets/generated/enemy_dragon_walk.png",         "attack": "res://assets/generated/enemy_dragon_attack.png"},
 	"lich_king":      {"walk": "res://assets/generated/enemy_lich_king_walk.png",      "attack": "res://assets/generated/enemy_lich_king_attack.png"},
@@ -108,7 +108,7 @@ const SIZE_DATA: Dictionary = {
 	"frog":     {"scale": 0.7},
 	"bee":      {"scale": 0.7},
 	"wasp":     {"scale": 0.7},
-	
+
 	# ===== SMALL (ölçek 0.85) =====
 	"rat":      {"scale": 0.85},
 	"bat":      {"scale": 0.85},
@@ -119,7 +119,7 @@ const SIZE_DATA: Dictionary = {
 	"imp":      {"scale": 0.85},
 	"crow":     {"scale": 0.85},
 	"mushroom": {"scale": 0.85},
-	
+
 	# ===== MEDIUM (ölçek 1.0 — varsayilan) =====
 	"slime":         {"scale": 1.0},
 	"skeleton":      {"scale": 1.0},
@@ -155,7 +155,7 @@ const SIZE_DATA: Dictionary = {
 	"knight":        {"scale": 1.0},
 	"orc":           {"scale": 1.0},
 	"fire_elemental": {"scale": 1.0},
-	
+
 	# ===== LARGE (ölçek 1.4) =====
 	"minotaur":  {"scale": 1.4},
 	"golem":     {"scale": 1.4},
@@ -170,7 +170,7 @@ const SIZE_DATA: Dictionary = {
 	"chimera":   {"scale": 1.4},
 	"phoenix":   {"scale": 1.4},
 	"necromancer": {"scale": 1.3},
-	
+
 	# ===== HUGE (ölçek 2.0 — bosslar) =====
 	"dragon":       {"scale": 2.2},
 	"lich_king":    {"scale": 1.8},
@@ -210,26 +210,26 @@ static func apply_visuals(anim_sprite: AnimatedSprite2D, enemy_id: String) -> vo
 	var cfg: Dictionary = ENEMY_DATA.get(enemy_id, {})
 	if cfg.is_empty():
 		cfg = ENEMY_DATA.get("orc", {})
-	
+
 	var frames := SpriteFrames.new()
-	
+
 	# 4 yönlü yürüme + idle
 	var walk_tex := _try_load_tex(cfg.get("walk", ""))
 	if walk_tex:
 		_load_4dir_walk(frames, walk_tex)
 		_load_4dir_idle(frames, walk_tex)
-	
+
 	# Saldırı animasyonu
 	var atk_tex := _try_load_tex(cfg.get("attack", ""))
 	if atk_tex:
 		var afw: int = cfg.get("attack_fw", ATTACK_FRAME_W)
 		var afh: int = cfg.get("attack_fh", ATTACK_FRAME_H)
 		_load_attack(frames, atk_tex, afw, afh)
-	
+
 	# Hiçbir animasyon yoksa fallback olarak tek kare ekle
 	if not frames.has_animation("idle_front"):
 		_create_fallback_animation(frames, enemy_id)
-	
+
 	anim_sprite.sprite_frames = frames
 	if frames.has_animation("idle_front"):
 		anim_sprite.animation = "idle_front"
@@ -237,18 +237,18 @@ static func apply_visuals(anim_sprite: AnimatedSprite2D, enemy_id: String) -> vo
 		var names: Array[String] = frames.get_animation_names()
 		if names.size() > 0:
 			anim_sprite.animation = names[0]
-	
+
 	# Boyut olcegi uygula
 	var size_info: Dictionary = SIZE_DATA.get(enemy_id, {})
 	var scale_val: float = size_info.get("scale", 1.0)
 	anim_sprite.scale = Vector2(scale_val, scale_val)
-	
+
 	# Gorsel merkezleme duzeltmesi (sola sıkışmış sprite'lar icin)
 	if size_info.has("offset_x") or size_info.has("offset_y"):
 		var ox: float = size_info.get("offset_x", 0.0)
 		var oy: float = size_info.get("offset_y", 0.0)
 		anim_sprite.offset = Vector2(ox, oy)
-	
+
 	anim_sprite.play()
 
 
@@ -282,13 +282,13 @@ static func _load_4dir_idle(frames: SpriteFrames, tex: Texture2D) -> void:
 static func _load_attack(frames: SpriteFrames, tex: Texture2D, fw: int = ATTACK_FRAME_W, fh: int = ATTACK_FRAME_H) -> void:
 	if not tex:
 		return
-	
+
 	# Her yön kendi satırındaki kareleri kullanır (walk/idle ile aynı sistem)
 	var tex_w: int = tex.get_width()
 	var tex_h: int = tex.get_height()
 	var total_cols: int = maxi(1, int(tex_w / float(fw)))
 	var total_rows: int = maxi(1, int(tex_h / float(fh)))
-	
+
 	for dir_idx in range(mini(4, total_rows)):
 		var aname: String = "attack_%s" % DIR_NAMES[dir_idx]
 		frames.add_animation(aname)

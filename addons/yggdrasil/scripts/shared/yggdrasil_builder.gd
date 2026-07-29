@@ -124,17 +124,17 @@ func build() -> YggdrasilTreeView:
 
 	if _decoration_created_callback:
 		_tree_view.decoration_created.connect(_decoration_created_callback)
-	
+
 	if _node_created_callback:
 		_tree_view.node_created.connect(_node_created_callback)
 	if _node_allocated_callback:
 		_tree_view.node_allocated.connect(_node_allocated_callback)
 	if _node_deallocated_callback:
 		_tree_view.node_deallocated.connect(_node_deallocated_callback)
-	
+
 	if _prefab_created_callback:
 		_tree_view.prefab_created.connect(_prefab_created_callback)
-	
+
 	if _line_created_callback:
 		_tree_view.line_created.connect(_line_created_callback)
 

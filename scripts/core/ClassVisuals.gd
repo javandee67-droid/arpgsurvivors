@@ -1,8 +1,8 @@
 extends Resource
 class_name ClassVisuals
-## Her class için 4 yönlü sprite görselleri (front/back/left/right).
-## Ayakta durma (idle), yürüme (walk), saldırı (attack) animasyonları.
-## Yürüme: 4 yönlü tileset; Saldırı: tek yön (front).
+## Her class icin 4 yonlu sprite gorselleri (front/back/left/right).
+## Ayakta durma (idle), yurume (walk), saldiri (attack) animasyonlari.
+## Yurume: 4 yonlu tileset; Saldiri: tek yon (front).
 
 const CLASS_CONFIG: Dictionary = {
 	"warrior": {
@@ -31,10 +31,10 @@ const CLASS_CONFIG: Dictionary = {
 	},
 }
 
-## Spritesheet satır sırası: 0=back(yukarı), 1=right(sağ), 2=front(aşağı), 3=left(sol)
+## Spritesheet satir sirasi: 0=back(yukari), 1=right(sag), 2=front(asagi), 3=left(sol)
 const DIR_NAMES: Array[String] = ["back", "right", "front", "left"]
 
-## Animasyon frame süreleri (saniye cinsinden) - yavaş ve görünür
+## Animasyon frame sureleri (saniye cinsinden)
 const WALK_SPEED: float = 0.30
 const IDLE_SPEED: float = 0.40
 const ATTACK_SPEED: float = 0.22
@@ -42,23 +42,20 @@ const ATTACK_SPEED: float = 0.22
 # ---------------------------------------------------------------------------
 
 static func apply_class_visuals(animated_sprite: AnimatedSprite2D, class_id: String) -> void:
-	## 4 yönlü walk + idle + attack animasyonlarını yükler.
+	## 4 yonlu walk + idle + attack animasyonlarini yukler.
 	if not animated_sprite:
 		return
 	var cfg: Dictionary = CLASS_CONFIG.get(class_id, {}) as Dictionary
 	if cfg.is_empty():
 		return
-
 	var frames := SpriteFrames.new()
+
+	# Spritesheet tileset'indan yukle
 	var ts_cfg: Dictionary = cfg.get("tileset_4dir", {})
-
-	# 4 yönlü YÜRÜME (walk_front, walk_back, walk_left, walk_right)
 	_load_4dir_walk(frames, ts_cfg)
-
-	# 4 yönlü IDLE (her yönün ilk karesi)
 	_load_4dir_idle(frames, ts_cfg)
 
-	# 4 yönlü ATTACK (tek spritesheet tüm yönlere kopyalanır)
+	# 4 yonlu ATTACK
 	var atk_cfg: Dictionary = cfg.get("attack", {})
 	_load_4dir_attack(frames, atk_cfg)
 
@@ -69,7 +66,7 @@ static func apply_class_visuals(animated_sprite: AnimatedSprite2D, class_id: Str
 # ---------------------------------------------------------------------------
 
 static func _load_4dir_walk(frames: SpriteFrames, ts_cfg: Dictionary) -> void:
-	## Tileset'ın 4 satırından (front/back/left/right) walk animasyonlarını yükler.
+	## Tileset'in 4 satirindan walk animasyonlarini yukler.
 	if ts_cfg.is_empty():
 		return
 	var tex: Texture2D = _load_texture(ts_cfg.get("path", ""))
@@ -90,7 +87,7 @@ static func _load_4dir_walk(frames: SpriteFrames, ts_cfg: Dictionary) -> void:
 			frames.add_frame(aname, at, WALK_SPEED)
 
 static func _load_4dir_idle(frames: SpriteFrames, ts_cfg: Dictionary) -> void:
-	## 4 yönlü yürümenin ilk karesini idle olarak kullanır.
+	## 4 yonlu yurumenin ilk karesini idle olarak kullanir.
 	if ts_cfg.is_empty():
 		return
 	var tex: Texture2D = _load_texture(ts_cfg.get("path", ""))
@@ -105,11 +102,11 @@ static func _load_4dir_idle(frames: SpriteFrames, ts_cfg: Dictionary) -> void:
 		frames.set_animation_loop(aname, true)
 		var at := AtlasTexture.new()
 		at.atlas = tex
-		at.region = Rect2(0, dir_idx * fh, fw, fh)  # İlk kare (col=0)
+		at.region = Rect2(0, dir_idx * fh, fw, fh)
 		frames.add_frame(aname, at, IDLE_SPEED)
 
 static func _load_4dir_attack(frames: SpriteFrames, atk_cfg: Dictionary) -> void:
-	## Attack spritesheet'ini yükler, tüm yönlere aynı front spritesheet'ini kopyalar.
+	## Attack spritesheet'ini yukler, tum yonlere ayni front spritesheet'ini kopyalar.
 	var tex: Texture2D = _load_texture(atk_cfg.get("path", ""))
 	if not tex:
 		return
@@ -117,7 +114,7 @@ static func _load_4dir_attack(frames: SpriteFrames, atk_cfg: Dictionary) -> void
 	var fh: int = atk_cfg.get("fh", 64)
 	var cols: int = atk_cfg.get("cols", 4)
 	var count: int = atk_cfg.get("count", 8)
-	
+
 	var aname_front: String = "attack_front"
 	frames.add_animation(aname_front)
 	frames.set_animation_loop(aname_front, false)
@@ -128,7 +125,7 @@ static func _load_4dir_attack(frames: SpriteFrames, atk_cfg: Dictionary) -> void
 		at.atlas = tex
 		at.region = Rect2(col * fw, row * fh, fw, fh)
 		frames.add_frame(aname_front, at, ATTACK_SPEED)
-	
+
 	for d in ["back", "left", "right"]:
 		var aname: String = "attack_" + d
 		frames.add_animation(aname)
@@ -146,12 +143,12 @@ static func _load_texture(path: String) -> Texture2D:
 	return ResourceLoader.load(path)
 
 static func get_sprite_faces_right(_class_id: String) -> bool:
-	return true  # 4 yönlü sistemde kullanılmıyor
+	return true
 
 static func get_class_icon(class_id: String) -> Texture2D:
 	var cfg: Dictionary = CLASS_CONFIG.get(class_id, {}) as Dictionary
 	return _load_texture(cfg.get("icon", ""))
 
-## Yön index'leri (spritesheet satır sırasıyla eşleşir)
+## Yon index'leri (spritesheet satir sirasiyla eslesir)
 ## 0=BACK, 1=RIGHT, 2=FRONT, 3=LEFT
 enum Dir { BACK = 0, RIGHT = 1, FRONT = 2, LEFT = 3 }

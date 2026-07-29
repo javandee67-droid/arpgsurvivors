@@ -127,7 +127,7 @@ func _run_validation():
 		_warnings.append(WarningEntry.PREALLOCATION_WITHOUT_ALLOCATION)
 	if editor.tree.multiallocation and not editor.tree.allocation:
 		_warnings.append(WarningEntry.MULTIALLOCATION_WITHOUT_ALLOCATION)
-	
+
 	warning_btn.text = str(_warnings.size())
 
 	# Errors
@@ -152,7 +152,7 @@ func _run_validation():
 		_errors.append(ErrorEntry.MEDIUM_NODE_SIZE_INVALID)
 	if editor.tree.node_size[YggdrasilNode.NodeType.LARGE].length_squared() < 2:
 		_errors.append(ErrorEntry.LARGE_NODE_SIZE_INVALID)
-		
+
 	error_btn.text = str(_errors.size())
 
 	visible = _warnings.size() > 0 or _errors.size() > 0

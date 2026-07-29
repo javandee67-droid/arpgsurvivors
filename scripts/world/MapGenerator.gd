@@ -27,45 +27,45 @@ func generate() -> void:
 	decoration_grid.clear()
 	wall_grid.clear()
 	floor_tiles.clear()
-	
+
 	for c in get_children():
 		c.queue_free()
-	
+
 	_load_textures()
-	
+
 	# 1. Zemin grid'ini baslat (tumu GRASS)
 	floor_grid.clear()
 	for x in range(map_width):
 		floor_grid.append([])
 		for y in range(map_height):
 			floor_grid[x].append(FloorType.GRASS)
-	
+
 	# 2. Cevre duvarlari (harita siniri)
 	_generate_border_walls()
-	
+
 	# (VS mod: Ic duvar kumeleri kaldirildi - canavarlar takilmasin)
-	
+
 	# 3. Ozel bolgeler (sadece zemin desenleri, duvar yok)
 	_generate_vs_clearings(8)
 	_generate_grass_patches(15)
 	_generate_dirt_patches(20)
-	
+
 	# 4. Zemin desenleri - cok cesitli
 	_generate_dirt_paths(4)
 	_generate_grass_variation()
 	_generate_earth_patches(40)  # çamur, kumlu toprak, çakıl alanlar
-	
+
 	# 5. Dekorasyonlar - sadece gorsel, fiziksel engel yok
 	_generate_tree_clusters(15)
 	_generate_flower_clusters(12)
 	_generate_scattered_decor(15)
-	
+
 	# 7. Floor goruntuleme
 	_build_floor_visuals()
-	
+
 	# 8. Spawn noktalari
 	_calculate_spawn_points()
-	
+
 	# 9. Merkez bolgeler
 	_calculate_room_centers()
 
@@ -324,44 +324,36 @@ func _build_floor_visuals() -> void:
 		FloorType.CLAY: Color(0.18, 0.12, 0.08),
 	}
 
+	# Arka plan pattern (SADECE 1 KERE)
+	var bg_pattern := ColorRect.new()
+	bg_pattern.name = "BackgroundPattern"
+	bg_pattern.size = Vector2(map_width, map_height) * tile_size
+	bg_pattern.color = Color(0.04, 0.03, 0.05, 1.0)
+	bg_pattern.z_index = -10
+	add_child(bg_pattern)
+
+	# Subtle grid pattern (SADECE 1 KERE)
+	var grid_pattern := Line2D.new()
+	grid_pattern.name = "GridPattern"
+	grid_pattern.z_index = -5
+	grid_pattern.default_color = Color(0.08, 0.06, 0.1, 0.12)
+	grid_pattern.width = 1
+	for gx in range(0, map_width + 1):
+		grid_pattern.add_point(Vector2(gx * tile_size, 0))
+		grid_pattern.add_point(Vector2(gx * tile_size, map_height * tile_size))
+	for gy in range(0, map_height + 1):
+		grid_pattern.add_point(Vector2(0, gy * tile_size))
+		grid_pattern.add_point(Vector2(map_width * tile_size, gy * tile_size))
+	add_child(grid_pattern)
 
 	for x in range(map_width):
 		for y in range(map_height):
 			if _is_wall(x, y):
 				continue
-			
+
 			var ft: int = floor_grid[x][y]
 			var key := str(x) + "," + str(y)
 			floor_tiles[key] = true
-			
-			# Zemin (daha parlak tile)
-
-			# Arka plan pattern katmanı (tile'ların altında hafif doku)
-			var bg_pattern := ColorRect.new()
-			bg_pattern.name = "BackgroundPattern"
-			bg_pattern.size = Vector2(map_width, map_height) * tile_size
-			bg_pattern.color = Color(0.04, 0.03, 0.05, 1.0)  # Çok koyu arka plan
-			bg_pattern.z_index = -10
-			add_child(bg_pattern)
-
-			# Subtle grid pattern (ince çizgiler)
-			var grid_pattern := Line2D.new()
-			grid_pattern.name = "GridPattern"
-			grid_pattern.z_index = -5
-			var grid_color := Color(0.08, 0.06, 0.1, 0.12)  # Çok hafif grid
-			for gx in range(0, map_width + 1):
-				grid_pattern.add_point(Vector2(gx * tile_size, 0))
-				grid_pattern.add_point(Vector2(gx * tile_size, map_height * tile_size))
-				if gx < map_width:
-					grid_pattern.add_point(Vector2(gx * tile_size, map_height * tile_size))
-			for gy in range(0, map_height + 1):
-				grid_pattern.add_point(Vector2(0, gy * tile_size))
-				grid_pattern.add_point(Vector2(map_width * tile_size, gy * tile_size))
-				if gy < map_height:
-					grid_pattern.add_point(Vector2(map_width * tile_size, gy * tile_size))
-			grid_pattern.default_color = grid_color
-			grid_pattern.width = 1
-			add_child(grid_pattern)
 
 			var tex: Texture2D = _floor_textures.get(ft, null)
 			var base_color: Color = colors.get(ft, Color(0.2, 0.18, 0.15))
@@ -370,11 +362,9 @@ func _build_floor_visuals() -> void:
 				spr.texture = tex
 				spr.position = Vector2(x, y) * tile_size + Vector2(half, half)
 				add_child(spr)
-				# Hafif renk varyasyonu (sadece texture yoksa ColorRect ekle)
 			else:
 				var vis := ColorRect.new()
 				vis.size = Vector2(tile_size, tile_size)
-				# Grass tile'lara hafif renk varyasyonu
 				var c: Color = base_color
 				if ft == FloorType.GRASS:
 					c = Color(
@@ -386,9 +376,7 @@ func _build_floor_visuals() -> void:
 				vis.color = c
 				vis.position = Vector2(x, y) * tile_size
 				add_child(vis)
-			
-			# Animasyonlu çimen overlay kaldirildi — beyaz kare/yari-saydam overlay sorununa sebep oluyordu
-			
+
 			# Dekorasyon (statik sprite)
 			if decoration_grid.has(key):
 				var decor := decoration_grid[key] as Dictionary
@@ -400,7 +388,6 @@ func _build_floor_visuals() -> void:
 					spr.z_index = 2
 					add_child(spr)
 				elif decor.type.begins_with("flower"):
-					# Cicek dekorasyonu - gercek sprite
 					var flower_tex: Texture2D = load("res://assets/generated/decor_flowers_frame_0.png") if ResourceLoader.exists("res://assets/generated/decor_flowers_frame_0.png") else null
 					if flower_tex:
 						var fl := Sprite2D.new()
@@ -410,7 +397,6 @@ func _build_floor_visuals() -> void:
 						fl.z_index = 2
 						add_child(fl)
 					else:
-						# Fallback: renkli kucuk nokta
 						var flower_colors: Array[Color] = [Color(1.0, 0.4, 0.7), Color(1.0, 0.9, 0.2), Color(1.0, 0.6, 0.1)]
 						var cr := ColorRect.new()
 						cr.size = Vector2(6, 6)
@@ -461,7 +447,7 @@ func _calculate_room_centers() -> void:
 				cy = randi_range(6, map_height - 6)
 				tries += 1
 		room_centers.append(Vector2(cx, cy) * tile_size)
-	
+
 	if room_centers.size() < 2:
 		var ex := map_width - 15; var ey := map_height - 15
 		var tries := 0

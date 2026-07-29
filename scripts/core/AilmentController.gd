@@ -36,29 +36,29 @@ func _process(delta: float) -> void:
 	# Chill buildup decay
 	if _chill_buildup > 0.0 and not has_effect(StatusEffect.Type.CHILL) and not has_effect(StatusEffect.Type.FREEZE):
 		_chill_buildup = maxf(_chill_buildup - _chill_buildup_decay * delta, 0.0)
-	
+
 	# Electrocute buildup decay
 	if _electrocute_buildup > 0.0 and not has_effect(StatusEffect.Type.SHOCK) and not has_effect(StatusEffect.Type.ELECTROCUTE):
 		_electrocute_buildup = maxf(_electrocute_buildup - _electrocute_buildup_decay * delta, 0.0)
-	
+
 	# Armour break decay (50% per second when not fully broken)
 	if _armour_break_amount > 0.0 and not has_effect(StatusEffect.Type.FULLY_BROKEN):
 		_armour_break_amount = maxf(_armour_break_amount - _armour_break_amount * 0.5 * delta, 0.0)
 		if _armour_break_amount <= 0.0:
 			_armour_break_source_max = 0.0
-	
+
 	if active_effects.is_empty():
 		return
-		
+
 	var is_moving: bool = false
 	# Check if entity is moving (for bleed)
 	if _entity is CharacterBody2D:
 		is_moving = _entity.velocity.length_squared() > 1.0
-	
+
 	var dot_damage_total: float = 0.0
 	var dot_source: Node = null
 	var dot_tags: Array[String] = ["dot"]
-	
+
 	for effect in active_effects:
 		dot_damage_total += effect.tick(delta, is_moving)
 		# Kaynagi ve element tipini efektten al
@@ -66,13 +66,13 @@ func _process(delta: float) -> void:
 			dot_source = effect.source
 		if effect.damage_type and not effect.damage_type in dot_tags:
 			dot_tags.append(effect.damage_type)
-	
+
 	# Apply accumulated DoT damage
 	if dot_damage_total > 0.0 and _entity.has_node("Health"):
 		var health: Health = _entity.get_node("Health")
 		var valid_source: Node = dot_source if (is_instance_valid(dot_source)) else null
 		health.take_damage(dot_damage_total, valid_source, dot_tags)
-	
+
 	# Remove expired effects
 	var before_count = active_effects.size()
 	var removed_types: Array[int] = []
@@ -96,7 +96,7 @@ func apply_effect(effect_type: StatusEffect.Type, magnitude: float, duration: fl
 				StatusEffect.Type.ELECTROCUTE, StatusEffect.Type.BLIND, StatusEffect.Type.MAIM, StatusEffect.Type.HINDER]:
 			if _stats.ailment_duration_on_you > 0.0:
 				duration /= (1.0 + _stats.ailment_duration_on_you / 100.0)
-		
+
 		# Debuff expiry speed: "debuffs on you expire X% faster"
 		if duration > 0.0 and effect_type in [
 				StatusEffect.Type.CHILL, StatusEffect.Type.MAIM, StatusEffect.Type.HINDER,
@@ -104,27 +104,27 @@ func apply_effect(effect_type: StatusEffect.Type, magnitude: float, duration: fl
 				StatusEffect.Type.UNNERVE, StatusEffect.Type.WITHER, StatusEffect.Type.TAUNT]:
 			if _stats.debuff_expiry_speed > 0.0:
 				duration /= (1.0 + _stats.debuff_expiry_speed / 100.0)
-		
+
 		# Slow potency reduction: "X% reduced Slowing Potency of Debuffs on You"
 		if effect_type in [StatusEffect.Type.CHILL, StatusEffect.Type.HINDER, StatusEffect.Type.MAIM]:
 			if _stats.slow_potency_reduction > 0.0:
 				magnitude *= (1.0 - _stats.slow_potency_reduction / 100.0)
-		
+
 		# Buff expiry: "buffs on you expire X% slower"
 		if duration > 0.0 and effect_type in [
 				StatusEffect.Type.BUFF_ONSLAUGHT, StatusEffect.Type.BUFF_FORTIFY,
 				StatusEffect.Type.BUFF_HASTE, StatusEffect.Type.CONSECRATED]:
 			if _stats.buff_expiry_speed > 0.0:
 				duration *= (1.0 + _stats.buff_expiry_speed / 100.0)
-		
+
 		# Buff effect on self: "X% increased effect of Buffs on You"
 		if effect_type in [StatusEffect.Type.BUFF_ONSLAUGHT, StatusEffect.Type.BUFF_FORTIFY,
 				StatusEffect.Type.BUFF_HASTE, StatusEffect.Type.CONSECRATED]:
 			if _stats.buff_effect_self > 0.0:
 				magnitude *= (1.0 + _stats.buff_effect_self / 100.0)
-	
+
 	var stack_mode: StatusEffect.StackMode = _get_stack_mode(effect_type)
-	
+
 	# Handle stacking logic
 	match stack_mode:
 		StatusEffect.StackMode.NONE:
@@ -135,24 +135,24 @@ func apply_effect(effect_type: StatusEffect.Type, magnitude: float, duration: fl
 						return  ## Existing is stronger
 					active_effects.erase(existing)
 					break
-		
+
 		StatusEffect.StackMode.REFRESH:
 			for existing in active_effects:
 				if existing.effect_type == effect_type:
 					existing.duration = maxf(existing.duration, duration)
 					existing.total_duration = existing.duration
 					return
-		
+
 		StatusEffect.StackMode.INDEPENDENT:
 			pass  ## Always add a new instance
-		
+
 		StatusEffect.StackMode.ADDITIVE:
 			for existing in active_effects:
 				if existing.effect_type == effect_type:
 					existing.magnitude = minf(existing.magnitude + magnitude, _get_cap(effect_type))
 					existing.duration = maxf(existing.duration, duration)
 					return
-	
+
 	var effect := StatusEffect.new()
 	effect.configure(effect_type, magnitude, duration, source, tags, aggravated)
 	active_effects.append(effect)
@@ -196,7 +196,7 @@ func get_defender_stats() -> CharacterStats:
 func add_chill_buildup(amount: float, freeze_duration_mult: float = 1.0) -> void:
 	if is_frozen():
 		return  # Zaten donuksa tekrar biriktirme
-	
+
 	_chill_buildup += amount
 	if _chill_buildup >= CHILL_FREEZE_THRESHOLD:
 		# Donma suresi: birikme miktarina bagli x attacker's freeze_duration bonus
@@ -211,7 +211,7 @@ func add_chill_buildup(amount: float, freeze_duration_mult: float = 1.0) -> void
 func add_electrocute_buildup(amount: float, elec_duration_mult: float = 1.0) -> void:
 	if is_electrocuted():
 		return  # Zaten elektriklenmisse tekrar biriktirme
-	
+
 	_electrocute_buildup += amount
 	if _electrocute_buildup >= ELECTROCUTE_THRESHOLD:
 		# Paraliz suresi: chill'den daha kisa (0.5-2.0sn)
@@ -232,10 +232,10 @@ func add_armour_break(amount: float, max_armour: float, duration: float = 4.0) -
 		return  # Armour yoksa break de olmaz
 	if has_effect(StatusEffect.Type.FULLY_BROKEN):
 		return  # Zaten fully broken
-	
+
 	_armour_break_source_max = maxf(_armour_break_source_max, max_armour)
 	_armour_break_amount += amount
-	
+
 	if _armour_break_amount >= _armour_break_source_max:
 		apply_effect(StatusEffect.Type.FULLY_BROKEN, 1.0, duration)
 		_armour_break_amount = 0.0
@@ -304,7 +304,7 @@ func _update_sprite_tint() -> void:
 	var sprite: Node = _entity.get_node_or_null("AnimatedSprite2D") if _entity else null
 	if not sprite or not sprite is CanvasItem:
 		return
-	
+
 	# En oncelikli efektten renk sec
 	if has_effect(StatusEffect.Type.FREEZE):
 		sprite.modulate = Color(0.7, 0.8, 1.2)  # Buz mavisi

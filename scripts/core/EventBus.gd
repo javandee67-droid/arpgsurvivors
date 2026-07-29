@@ -14,6 +14,7 @@ signal skill_damage(skill_id: String, amount: float, tags: Array)
 signal level_up(new_level: int, position: Vector2)
 signal boss_encounter(boss_name: String, position: Vector2)
 signal boss_killed(boss_name: String, position: Vector2)
+signal damage_number_spawned(text: String, position: Vector2, color: Color, is_crit: bool)
 
 ## payload formatı (Dictionary kullanıyoruz, class oluşturmaya gerek yok):
 ## {

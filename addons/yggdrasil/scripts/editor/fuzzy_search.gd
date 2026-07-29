@@ -170,7 +170,7 @@ func _is_lowercase(s: String) -> bool:
 class FuzzySearchToken:
 	const Yggdrasil = preload("res://addons/yggdrasil/scripts/shared/yggdrasil.gd")
 	const FuzzySearch = Yggdrasil.FuzzySearch
-	
+
 	var idx: int = -1
 	var string: String = ""
 
@@ -219,7 +219,7 @@ class FuzzySearchToken:
 class FuzzyTokenMatch:
 	const Yggdrasil = preload("res://addons/yggdrasil/scripts/shared/yggdrasil.gd")
 	const FuzzySearch = Yggdrasil.FuzzySearch
-	
+
 	var score: int = 0
 	var substrings: Array[Vector2i] = [] # x: start index, y: length
 
@@ -261,7 +261,7 @@ class FuzzyTokenMatch:
 class FuzzySearchResult:
 	const Yggdrasil = preload("res://addons/yggdrasil/scripts/shared/yggdrasil.gd")
 	const FuzzySearch = Yggdrasil.FuzzySearch
-	
+
 	var target: String = ""
 	var score: int = 0
 	var original_index: int = -1

@@ -14,7 +14,7 @@ func _enter_tree():
 func _update_icon():
 	if not Engine.is_editor_hint():
 		return
-	
+
 	if EditorInterface.get_editor_theme().has_icon(icon_name, Yggdrasil.ICON_THEME):
 		icon = EditorInterface.get_editor_theme().get_icon(icon_name, Yggdrasil.ICON_THEME)
 	else:

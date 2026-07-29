@@ -14,14 +14,14 @@ const AFFIX_POOL = {
 	"armour_percent": {"min": 1.0, "max": 40.0, "pct": true, "types": ["helmet", "body_armour"]},
 	"evasion": {"min": 3.0, "max": 3000.0, "pct": false, "types": ["helmet", "body_armour", "gloves", "boots"]},
 	"evasion_percent": {"min": 1.0, "max": 40.0, "pct": true, "types": ["helmet", "body_armour"]},
-	
+
 	# === DIRENCLER (5) ===
 	"fire_resistance": {"min": 2.0, "max": 200.0, "pct": false, "types": []},
 	"cold_resistance": {"min": 2.0, "max": 200.0, "pct": false, "types": []},
 	"lightning_resistance": {"min": 2.0, "max": 200.0, "pct": false, "types": []},
 	"chaos_resistance": {"min": 2.0, "max": 150.0, "pct": false, "types": []},
 	"all_resistance": {"min": 1.0, "max": 50.0, "pct": false, "types": []},
-	
+
 	# === HASAR AFFIX'LERI (12) ===
 	"physical_damage": {"min": 2.0, "max": 600.0, "pct": false, "types": ["weapon", "gloves"]},
 	"physical_damage_percent": {"min": 3.0, "max": 200.0, "pct": true, "types": ["weapon"]},
@@ -34,25 +34,25 @@ const AFFIX_POOL = {
 	"damage_over_time": {"min": 3.0, "max": 100.0, "pct": true, "types": ["weapon", "gloves"]},
 	"projectile_damage": {"min": 3.0, "max": 120.0, "pct": true, "types": ["weapon", "gloves"]},
 	"area_damage": {"min": 3.0, "max": 100.0, "pct": true, "types": ["weapon"]},
-	
+
 	# === ADDS DAMAGE (5) — silahlara flat hasar ekler, range olarak gösterilir ===
 	"adds_physical_damage": {"min": 3.0, "max": 600.0, "pct": false, "types": ["weapon", "gloves", "offhand", "amulet"]},
 	"adds_fire_damage": {"min": 3.0, "max": 400.0, "pct": false, "types": ["weapon", "gloves", "offhand", "amulet"]},
 	"adds_cold_damage": {"min": 3.0, "max": 400.0, "pct": false, "types": ["weapon", "gloves", "offhand", "amulet"]},
 	"adds_lightning_damage": {"min": 3.0, "max": 400.0, "pct": false, "types": ["weapon", "gloves", "offhand", "amulet"]},
 	"adds_chaos_damage": {"min": 2.0, "max": 250.0, "pct": false, "types": ["weapon", "offhand", "amulet"]},
-	
+
 	# === KRITIK (3) ===
 	"critical_chance": {"min": 0.5, "max": 25.0, "pct": false, "types": ["weapon", "gloves"]},
 	"critical_multiplier": {"min": 5.0, "max": 200.0, "pct": false, "types": ["weapon", "amulet"]},
 	# "critical_chance_spells": {"min": 0.5, "max": 20.0, "pct": false, "types": ["weapon", "offhand"]}, kaldirildi
-	
+
 	# === HIZ (4) ===
 	"attack_speed": {"min": 1.0, "max": 60.0, "pct": true, "types": ["weapon", "gloves"]},
 	"cast_speed": {"min": 1.0, "max": 60.0, "pct": true, "types": ["weapon", "amulet"]},
 	"movement_speed": {"min": 1.0, "max": 50.0, "pct": true, "types": ["boots"]},
 	"cooldown_recovery": {"min": 3.0, "max": 80.0, "pct": true, "types": ["amulet", "belt"]},
-	
+
 	# === YENILENME / EMME (6) ===
 	"life_regen": {"min": 1.0, "max": 80.0, "pct": true, "types": []},
 	"mana_regen": {"min": 3.0, "max": 100.0, "pct": true, "types": []},
@@ -60,18 +60,18 @@ const AFFIX_POOL = {
 	"life_leech": {"min": 0.1, "max": 15.0, "pct": false, "types": ["weapon", "gloves"]},
 	"mana_leech": {"min": 0.1, "max": 10.0, "pct": false, "types": ["weapon"]},
 	"life_gain_on_hit": {"min": 1.0, "max": 80.0, "pct": false, "types": ["weapon", "gloves"]},
-	
+
 	# === SAVUNMA (4) ===
 	"attack_block_chance": {"min": 1.0, "max": 25.0, "pct": false, "types": ["offhand"]},
 	"spell_block_chance": {"min": 1.0, "max": 20.0, "pct": false, "types": ["offhand"]},
 	"attack_dodge_chance": {"min": 1.0, "max": 20.0, "pct": false, "types": ["boots"]},
 	# spell_dodge_chance removed - spells can't be dodged
-	
+
 	# === NITELIK (3) ===
 	"strength": {"min": 3.0, "max": 300.0, "pct": false, "types": []},
 	"dexterity": {"min": 3.0, "max": 300.0, "pct": false, "types": []},
 	"intelligence": {"min": 3.0, "max": 300.0, "pct": false, "types": []},
-	
+
 	# === UTILITY (5) ===
 	"item_rarity": {"min": 3.0, "max": 120.0, "pct": true, "types": []},
 	"item_quantity": {"min": 3.0, "max": 80.0, "pct": true, "types": []},
@@ -122,16 +122,16 @@ const NAME_SUFFIXES := [
 static func _generate_name(item: ItemData) -> void:
 	var r: String = item.rarity
 	var base_name: String = item.display_name
-	
+
 	if r == "normal":
 		if randi() % 3 == 0:
 			item.display_name = "%s %s" % [NAME_PREFIXES[randi() % NAME_PREFIXES.size()], base_name]
 		return
-	
+
 	if r == "magic":
 		var prefix: String = NAME_PREFIXES[randi() % NAME_PREFIXES.size()]
 		item.display_name = "%s %s" % [prefix, base_name]
-	
+
 	elif r == "rare" or r == "unique":
 		var prefix: String = NAME_PREFIXES[randi() % NAME_PREFIXES.size()]
 		var suffix: String = NAME_SUFFIXES[randi() % NAME_SUFFIXES.size()]
@@ -143,7 +143,7 @@ static func generate_item(base_item: ItemData, tier: int, rarity_boost: float = 
 	# Item level'ı tier'a göre ayarla (1-100 arası)
 	item.item_level = tier * 10 + randi_range(1, 9)
 	item.required_level = maxi(1, tier * 2 - 1)
-	
+
 	# Base statları item_level'e göre scale et
 	# Yüksek level item = daha yüksek base hasar/zırh ve stat gereksinimi
 	var _lvl: float = float(item.item_level)
@@ -160,7 +160,7 @@ static func generate_item(base_item: ItemData, tier: int, rarity_boost: float = 
 	item.required_strength = maxi(0, roundi(item.required_strength * _req_scale))
 	item.required_dexterity = maxi(0, roundi(item.required_dexterity * _req_scale))
 	item.required_intelligence = maxi(0, roundi(item.required_intelligence * _req_scale))
-	
+
 	# Unique rarity → UniqueItemRegistry'den önceden tanımlı item kullan
 	if item.rarity == "unique":
 		var unique_item := UniqueItemRegistry.get_random()
@@ -193,7 +193,7 @@ static func generate_item(base_item: ItemData, tier: int, rarity_boost: float = 
 			return u
 		# Fallback: unique yoksa rare'e düş
 		item.rarity = "rare"
-	
+
 	_generate_name(item)
 
 	var base_affixes: Array[Affix] = []
@@ -265,7 +265,7 @@ static func _roll_affix(stat_name: String, tier: int) -> Affix:
 	# T1=best (en yüksek değerler), T99=worst (en düşük değerler)
 	# T1 → ratio=1.0 (max_v'ye yakın), T99 → ratio=0.05 (min_v'ye yakın)
 	var tier_ratio: float = clamp(float(MAX_TIER - tier + 1) / float(MAX_TIER), 0.05, 1.0)
-	
+
 	# BUG FIX: T1 gibi iyi tier'lar düşük değer alamamalı
 	# accessible_min da tier_ratio'ya göre yükselsin
 	# T1 için accessible_min = max_v * 0.75 (maksimumun %75'i)
@@ -352,7 +352,7 @@ static func _parse_gain_as_extra(raw_text: String) -> Dictionary:
 	var pct := match.get_string(1).to_float()
 	var source := match.get_string(2).strip_edges().to_lower()
 	var target := match.get_string(3).strip_edges().to_lower()
-	
+
 	# Kaynak ve hedef türlerini normalize et
 	var src_map: Dictionary = {
 		"physical damage": "physical",
@@ -396,19 +396,19 @@ static func _load_passive_affix_pool() -> void:
 	if _passive_pool_loaded:
 		return
 	_passive_pool_loaded = true
-	
+
 	var file := FileAccess.open("res://data/passive_skill_tree.json", FileAccess.READ)
 	if not file:
 		push_error("Passive tree JSON yüklenemedi!")
 		return
-	
+
 	var json_str := file.get_as_text()
 	var json := JSON.new()
 	var err := json.parse(json_str)
 	if err != OK:
 		push_error("Passive tree JSON parse hatasi: ", err)
 		return
-	
+
 	var data: Dictionary = json.data
 	# Ana ağaç + ascendancy node'larını tara
 	for nodes_key in ["nodes", "ascendancy_nodes"]:
@@ -422,7 +422,7 @@ static func _load_passive_affix_pool() -> void:
 					continue
 				var key: String = mod.get("key", "")
 				var raw_txt: String = mod.get("raw", "")
-				
+
 				if not key.is_empty() and key not in _PASSIVE_SKIP_KEYS:
 					# Normal stat-based mod
 					var stat_name: String = _PASSIVE_KEY_MAP.get(key, key)
@@ -447,18 +447,18 @@ static func _load_passive_affix_pool() -> void:
 							"raw": raw_txt,
 							"raw_text": parsed["display_text"],
 						})
-	
+
 	print("Passive affix havuzu: %d adet modifier yüklendi" % _passive_affix_pool.size())
 
 static func _add_passive_affix(item: ItemData) -> void:
 	"""Her unique item'a pasif ağacından rastgele 1 node bonusunu affix olarak ekler"""
-	
+
 	_load_passive_affix_pool()
 	if _passive_affix_pool.is_empty():
 		return
-	
+
 	var entry: Dictionary = _passive_affix_pool[randi() % _passive_affix_pool.size()]
-	
+
 	var aff := Affix.new()
 	aff.stat_name = entry["stat_name"]
 	aff.value = entry["value"]
@@ -466,7 +466,7 @@ static func _add_passive_affix(item: ItemData) -> void:
 	aff.tier = 1  # Passive node bonusu — en iyi tier işareti
 	aff.is_passive = true  # Tooltip'te ⭐ işareti göster
 	aff.raw_text = entry.get("raw_text", entry.get("raw", ""))
-	
+
 	item.affixes.append(aff)
 	print("✨ Unique item'a pasif affix eklendi: ⭐%s = %s" % [entry["stat_name"], entry["raw"]])
 
@@ -481,7 +481,7 @@ static func _roll_rarity(rarity_boost: float = 0.0) -> String:
 		weights["magic"] += half_shift
 		weights["rare"] += half_shift * 0.6
 		weights["unique"] += half_shift * 0.4
-	
+
 	var total: float = 0.0
 	for w in weights.values():
 		total += w

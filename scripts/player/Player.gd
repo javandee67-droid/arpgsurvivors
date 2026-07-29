@@ -29,8 +29,8 @@ var _skill_cooldowns: Dictionary = {}
 ## Attack animasyonu ne kadar süre daha oynasın (saniye)
 var _attack_anim_timer: float = 0.0
 
-## VS (Vampire Survivors) sistemi: otomatik ates eden skill'ler
-var vs_skills: Array[String] = []
+## Otomatik ates eden skill'ler
+var auto_skills: Array[String] = []
 ## Skill seviyeleri: {skill_path: level}
 var _skill_levels: Dictionary = {}
 ## Auto attack timer (basic attack)
@@ -100,8 +100,8 @@ func _ready() -> void:
 	
 	# Skill Gem Panel toggle (K tusu)
 	if InputMap.has_action("toggle_skill_gem_panel"):
-	if not InputMap.action_get_events("toggle_skill_gem_panel").is_empty():
-	InputMap.action_add_event("toggle_skill_gem_panel", InputEventKey.new())
+		if not InputMap.action_get_events("toggle_skill_gem_panel").is_empty():
+			InputMap.action_add_event("toggle_skill_gem_panel", InputEventKey.new())
 	# Lit aydınlatma: AnimatedSprite2D'ye alıcı materyali ata
 	_setup_lit_receiver()
 	
@@ -431,11 +431,14 @@ func _try_basic_attack() -> void:
 		as_mult = _skill_instance.get_final_stat("attack_speed", as_mult)
 	if as_mult <= 0.0:
 		as_mult = 0.01
-	_attack_anim_timer = 0.4 / as_mult
+	# Attack animasyonu — daha yavas ve gorunur
+	var anim_speed: float = maxf(0.5, as_mult * 0.8)
+	_attack_anim_timer = 1.2 / anim_speed
 	if animated_sprite and animated_sprite.sprite_frames:
 		var atk_anim: String = _get_dir_anim("attack", _last_dir)
 		if animated_sprite.sprite_frames.has_animation(atk_anim):
 			animated_sprite.play(atk_anim)
+			animated_sprite.speed_scale = maxf(0.4, anim_speed * 0.3)
 
 func _try_basic_attack_key(_approach_type: String = "melee_distance") -> void:
 	"""Space tusu ile en yakin dusmani bul, yeterince yakinsa vur."""
@@ -477,11 +480,13 @@ func _try_basic_attack_at(enemy: Node) -> void:
 		as_mult = _skill_instance.get_final_stat("attack_speed", as_mult)
 	if as_mult <= 0.0:
 		as_mult = 0.01
-	_attack_anim_timer = 0.4 / as_mult
+	var anim_speed2: float = maxf(0.5, as_mult * 0.8)
+	_attack_anim_timer = 1.2 / anim_speed2
 	if animated_sprite and animated_sprite.sprite_frames:
 		var atk_anim: String = _get_dir_anim("attack", _last_dir)
 		if animated_sprite.sprite_frames.has_animation(atk_anim):
 			animated_sprite.play(atk_anim)
+			animated_sprite.speed_scale = maxf(0.4, anim_speed2 * 0.3)
 
 # ================== VS OTOMATIK SALDIRI ==================
 
@@ -533,7 +538,7 @@ func _vs_auto_attack() -> void:
 func _vs_auto_cast_skill(skill_path: String) -> void:
 	"""Bir skill'i en yakin dusmana otomatik atesle."""
 	if not ResourceLoader.exists(skill_path):
-		vs_skills.erase(skill_path)
+		auto_skills.erase(skill_path)
 		return
 	
 	var skill_data: SkillData = _get_skill_data_from_setup(skill_path)
@@ -572,6 +577,19 @@ func _vs_auto_cast_skill(skill_path: String) -> void:
 	if skill_data.cooldown > 0.0:
 		_skill_cooldowns[skill_path] = adjusted_cd
 	
+	# Uzaklik kontrolu — skill menzili varsa cok yakindan atma
+	var min_range: float = skill_data.melee_range
+	if min_range <= 0.0:
+		min_range = 50.0
+	if skill_data.skill_type == SkillData.SkillType.PROJECTILE or skill_data.skill_type == SkillData.SkillType.AOE:
+		min_range = 80.0
+	var dist_to_enemy: float = global_position.distance_to(nearest.global_position)
+	if dist_to_enemy < min_range:
+		# Cok yakindaysa skill atma, normal saldiri yap
+		_vs_auto_attack()
+		_auto_skill_timers[skill_path] = adjusted_cd
+		return
+
 	# Skill tipine gore yonlendir — her skill benzersiz mekanik
 	match skill_data.id:
 		"fire_bolt":
@@ -1631,7 +1649,7 @@ func _process(delta: float) -> void:
 			_vs_auto_attack()
 		
 		# Auto skill cast
-		for skill_path in vs_skills:
+		for skill_path in auto_skills:
 			if not _auto_skill_timers.has(skill_path):
 				_auto_skill_timers[skill_path] = 0.0
 			_auto_skill_timers[skill_path] -= delta
@@ -1773,7 +1791,10 @@ func _cast_fireball(skill_data: SkillData) -> void:
 	var dmg: float = dmg_arr[0] as float
 	
 	# SkillInstance ile support gem'leri uygula (fireball skill path'inden)
-	var fireball_path: String = hotbar[_find_hotbar_idx("fireball")]
+	var fb_idx: int = _find_hotbar_idx("fireball")
+	if fb_idx < 0 or fb_idx >= hotbar.size():
+		return
+	var fireball_path: String = hotbar[fb_idx]
 	var fireball_supports: Array[SupportData] = _get_active_supports_for_skill(fireball_path)
 	var si_fb: SkillInstance = SkillInstance.new(skill_data, fireball_supports)
 	var si_total: float = si_fb.get_total_damage(_get_base_damage_for_skill)
@@ -1788,7 +1809,10 @@ func _cast_fireball(skill_data: SkillData) -> void:
 	var proj_instance := _basic_projectile_scene.instantiate() as Projectile
 	if not proj_instance:
 		return
-	get_parent().add_child(proj_instance)
+	var scene_root: Node = get_tree().current_scene
+	if not scene_root:
+		return
+	scene_root.add_child(proj_instance)
 	proj_instance.global_position = global_position
 	proj_instance.speed = 400.0
 	if stats and stats.projectile_speed > 0.0:
@@ -1816,7 +1840,9 @@ func _cast_fireball(skill_data: SkillData) -> void:
 			var dir: Vector2 = base_dir_fb.rotated(angle_off)
 			var offset_pos: Vector2 = global_position + dir * 16.0
 			var extra_fb := _basic_projectile_scene.instantiate()
-			get_parent().add_child(extra_fb)
+			if not scene_root:
+				continue
+			scene_root.add_child(extra_fb)
 			extra_fb.global_position = offset_pos
 			extra_fb.speed = proj_instance.speed
 			extra_fb.lifetime = 1.5
@@ -1995,11 +2021,13 @@ func _cast_slice_wave(skill_data: SkillData, auto_target: Node = null) -> void:
 	as_mult = si_sw.get_final_stat("cast_speed", as_mult)
 	if as_mult <= 0.0:
 		as_mult = 0.01
-	_attack_anim_timer = 0.3 / as_mult
+	var anim_speed3: float = maxf(0.5, as_mult * 0.8)
+	_attack_anim_timer = 1.2 / anim_speed3
 	if animated_sprite and animated_sprite.sprite_frames:
 		var atk_anim: String = _get_dir_anim("attack", _last_dir)
 		if animated_sprite.sprite_frames.has_animation(atk_anim):
 			animated_sprite.play(atk_anim)
+			animated_sprite.speed_scale = maxf(0.4, anim_speed3 * 0.3)
 	# Momentum: her skill kullaniminda yigin ekle
 	_add_momentum_stack()
 
@@ -2133,7 +2161,12 @@ func _spawn_dash_trail() -> void:
 	ghost.rotation = animated_sprite.rotation
 	ghost.z_index = -1  # player'ın arkasında
 	ghost.modulate = Color(0.4, 0.6, 1.0, 0.7)  # mavimsi yarı saydam
-	get_parent().add_child(ghost)
+	var dash_root: Node = get_tree().current_scene
+	if dash_root:
+		dash_root.add_child(ghost)
+	else:
+		ghost.queue_free()
+		return
 	
 	# Ghost'u yavaşça kaybolacak şekilde tweenle
 	var tw := create_tween().set_parallel()
@@ -2152,7 +2185,12 @@ func _spawn_dash_finish_effect() -> void:
 	flash.position = global_position
 	flash.z_index = 3
 	flash.modulate = Color(0.3, 0.6, 1.0, 0.6)
-	get_parent().add_child(flash)
+	var dash_root: Node = get_tree().current_scene
+	if dash_root:
+		dash_root.add_child(flash)
+	else:
+		flash.queue_free()
+		return
 	var tw2 := create_tween()
 	tw2.tween_property(flash, "modulate:a", 0.0, 0.3)
 	tw2.tween_callback(flash.queue_free)
@@ -2838,3 +2876,72 @@ func _cast_holy_nova_vs(skill_data: SkillData, target: Node, skill_path: String)
 				_trigger_aftermath()
 
 	# Hasarın %20'sini cana çevir
+
+
+func _trigger_aftermath() -> void:
+	"""Stub: Aftermath trigger - TODO implement"""
+	pass
+
+
+func _is_any_ui_open() -> bool:
+	"""Skill tree veya gem panel acik mi kontrol et."""
+	var main := get_tree().current_scene
+	if main and main.has_method("get_skill_tree_instance"):
+		var st = main.get_skill_tree_instance()
+		if st and st.visible:
+			return true
+	var sgp := get_tree().root.get_node_or_null("SkillGemPanelLayer") as CanvasLayer
+	if sgp and sgp.has_method("is_open") and sgp.is_open():
+		return true
+	return false
+
+
+func _cast_thunder_strike_vs(skill_data: SkillData, target: Node, skill_path: String) -> void:
+	"""Stub: Thunder Strike VS - TODO implement"""
+	pass
+
+
+func _cast_frost_explosion_vs(skill_data: SkillData, target: Node, skill_path: String) -> void:
+	"""Stub: Frost Explosion VS - TODO implement"""
+	pass
+
+
+func _add_momentum_stack() -> void:
+	"""Stub: Momentum stack - TODO implement"""
+	pass
+
+
+func _refresh_infernal_circle_supports(skill_path: String) -> void:
+	"""Stub: Refresh infernal circle supports - TODO implement"""
+	pass
+
+
+func _process_infernal_circle_drain(delta: float) -> void:
+	"""Stub: Infernal circle drain - TODO implement"""
+	pass
+
+
+func _trigger_last_breath() -> void:
+	"""Stub: Last breath trigger - TODO implement"""
+	pass
+
+
+func _toggle_buff_skill(skill_data: SkillData, skill_path: String) -> void:
+	"""Stub: Toggle buff/aura skill - TODO implement"""
+	pass
+
+
+func _toggle_infernal_circle(skill_data: SkillData, skill_path: String) -> void:
+	"""Stub: Toggle infernal circle - TODO implement"""
+	pass
+
+
+func _find_hotbar_idx(skill_name: String) -> int:
+	"""Find hotbar index by skill name."""
+	for i in range(hotbar.size()):
+		var sp := hotbar[i]
+		if not sp.is_empty():
+			var sd: SkillData = _get_skill_data_from_setup(sp)
+			if sd and sd.name.to_lower() == skill_name.to_lower():
+				return i
+	return -1

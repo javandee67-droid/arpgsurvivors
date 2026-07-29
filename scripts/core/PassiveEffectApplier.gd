@@ -9,7 +9,7 @@ func apply_modifiers(modifiers_json: String, stats: CharacterStats, remove: bool
 	"""Apply or remove modifiers from a JSON array of modifiers."""
 	if modifiers_json.is_empty():
 		return
-	
+
 	var p = JSON.new()
 	var err = p.parse(modifiers_json)
 	if err != OK:
@@ -17,17 +17,17 @@ func apply_modifiers(modifiers_json: String, stats: CharacterStats, remove: bool
 	var mods: Array = p.get_data()
 	if mods.is_empty():
 		return
-	
+
 	var increased: Dictionary = {}
 	var flat_base: Dictionary = {}
 	var flat_mod: Dictionary = {}
-	
+
 	for m in mods:
 		if not (m is Dictionary): continue
 		var mtype: String = m.get("type", "")
 		var key: String = m.get("key", "")
 		var val: float = m.get("value", 0.0)
-		
+
 		match mtype:
 			"increased":
 				increased[key] = increased.get(key, 0.0) + val
@@ -50,9 +50,9 @@ func apply_modifiers(modifiers_json: String, stats: CharacterStats, remove: bool
 						flat_mod["armour_elemental_pct"] = flat_mod.get("armour_elemental_pct", 0.0) + aae_pct
 				if raw.find("% to maximum") >= 0 and raw.find("resistance") >= 0:
 					_parse_max_resistance(raw, flat_mod)
-	
+
 	var sign = -1.0 if remove else 1.0
-	
+
 	# Apply flat_base
 	for key in flat_base:
 		var v: float = flat_base[key] * sign
@@ -92,7 +92,7 @@ func apply_modifiers(modifiers_json: String, stats: CharacterStats, remove: bool
 			"attack_speed": increased["attack_speed"] = increased.get("attack_speed", 0.0) + v
 			"cast_speed": increased["cast_speed"] = increased.get("cast_speed", 0.0) + v
 			"mana_regen": stats.base_mana_regen += v
-	
+
 	# Apply increased
 	for key in increased:
 		var v: float = increased[key] * sign
@@ -100,7 +100,7 @@ func apply_modifiers(modifiers_json: String, stats: CharacterStats, remove: bool
 			stats._passive_increased_mods[key] = stats._passive_increased_mods[key] + v
 		else:
 			stats._passive_increased_mods[key] = v
-	
+
 	# Apply flat_mod
 	for key in flat_mod:
 		var v: float = flat_mod[key] * sign
@@ -108,7 +108,7 @@ func apply_modifiers(modifiers_json: String, stats: CharacterStats, remove: bool
 			stats._passive_flat_mods[key] = stats._passive_flat_mods[key] + v
 		else:
 			stats._passive_flat_mods[key] = v
-	
+
 	stats.recalculate()
 
 
@@ -124,7 +124,7 @@ func _parse_unknown_raw_text(raw: String, increased: Dictionary, flat_mod: Dicti
 		if "cannot be stunned" in rl: flat_mod["cannot_be_stunned"] = 1.0
 		if "cannot be poisoned" in rl: flat_mod["cannot_be_poisoned"] = 1.0
 		return
-	
+
 	if "surrounded" in rl:
 		var key := ""
 		if "damage" in rl: key = "surrounded_damage"
@@ -133,14 +133,14 @@ func _parse_unknown_raw_text(raw: String, increased: Dictionary, flat_mod: Dicti
 		else: key = "surrounded_all_damage"
 		increased[key] = increased.get(key, 0.0) + val
 		return
-	
+
 	if "fully broken" in rl or "fully armour break" in rl:
 		if "fire damage taken" in rl: flat_mod["fully_broken_fire_dmg_taken"] = 1.0
 		if "cold and lightning damage taken" in rl: flat_mod["fully_broken_cold_lightning_taken"] = 1.0
 		if "cannot regenerate life" in rl: flat_mod["fully_broken_no_regen"] = 1.0
 		if "are maimed" in rl: flat_mod["maim_on_armourbreak"] = 1.0
 		return
-	
+
 	# ---- CONDITIONAL: "while dual wielding" — özel key'ler kullan, generic'e düşme ----
 	if "while dual wielding" in rl:
 		var sign_dw = -1.0 if "reduced" in rl else 1.0
@@ -151,7 +151,7 @@ func _parse_unknown_raw_text(raw: String, increased: Dictionary, flat_mod: Dicti
 		elif "critical hit chance" in rl or "crit chance" in rl: increased["critical_chance_dual_wield"] = increased.get("critical_chance_dual_wield", 0.0) + v_dw
 		elif "movement speed" in rl: increased["movement_speed_dual_wield"] = increased.get("movement_speed_dual_wield", 0.0) + v_dw
 		return
-	
+
 	# ---- CONDITIONAL: "while shapeshifted" ----
 	if "while shapeshifted" in rl:
 		if "physical" in rl and "damage" in rl: increased["physical_damage"] = increased.get("physical_damage", 0.0) + val
@@ -161,19 +161,19 @@ func _parse_unknown_raw_text(raw: String, increased: Dictionary, flat_mod: Dicti
 		elif "cast speed" in rl: increased["cast_speed"] = increased.get("cast_speed", 0.0) + val
 		elif "mana" in rl and "regen" in rl: increased["mana_regen_rate"] = increased.get("mana_regen_rate", 0.0) + val
 		return
-	
+
 	# Generic increased/reduced parsing
 	var is_increased := false
 	var is_reduced := false
 	if "increased" in rl: is_increased = true
 	if "reduced" in rl: is_reduced = true
-	
+
 	# ---- SPECIAL: "gain X% of damage as extra Y" MUST be checked BEFORE flat-only return
 	# AND before the "AGAINST" check, because gain+extra text can also contain "against" (e.g. "against Frozen Enemies")
 	if "gain" in rl and "extra" in rl and "damage" in rl:
 		_parse_extra_damage(rl, val, flat_mod)
 		return
-	
+
 	# ---- "AGAINST" conditional damage patterns: "X% increased damage against Y" ----
 	# Also handle "X% increased damage with hits against Y"
 	if "against" in rl and ("damage" in rl):
@@ -184,7 +184,7 @@ func _parse_unknown_raw_text(raw: String, increased: Dictionary, flat_mod: Dicti
 			increased[cond_key] = increased.get(cond_key, 0.0) + val * sign2
 			return
 		# Fall through to generic damage parser for simple cases
-	
+
 	if not is_increased and not is_reduced:
 		# Flat modifiers
 		if "to maximum life" in rl: flat_mod["base_life"] = flat_mod.get("base_life", 0.0) + val
@@ -213,11 +213,11 @@ func _parse_unknown_raw_text(raw: String, increased: Dictionary, flat_mod: Dicti
 			# X% chance to Y on hit
 			_parse_chance_on_hit(rl, val, flat_mod)
 		return
-	
+
 	# Increased/Reduced parsing
 	var sign = -1.0 if is_reduced else 1.0
 	var v = val * sign
-	
+
 	# ---- CHANCE TO INFLICT patterns: "X% increased chance to inflict Y" ----
 	if "chance to" in rl and ("inflict" in rl or "apply" in rl):
 		if "ailment" in rl: increased["ailment_chance"] = increased.get("ailment_chance", 0.0) + v
@@ -233,13 +233,13 @@ func _parse_unknown_raw_text(raw: String, increased: Dictionary, flat_mod: Dicti
 		elif "hinder" in rl: flat_mod["hinder_chance"] = flat_mod.get("hinder_chance", 0.0) + v
 		elif "immobilise" in rl or "immobilization" in rl: increased["immobilise_chance"] = increased.get("immobilise_chance", 0.0) + v
 		return
-	
+
 	# ---- BUILDUP patterns: "X% increased Y buildup" ----
 	if "buildup" in rl:
 		if "freeze" in rl: increased["freeze_buildup"] = increased.get("freeze_buildup", 0.0) + v
 		elif "electrocute" in rl: increased["electrocute_buildup"] = increased.get("electrocute_buildup", 0.0) + v
 		return
-	
+
 	# ---- DURATION patterns: "X% increased Y duration" ----
 	if "duration" in rl:
 		if "skill effect" in rl: increased["skill_effect_duration"] = increased.get("skill_effect_duration", 0.0) + v
@@ -269,25 +269,25 @@ func _parse_unknown_raw_text(raw: String, increased: Dictionary, flat_mod: Dicti
 		elif "withered" in rl: increased["withered_duration"] = increased.get("withered_duration", 0.0) + v
 		elif "parried" in rl: increased["parried_duration"] = increased.get("parried_duration", 0.0) + v
 		return
-	
+
 	# ---- RESERVATION: "X% increased reservation efficiency" ----
 	if "reservation" in rl:
 		increased["reservation_efficiency"] = increased.get("reservation_efficiency", 0.0) + v
 		return
-	
+
 	# ---- SPECIAL: "damage penetrates X% resistance" ----
 	if "penetrate" in rl or "penetration" in rl:
 		_parse_penetration(rl, val, flat_mod)
 		return
-	
+
 	# ---- SPECIAL: "X% chance to Y on hit" (already handled above for flat) ----
 	# For increased/reduced "chance to" patterns
-	
+
 	# ---- COOLDOWN: "X% increased cooldown recovery rate" ----
 	if "cooldown" in rl and "recovery" in rl:
 		increased["cooldown_recovery"] = increased.get("cooldown_recovery", 0.0) + v
 		return
-	
+
 	# ---- MAGNITUDE patterns (not under "ailment" keyword) ----
 	if "magnitude" in rl:
 		if "poison" in rl: increased["poison_magnitude"] = increased.get("poison_magnitude", 0.0) + v
@@ -300,44 +300,44 @@ func _parse_unknown_raw_text(raw: String, increased: Dictionary, flat_mod: Dicti
 		elif "non-damaging" in rl: increased["ailment_magnitude"] = increased.get("ailment_magnitude", 0.0) + v
 		elif "daze" in rl: increased["daze_magnitude"] = increased.get("daze_magnitude", 0.0) + v
 		return
-	
+
 	# ---- ARMOUR BREAK ----
 	if "armour break" in rl:
 		if "duration" in rl: increased["armour_break_duration"] = increased.get("armour_break_duration", 0.0) + v
 		elif "effect" in rl: increased["armour_break_effect"] = increased.get("armour_break_effect", 0.0) + v
 		elif "increased" in rl: increased["armour_break"] = increased.get("armour_break", 0.0) + v
 		return
-	
+
 	# ---- AURA magnitude: "aura skills have X% increased magnitude" ----
 	if "aura" in rl and ("magnitude" in rl or "magnitudes" in rl):
 		increased["aura_magnitude"] = increased.get("aura_magnitude", 0.0) + v
 		return
-	
+
 	# ---- THORNS ----
 	if "thorns" in rl:
 		flat_mod["thorns"] = flat_mod.get("thorns", 0.0) + v
 		return
-	
+
 	# ---- CULLING STRIKE THRESHOLD ----
 	if "culling strike" in rl:
 		flat_mod["culling_threshold"] = flat_mod.get("culling_threshold", 0.0) + v
 		return
-	
+
 	# ---- EXPOSURE ----
 	if "exposure" in rl:
 		increased["exposure_effect"] = increased.get("exposure_effect", 0.0) + v
 		return
-	
+
 	# ---- BLOCK RECOVERY ----
 	if "block" in rl and "recovery" in rl:
 		increased["block_recovery"] = increased.get("block_recovery", 0.0) + v
 		return
-	
+
 	# ---- RECOUP SPEED ----
 	if "recoup" in rl:
 		increased["recoup_speed"] = increased.get("recoup_speed", 0.0) + v
 		return
-	
+
 	# ---- LIFE/MANA LOST PER SECOND / REGEN CONDITIONAL ----
 	if "life" in rl:
 		if "regen" in rl or "regeneration" in rl: increased["life_regen"] = increased.get("life_regen", 0.0) + v
@@ -435,7 +435,7 @@ func _parse_extra_damage(rl: String, val: float, flat_mod: Dictionary) -> void:
 	Supports conditionals: against Frozen/Chilled/Shocked/Ignited/Dazed/HeavyStunned etc.
 	"""
 	var rl_lower: String = rl.to_lower()
-	
+
 	# --- Detect source ---
 	var extra_source := ""
 	if "of physical" in rl_lower:
@@ -452,10 +452,10 @@ func _parse_extra_damage(rl: String, val: float, flat_mod: Dictionary) -> void:
 		extra_source = "elemental"
 	elif "of damage" in rl_lower or "of all" in rl_lower:
 		extra_source = "all"
-	
+
 	if extra_source.is_empty():
 		return  # couldn't determine source
-	
+
 	# --- Detect target element ---
 	var extra_target := ""
 	if "fire" in rl_lower and "extra fire" in rl_lower:
@@ -468,13 +468,13 @@ func _parse_extra_damage(rl: String, val: float, flat_mod: Dictionary) -> void:
 		extra_target = "chaos"
 	elif "physical" in rl_lower and "extra physical" in rl_lower:
 		extra_target = "physical"
-	
+
 	if extra_target.is_empty():
 		return  # couldn't determine target
-	
+
 	# --- Build base key ---
 	var base_key: String = "extra_" + extra_source + "_" + extra_target
-	
+
 	# --- Check for conditional: "against X" or "while on X Ground" ---
 	var condition := ""
 	if "against" in rl_lower:
@@ -492,7 +492,7 @@ func _parse_extra_damage(rl: String, val: float, flat_mod: Dictionary) -> void:
 	elif "per" in rl_lower and "charge consumed" in rl_lower:
 		# "per Endurance Charge consumed Recently" — too complex, skip conditional
 		pass
-	
+
 	if condition.is_empty():
 		# No conditional — simple extra damage
 		flat_mod[base_key] = flat_mod.get(base_key, 0.0) + val

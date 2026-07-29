@@ -48,24 +48,24 @@ const SUPPORT_COLORS: Dictionary = {
 
 func show_selection(player_skills: Array[String]) -> void:
 	_support_options.clear()
-	
+
 	if player_skills.is_empty():
 		push_error("VS Support: Oyuncunun skill'i yok!")
 		return
-	
+
 	# Karistir ve 3 support sec
 	var shuffled: Array[String] = ALL_SUPPORTS.duplicate()
 	shuffled.shuffle()
-	
+
 	var picked: int = 0
 	for s_path in shuffled:
 		if picked >= 3:
 			break
-		
+
 		var support_data: SupportData = load(s_path) if ResourceLoader.exists(s_path) else null
 		if not support_data:
 			continue
-		
+
 		# Oyuncunun skill'lerinden biriyle uyumlu mu?
 		var compatible_skills: Array[String] = []
 		for ps in player_skills:
@@ -74,16 +74,16 @@ func show_selection(player_skills: Array[String]) -> void:
 				continue
 			if support_data.is_compatible(skill_data):
 				compatible_skills.append(ps)
-		
+
 		# Uyumlu skill yoksa, normal_attack'e zorla bagla
 		if compatible_skills.is_empty():
 			compatible_skills = ["res://data/skills/normal_attack.tres"]
-		
+
 		# Rastgele bir uyumlu skill sec
 		var chosen_skill: String = compatible_skills[randi() % compatible_skills.size()]
 		var skill_data_ref: SkillData = load(chosen_skill) if ResourceLoader.exists(chosen_skill) else null
 		var skill_name: String = skill_data_ref.display_name if skill_data_ref else "Bilinmeyen"
-		
+
 		_support_options.append({
 			"support_path": s_path,
 			"skill_path": chosen_skill,
@@ -91,12 +91,12 @@ func show_selection(player_skills: Array[String]) -> void:
 			"support_data": support_data,
 		})
 		picked += 1
-	
+
 	_build_ui()
 
 func _build_ui() -> void:
 	var vp := get_viewport().get_visible_rect().size
-	
+
 	var bg := ColorRect.new()
 	bg.name = "SelectionBG"
 	bg.color = Color(0.0, 0.0, 0.0, 0.85)
@@ -104,7 +104,7 @@ func _build_ui() -> void:
 	bg.anchor_bottom = 1.0
 	bg.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(bg)
-	
+
 	var title := Label.new()
 	title.text = "DESTEK TAŞI SEÇ!"
 	title.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0))
@@ -115,7 +115,7 @@ func _build_ui() -> void:
 	title.position = Vector2(0, vp.y * 0.1)
 	title.size = Vector2(vp.x, 50)
 	add_child(title)
-	
+
 	var sub := Label.new()
 	sub.text = "Bir yeteneğini güçlendirecek destek taşını seç"
 	sub.add_theme_color_override("font_color", Color(0.6, 0.8, 0.9, 0.8))
@@ -124,29 +124,29 @@ func _build_ui() -> void:
 	sub.position = Vector2(0, vp.y * 0.1 + 45)
 	sub.size = Vector2(vp.x, 25)
 	add_child(sub)
-	
+
 	var card_w: float = 300.0
 	var card_h: float = 340.0
 	var gap: float = 30.0
 	var total_w: float = _support_options.size() * card_w + (_support_options.size() - 1) * gap
 	var start_x: float = (vp.x - total_w) / 2.0
 	var card_y: float = vp.y * 0.22
-	
+
 	for i in range(_support_options.size()):
 		var opt := _support_options[i]
 		var supp_data: SupportData = opt.support_data as SupportData
 		if not supp_data:
 			continue
-		
+
 		var card := Panel.new()
 		card.name = "SupportCard_%d" % i
 		card.position = Vector2(start_x + i * (card_w + gap), card_y)
 		card.size = Vector2(card_w, card_h)
 		card.mouse_filter = Control.MOUSE_FILTER_STOP
-		
+
 		var primary_tag: String = supp_data.allowed_tags[0].to_lower() if supp_data.allowed_tags.size() > 0 else ""
 		var s_color: Color = SUPPORT_COLORS.get(primary_tag, Color(0.5, 0.5, 0.6))
-		
+
 		var card_style := StyleBoxFlat.new()
 		card_style.bg_color = Color(0.06, 0.06, 0.1, 0.95)
 		card_style.border_width_left = 3
@@ -159,7 +159,7 @@ func _build_ui() -> void:
 		card_style.shadow_size = 8
 		card_style.shadow_offset = Vector2(0, 4)
 		card.add_theme_stylebox_override("panel", card_style)
-		
+
 		# Icon
 		var icon_rect := TextureRect.new()
 		icon_rect.name = "SupportIcon"
@@ -172,7 +172,7 @@ func _build_ui() -> void:
 		else:
 			icon_rect.modulate = s_color
 		card.add_child(icon_rect)
-		
+
 		# Support adi
 		var name_lbl := Label.new()
 		name_lbl.text = supp_data.display_name
@@ -182,7 +182,7 @@ func _build_ui() -> void:
 		name_lbl.position = Vector2(0, 100)
 		name_lbl.size = Vector2(card_w, 26)
 		card.add_child(name_lbl)
-		
+
 		# Tag badge
 		if primary_tag:
 			var tag_lbl := Label.new()
@@ -193,14 +193,14 @@ func _build_ui() -> void:
 			tag_lbl.position = Vector2(0, 126)
 			tag_lbl.size = Vector2(card_w, 18)
 			card.add_child(tag_lbl)
-		
+
 		# Ayirici
 		var line := ColorRect.new()
 		line.color = Color(s_color.r, s_color.g, s_color.b, 0.3)
 		line.position = Vector2(15, 150)
 		line.size = Vector2(card_w - 30, 1)
 		card.add_child(line)
-		
+
 		# Aciklama
 		var desc_lbl := Label.new()
 		desc_lbl.text = supp_data.gem_description
@@ -210,14 +210,14 @@ func _build_ui() -> void:
 		desc_lbl.position = Vector2(15, 160)
 		desc_lbl.size = Vector2(card_w - 30, 60)
 		card.add_child(desc_lbl)
-		
+
 		# Ayirici
 		var line2 := ColorRect.new()
 		line2.color = Color(s_color.r, s_color.g, s_color.b, 0.2)
 		line2.position = Vector2(15, 225)
 		line2.size = Vector2(card_w - 30, 1)
 		card.add_child(line2)
-		
+
 		# Baglandigi skill
 		var apply_lbl := Label.new()
 		apply_lbl.text = "→ " + opt.skill_name
@@ -227,7 +227,7 @@ func _build_ui() -> void:
 		apply_lbl.position = Vector2(0, 235)
 		apply_lbl.size = Vector2(card_w, 26)
 		card.add_child(apply_lbl)
-		
+
 		var for_lbl := Label.new()
 		for_lbl.text = "yeteneğine takılacak"
 		for_lbl.add_theme_color_override("font_color", Color(0.5, 0.55, 0.4, 0.7))
@@ -236,14 +236,14 @@ func _build_ui() -> void:
 		for_lbl.position = Vector2(0, 257)
 		for_lbl.size = Vector2(card_w, 18)
 		card.add_child(for_lbl)
-		
+
 		# Sec butonu
 		var select_btn := Button.new()
 		select_btn.name = "Btn_%d" % i
 		select_btn.text = "TAK  [%d]" % (i + 1)
 		select_btn.position = Vector2(35, card_h - 60)
 		select_btn.size = Vector2(card_w - 70, 42)
-		
+
 		var btn_style := StyleBoxFlat.new()
 		btn_style.bg_color = Color(s_color.r, s_color.g, s_color.b, 0.2)
 		btn_style.border_width_left = 2
@@ -253,7 +253,7 @@ func _build_ui() -> void:
 		btn_style.border_color = s_color
 		btn_style.set_corner_radius_all(8)
 		select_btn.add_theme_stylebox_override("normal", btn_style)
-		
+
 		var btn_hover := StyleBoxFlat.new()
 		btn_hover.bg_color = Color(s_color.r, s_color.g, s_color.b, 0.35)
 		btn_hover.border_width_left = 2
@@ -263,12 +263,12 @@ func _build_ui() -> void:
 		btn_hover.border_color = Color(s_color.r + 0.3, s_color.g + 0.3, s_color.b + 0.3, 1.0)
 		btn_hover.set_corner_radius_all(8)
 		select_btn.add_theme_stylebox_override("hover", btn_hover)
-		
+
 		select_btn.add_theme_color_override("font_color", Color.WHITE)
 		select_btn.add_theme_font_size_override("font_size", 14)
 		select_btn.pressed.connect(_on_support_chosen.bind(opt.support_path, opt.skill_path))
 		card.add_child(select_btn)
-		
+
 		add_child(card)
 		_cards.append(card)
 

@@ -56,7 +56,7 @@ func _on_tab_selected(tab_index):
 	else:
 		splitter.collapsed = false
 		prefabs_panel.show()
-	
+
 	panel.visible = not panel.visible
 
 func get_panel(node_type: YggdrasilNode.NodeType) -> PrefabPanelEditor:

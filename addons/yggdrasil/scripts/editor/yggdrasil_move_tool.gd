@@ -19,7 +19,7 @@ func _process(delta):
 func _draw():
 	if nodes.is_empty():
 		return
-	
+
 	var parent: Control = get_parent()
 	var move_factor: Vector2 = Vector2(MOVE_HANDLE_DISTANCE, MOVE_HANDLE_DISTANCE)
 
@@ -43,7 +43,7 @@ func _draw():
 func input(event):
 	if nodes.is_empty():
 		return
-	
+
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			_dragging = event.pressed
@@ -55,7 +55,7 @@ func input(event):
 			else:
 				if _drag_start_mouse != event.position:
 					released.emit(_positions, _node_start_pos)
-	
+
 	if event is InputEventMouseMotion and _dragging:
 		_positions = []
 		for i in range(nodes.size()):

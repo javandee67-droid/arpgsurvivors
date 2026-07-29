@@ -41,7 +41,7 @@ func init():
 	_connect_signals()
 	_read_registry()
 	_populate_menus()
-	
+
 	docs_button.pressed.connect(func(): OS.shell_open("https://oen44.github.io/yggdrasil"))
 
 	var end_time = Time.get_ticks_usec()
@@ -68,7 +68,7 @@ func _read_registry():
 
 	for group: YggdrasilGroup in registry.groups:
 		_load_group(group)
-	
+
 	_on_group_added()
 	_on_tree_added()
 
@@ -156,11 +156,11 @@ func _create_new_tree():
 		group_item = selected.get_parent()
 	else:
 		group_item = selected
-	
+
 	var group_metadata = group_item.get_metadata(0)
 	if not group_metadata or not group_metadata.has("uid"):
 		return
-	
+
 	var child = group_item.create_child()
 	child.set_text(0, "New Tree")
 	child.set_icon(0, get_theme_icon(Yggdrasil.TREE_ICON, Yggdrasil.ICON_THEME))
@@ -189,7 +189,7 @@ func _on_search_text_changed(new_text: String):
 		return
 
 	_fuzzy.set_query(search_text)
-	
+
 	var uids: Array[int] = []
 	var uid_to_item: Dictionary = {}
 
@@ -197,7 +197,7 @@ func _on_search_text_changed(new_text: String):
 		var group_metadata = group_item.get_metadata(0)
 		if not group_metadata or not group_metadata.has("uid"):
 			continue
-		
+
 		var group_uid = group_metadata["uid"]
 		var group_name = group_item.get_text(0)
 		uid_to_item[group_uid] = group_item
@@ -207,7 +207,7 @@ func _on_search_text_changed(new_text: String):
 			var tree_metadata = tree_item.get_metadata(0)
 			if not tree_metadata or not tree_metadata.has("uid"):
 				continue
-			
+
 			var tree_uid = tree_metadata["uid"]
 			var tree_name = tree_item.get_text(0)
 			uid_to_item[tree_uid] = tree_item
@@ -225,7 +225,7 @@ func _on_search_text_changed(new_text: String):
 		group_item.visible = false
 		for tree_item in group_item.get_children():
 			tree_item.visible = false
-	
+
 	for item in result:
 		var parent = item.get_parent()
 		if parent == tree_ui.get_root():
@@ -241,7 +241,7 @@ func _on_item_selected():
 
 	var selected = tree_ui.get_selected()
 	var is_group = selected.get_parent() == tree_ui.get_root()
-	
+
 	group_menu.get_popup().set_item_disabled(MenuOption.DELETE_ITEM, not is_group)
 	group_menu.get_popup().set_item_disabled(MenuOption.DUPLICATE_ITEM, not is_group)
 
@@ -258,7 +258,7 @@ func _on_item_activated():
 	var metadata = selected.get_metadata(0)
 	if not metadata or not metadata.has("uid"):
 		return
-	
+
 	var group_item = selected.get_parent()
 	var group_metadata = group_item.get_metadata(0)
 	var group = ResourceLoader.load(ResourceUID.get_id_path(group_metadata["uid"]))
@@ -267,7 +267,7 @@ func _on_item_activated():
 
 func _on_item_edited():
 	var edited = tree_ui.get_edited()
-	
+
 	var metadata: Dictionary = edited.get_metadata(0)
 	if metadata:
 		if metadata.has("duplicate_of"):
@@ -302,17 +302,17 @@ func _on_edit_canceled(item: TreeItem):
 	var metadata = item.get_metadata(0)
 	if not metadata:
 		return
-	
+
 	var is_new = metadata.has("new_group") or metadata.has("new_tree")
 	if not is_new:
 		return
-	
+
 	item.free()
 
 func _tree_get_drag_data(at_position: Vector2) -> Variant:
 	if not tree_ui.get_item_at_position(at_position):
 		return null
-	
+
 	var selected = tree_ui.get_selected()
 
 	if selected.get_parent() == tree_ui.get_root():
@@ -320,7 +320,7 @@ func _tree_get_drag_data(at_position: Vector2) -> Variant:
 
 	var layout = HBoxContainer.new()
 	layout.add_theme_constant_override("separation", 0)
-	
+
 	var icon = TextureRect.new()
 	icon.texture = selected.get_icon(0)
 	icon.custom_minimum_size = Vector2(16, 16)
@@ -346,16 +346,16 @@ func _tree_can_drop_data(at_position: Vector2, data: Variant) -> bool:
 	if data is not TreeItem:
 		tree_ui.drop_mode_flags = Tree.DROP_MODE_DISABLED
 		return false
-	
+
 	var metadata = data.get_metadata(0)
 	if not metadata:
 		tree_ui.drop_mode_flags = Tree.DROP_MODE_DISABLED
 		return false
-	
+
 	if not metadata.has("uid"):
 		tree_ui.drop_mode_flags = Tree.DROP_MODE_DISABLED
 		return false
-	
+
 	var parent_item = data.get_parent()
 	if not parent_item:
 		tree_ui.drop_mode_flags = Tree.DROP_MODE_DISABLED
@@ -370,7 +370,7 @@ func _tree_can_drop_data(at_position: Vector2, data: Variant) -> bool:
 	if over_item == null:
 		tree_ui.drop_mode_flags = Tree.DROP_MODE_DISABLED
 		return false
-	
+
 	var over_metadata = over_item.get_metadata(0)
 	if not over_metadata:
 		tree_ui.drop_mode_flags = Tree.DROP_MODE_DISABLED
@@ -384,7 +384,7 @@ func _tree_can_drop_data(at_position: Vector2, data: Variant) -> bool:
 	if not parent_over_item:
 		tree_ui.drop_mode_flags = Tree.DROP_MODE_DISABLED
 		return false
-	
+
 	var parent_over_metadata = parent_over_item.get_metadata(0)
 	if parent_over_metadata:
 		if parent_over_metadata["uid"] == parent_metadata["uid"]:
@@ -392,7 +392,7 @@ func _tree_can_drop_data(at_position: Vector2, data: Variant) -> bool:
 			return false
 
 	tree_ui.drop_mode_flags = Tree.DROP_MODE_ON_ITEM
-	
+
 	return true
 
 func _tree_drop_data(at_position: Vector2, data: Variant) -> void:
@@ -406,7 +406,7 @@ func _tree_drop_data(at_position: Vector2, data: Variant) -> void:
 		new_parent_item = other_item
 	else:
 		new_parent_item = parent_item
-	
+
 	var tree_uid = item.get_metadata(0)["uid"]
 	var from_group_uid = item.get_parent().get_metadata(0)["uid"]
 	var to_group_uid = new_parent_item.get_metadata(0)["uid"]
@@ -475,7 +475,7 @@ func _create_group_duplicate(group_item: TreeItem) -> bool:
 	if DirAccess.dir_exists_absolute(path):
 		push_error("Group with name \"%s\" already exists." % group_name)
 		return false
-	
+
 	DirAccess.make_dir_recursive_absolute(path)
 
 	var group_file_path = "%s/%s.tres" % [path, group_name.to_snake_case()]
@@ -489,12 +489,12 @@ func _create_group_duplicate(group_item: TreeItem) -> bool:
 	var group = YggdrasilGroup.new()
 	group.name = group_name
 	group.trees = []
-	
+
 	var err = ResourceSaver.save(group, group_file_path)
 	if err != OK:
 		push_error("Error saving duplicated group: %s" % error_string(err))
 		return false
-	
+
 	group = ResourceLoader.load(group_file_path)
 	YggdrasilLoader.get_registry().groups.append(group)
 	ResourceSaver.save(YggdrasilLoader.get_registry(), Yggdrasil.get_registry_path())
@@ -518,7 +518,7 @@ func _create_tree_duplicate(tree_item: TreeItem) -> bool:
 	var tree_name = tree_item.get_text(0)
 	var tree_id = tree_name.to_snake_case()
 	var metadata = tree_item.get_metadata(0)
-	
+
 	var group_item = tree_item.get_parent()
 	var group_metadata = group_item.get_metadata(0)
 	var group = ResourceLoader.load(ResourceUID.get_id_path(group_metadata["uid"]))
@@ -529,7 +529,7 @@ func _create_tree_duplicate(tree_item: TreeItem) -> bool:
 	if FileAccess.file_exists(file_path):
 		push_error("Tree with name \"%s\" already exists in group \"%s\"." % [tree_name, group.name])
 		return false
-	
+
 	var tree_data = YggdrasilTree.new()
 	tree_data.name = tree_name
 	tree_data.id = tree_id
@@ -539,7 +539,7 @@ func _create_tree_duplicate(tree_item: TreeItem) -> bool:
 	if err != OK:
 		push_error("Error saving duplicated tree: %s" % error_string(err))
 		return false
-	
+
 	var saved_tree = ResourceLoader.load(file_path, "YggdrasilTree", ResourceLoader.CACHE_MODE_IGNORE)
 	group.trees.append(saved_tree)
 	ResourceSaver.save(group, group.resource_path)
@@ -548,7 +548,7 @@ func _create_tree_duplicate(tree_item: TreeItem) -> bool:
 	EditorInterface.get_resource_filesystem().scan()
 
 	_on_tree_added()
-	
+
 	return true
 
 func _copy_tree_data(original: YggdrasilTree, duplicate: YggdrasilTree):
@@ -593,7 +593,7 @@ func _duplicate_selected_item():
 	var selected = tree_ui.get_selected()
 	if not selected:
 		return
-	
+
 	if selected.get_parent() == tree_ui.get_root():
 		_duplicate_group(selected)
 	else:
@@ -630,7 +630,7 @@ func _delete_group():
 	if not is_group:
 		_delete_item(selected.get_parent())
 		return
-	
+
 	_delete_item(selected)
 
 func _delete_tree():
@@ -641,7 +641,7 @@ func _delete_selected_item():
 	var selected = tree_ui.get_selected()
 	if not selected:
 		return
-	
+
 	_delete_item(selected)
 
 func _delete_item(item: TreeItem):
@@ -658,18 +658,18 @@ func _delete_item(item: TreeItem):
 		delete_confirmation.dialog_text = "Do you want to remove \"%s\" tree?" % item.get_text(0)
 		delete_confirmation.get_node("VBoxContainer/DeleteFileCheck").visible = true
 		delete_confirmation.get_node("VBoxContainer/DeleteTreesCheck").visible = false
-	
+
 	delete_confirmation.popup_centered()
 
 func _confirm_delete():
 	var selected = tree_ui.get_selected()
 	if not selected:
 		return
-	
+
 	var metadata = selected.get_metadata(0)
 	if not metadata:
 		return
-	
+
 	var parent = selected.get_parent()
 	if metadata.has("new_group") or metadata.has("new_tree"):
 		selected.free()
@@ -677,23 +677,23 @@ func _confirm_delete():
 
 	var delete_file = delete_confirmation.get_node("VBoxContainer/DeleteFileCheck").button_pressed
 	var delete_trees = delete_confirmation.get_node("VBoxContainer/DeleteTreesCheck").button_pressed
-	
+
 	if parent == tree_ui.get_root():
 		var group_path = ResourceUID.get_id_path(metadata["uid"])
 		var group_resource: YggdrasilGroup = ResourceLoader.load(group_path)
 		YggdrasilLoader.get_registry().groups.erase(group_resource)
 		ResourceSaver.save(YggdrasilLoader.get_registry(), Yggdrasil.get_registry_path())
-		
+
 		if delete_file:
 			DirAccess.remove_absolute(group_path)
-		
+
 		if delete_trees:
 			for tree_data in group_resource.trees:
 				DirAccess.remove_absolute(tree_data.resource_path)
-		
+
 		if DirAccess.get_files_at(group_path.get_base_dir()).is_empty():
 			DirAccess.remove_absolute(group_path.get_base_dir())
-		
+
 		if delete_file or delete_trees:
 			EditorInterface.get_resource_filesystem().scan()
 	else:
@@ -701,12 +701,12 @@ func _confirm_delete():
 		var group_path = ResourceUID.get_id_path(group_metadata["uid"])
 		var group_resource: YggdrasilGroup = ResourceLoader.load(group_path)
 		var tree_path = ResourceUID.get_id_path(metadata["uid"])
-		
+
 		for tree in group_resource.trees:
 			if tree.resource_path == tree_path:
 				group_resource.trees.erase(tree)
 				break
-		
+
 		ResourceSaver.save(group_resource, group_path)
 
 		if delete_file:

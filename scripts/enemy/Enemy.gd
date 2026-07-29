@@ -1,8 +1,8 @@
 extends CharacterBody2D
+class_name Enemy
 
 # Hit flash effect
 var _hit_flash_tween: Tween = null
-class_name Enemy
 ## Enhanced enemy with EnemyDatabase type configuration.
 
 @export var speed: float = 50.0

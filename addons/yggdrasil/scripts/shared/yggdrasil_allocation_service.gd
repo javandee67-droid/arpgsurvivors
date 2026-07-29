@@ -52,7 +52,7 @@ func on_node_pressed(node: YggdrasilNodeButton) -> void:
 				node.refund = false
 				_refund_nodes.erase(node.id)
 				node_refund_removed.emit(node)
-			
+
 			if Input.is_key_pressed(Key.KEY_CTRL) and pre_size == 0:
 				confirm_refund()
 		else:
@@ -65,7 +65,7 @@ func on_node_pressed(node: YggdrasilNodeButton) -> void:
 				_preallocated_nodes.erase(node.id)
 				node.preallocated = false
 				node_unpreallocated.emit(node)
-			
+
 			if Input.is_key_pressed(Key.KEY_CTRL) and pre_size == 0:
 				confirm_preallocations()
 	else:
@@ -93,7 +93,7 @@ func enter_refund_mode() -> void:
 	if _refund_mode:
 		exit_refund_mode()
 		return
-	
+
 	clear_preallocations()
 	_refund_mode = true
 	_refund_nodes.clear()
@@ -104,7 +104,7 @@ func exit_refund_mode() -> void:
 		var node: YggdrasilNodeButton = _tree_view.nodes_service.get_node(node_id)
 		node.refund = false
 		node_refund_removed.emit(node)
-	
+
 	_refund_nodes.clear()
 	_refund_mode = false
 	refund_mode_exited.emit()
@@ -131,7 +131,7 @@ func _can_preallocate(node: YggdrasilNodeButton) -> bool:
 	if _tree_data.multiallocation:
 		if node.preallocated:
 			return false
-		
+
 		if node.allocated:
 			if _allocation_level[node.id] >= node.max_allocations:
 				return false
@@ -157,11 +157,11 @@ func _can_preallocate(node: YggdrasilNodeButton) -> bool:
 func _can_allocate(node: YggdrasilNodeButton) -> bool:
 	if node.allocated:
 		return false
-	
+
 	if allocation_check:
 		if not allocation_check.call(node):
 			return false
-	
+
 	if node.is_root:
 		return true
 
@@ -172,7 +172,7 @@ func _can_allocate(node: YggdrasilNodeButton) -> bool:
 	for in_node_id in node.in_nodes:
 		if _allocated_nodes.has(in_node_id):
 			return true
-	
+
 	for out_node_id in node.out_nodes:
 		if _allocated_nodes.has(out_node_id):
 			return true
@@ -185,7 +185,7 @@ func _can_stage_for_refund(node: YggdrasilNodeButton) -> bool:
 
 	if not node.allocated or _refund_nodes.has(node.id):
 		return false
-	
+
 	if _tree_data.multiallocation:
 		return _is_valid_deallocation(node, _get_remaining_post_deallocation(node.id))
 
@@ -215,7 +215,7 @@ func _is_valid_deallocation(node: YggdrasilNodeButton, remaining: Array[int]) ->
 	else:
 		if not node.preallocated:
 			return false
-	
+
 	if remaining.is_empty():
 		return true
 
@@ -240,7 +240,7 @@ func _is_valid_deallocation(node: YggdrasilNodeButton, remaining: Array[int]) ->
 	while not stack.is_empty():
 		var current_node = stack.pop_back()
 		var neighbors = current_node.in_nodes + current_node.out_nodes
-		
+
 		for neighbor_id in neighbors:
 			var neighbor_node = _tree_view.nodes_service.get_node(neighbor_id)
 			if remaining.has(neighbor_node.id) and not visited.has(neighbor_node.id):
@@ -318,7 +318,7 @@ func _allocate_node(node: YggdrasilNodeButton) -> void:
 	else:
 		_allocated_nodes.append(node.id)
 		node.allocated = true
-	
+
 	node.preallocated = false
 	node_allocated.emit(node)
 
@@ -334,6 +334,6 @@ func _deallocate_node(node: YggdrasilNodeButton) -> void:
 	else:
 		_allocated_nodes.erase(node.id)
 		node.allocated = false
-	
+
 	node.refund = false
 	node_deallocated.emit(node)

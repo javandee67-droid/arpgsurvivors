@@ -8,7 +8,7 @@ static var _affix_pool_cache: Array[Dictionary] = []
 static func apply_currency(item: ItemData, currency: CurrencyData) -> bool:
 	if not currency.can_apply_to(item):
 		return false
-	
+
 	var success := false
 	match currency.effect_type:
 		CurrencyData.EffectType.REROLL_ALL:
@@ -69,7 +69,7 @@ static func apply_currency(item: ItemData, currency: CurrencyData) -> bool:
 			success = true  # dummy — identify mekaniği ileride
 		CurrencyData.EffectType.ENCHANT:
 			success = _enchant(item)
-	
+
 	if success:
 		item.emit_changed()
 	return success
@@ -350,7 +350,7 @@ static func _reroll_two_mods(item: ItemData) -> bool:
 	var idx2 := randi() % item.affixes.size()
 	while idx2 == idx1 and item.affixes.size() > 1:
 		idx2 = randi() % item.affixes.size()
-	
+
 	# İkinci affix birinciden farklı stat_name olsun (duplicate bug fix)
 	var aff1 := _make_affix_from_pool(pool, item)
 	var aff2: Affix = null

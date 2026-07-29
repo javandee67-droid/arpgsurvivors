@@ -147,9 +147,9 @@ func get_colored_text() -> String:
 		color = "#b0d060"  # sarımsı yeşil (hız = iyi)
 
 	var tier_color: String = _tier_color()
-	
+
 	var prefix: String = "⭐ " if is_passive else ""
-	
+
 	var affix_text: String = ""
 	if stat_name.begins_with("adds_"):
 		var range_min: String = _format_value(floorf(value * 0.6))
@@ -159,7 +159,7 @@ func get_colored_text() -> String:
 		affix_text = "%s%s%s%% %s" % [prefix, sign_str, val_str, display_name]
 	else:
 		affix_text = "%s%s%s %s" % [prefix, sign_str, val_str, display_name]
-	
+
 	return "[font_size=15][color=%s][b]%s[/b][/color]  [color=%s][font_size=12]T%d[/font_size][/color][/font_size]" % [color, affix_text, tier_color, tier]
 
 ## Tier değerine göre renk (T1-T99): T1=altın/kırmızı, T99=çok koyu gri

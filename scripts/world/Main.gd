@@ -1,5 +1,5 @@
 extends Node2D
-## VS (Vampire Survivors) tarzi ana oyun kontrolcusu.
+## DuskForged ana oyun kontrolcusu.
 ## Sonsuz harita, surekli dusman spawni, seviye atlayinca skill secimi.
 
 @export var player_scene: PackedScene
@@ -105,6 +105,37 @@ func _start_full_game() -> void:
 		var upgrades = PersistentUpgrades.get_instance()
 		var bonuses = upgrades.get_all_bonuses()
 		
+		# Persistent yükseltme bonuslarını _passive_increased/_flat_mods'a yaz (recalculate() bunları okur)
+		for effect: String in bonuses:
+			var val: float = bonuses[effect]
+			match effect:
+				"damage_multiplier":
+					player.stats._passive_increased_mods["all_damage"] = player.stats._passive_increased_mods.get("all_damage", 0.0) + val
+				"critical_chance_bonus":
+					player.stats._passive_flat_mods["critical_chance"] = player.stats._passive_flat_mods.get("critical_chance", 0.0) + val
+				"critical_multiplier_bonus":
+					player.stats._passive_increased_mods["critical_multiplier"] = player.stats._passive_increased_mods.get("critical_multiplier", 0.0) + val
+				"pickup_radius_bonus":
+					player.stats._passive_flat_mods["pickup_radius"] = player.stats._passive_flat_mods.get("pickup_radius", 0.0) + val
+				"xp_multiplier":
+					player.stats._passive_increased_mods["experience_gain"] = player.stats._passive_increased_mods.get("experience_gain", 0.0) + val
+				"gold_find_bonus":
+					player.stats._passive_increased_mods["gold_find"] = player.stats._passive_increased_mods.get("gold_find", 0.0) + val
+				"max_life_bonus":
+					player.stats._passive_flat_mods["max_life"] = player.stats._passive_flat_mods.get("max_life", 0.0) + val
+				"life_regen_bonus":
+					player.stats._passive_flat_mods["life_regen"] = player.stats._passive_flat_mods.get("life_regen", 0.0) + val
+				"armor_bonus":
+					player.stats._passive_flat_mods["armour"] = player.stats._passive_flat_mods.get("armour", 0.0) + val
+				"movement_speed_bonus":
+					player.stats._passive_flat_mods["movement_speed"] = player.stats._passive_flat_mods.get("movement_speed", 0.0) + val / 100.0
+				"cooldown_reduction_bonus":
+					player.stats._passive_increased_mods["cooldown_recovery"] = player.stats._passive_increased_mods.get("cooldown_recovery", 0.0) + val
+				"skill_duration_bonus":
+					player.stats._passive_increased_mods["skill_effect_duration"] = player.stats._passive_increased_mods.get("skill_effect_duration", 0.0) + val
+				"item_rarity_bonus":
+					player.stats._passive_increased_mods["item_rarity"] = player.stats._passive_increased_mods.get("item_rarity", 0.0) + val
+		
 		player.stats.strength = 10
 		player.stats.dexterity = 10
 		player.stats.intelligence = 10
@@ -127,37 +158,37 @@ func _start_full_game() -> void:
 	
 
 func _show_initial_skill_selection() -> void:
-		# Oyuncuyu dondur
-		if player:
-	player.set_physics_process(false)
-	player.set_process_input(false)
-				# Skill seçim ekranını göster
-		var selection_ui := load("res://scripts/ui/InitialSkillSelectionUI.gd").new()
+	# Oyuncuyu dondur
+	if player:
+		player.set_physics_process(false)
+		player.set_process_input(false)
+		# Skill seçim ekranını göster
+		var selection_ui: Node = load("res://scripts/ui/InitialSkillSelectionUI.gd").new()
 		selection_ui.name = "InitialSkillSelection"
 		selection_ui.skill_selected.connect(_on_initial_skill_selected)
 		add_child(selection_ui)
 
 func _on_initial_skill_selected(skill_path: String) -> void:
-		print("Başlangıç skill seçildi: ", skill_path)
-				if player:
-	# Seçilen skill'i oyuncuya ekle
-	var skill_data: SkillData = load(skill_path) as SkillData
-	if skill_data:
-	player.skill_setups[skill_path] = {"skill": skill_data, "supports": [null, null, null, null]}
-	player._rebuild_skill_instance()
-	_player_skills.append(skill_path)
-	player._skill_levels[skill_path] = 1
+	print("Başlangıç skill seçildi: ", skill_path)
+	if player:
+		# Seçilen skill'i oyuncuya ekle
+		var skill_data: SkillData = load(skill_path) as SkillData
+		if skill_data:
+			player.skill_setups[skill_path] = {"skill": skill_data, "supports": [null, null, null, null]}
+			player._rebuild_skill_instance()
+			_player_skills.append(skill_path)
+			player._skill_levels[skill_path] = 1
 		# Hotbar'a ekle
-	player.hotbar.resize(20)
-	for i in range(20):
-	player.hotbar[i] = ""
-	player.hotbar[0] = skill_path
+		player.hotbar.resize(20)
+		for i in range(20):
+			player.hotbar[i] = ""
+		player.hotbar[0] = skill_path
 		# Oyuncuyu aktif et
-	player.set_physics_process(true)
-	player.set_process_input(true)
+		player.set_physics_process(true)
+		player.set_process_input(true)
 
-	_setup_floating_damage()
-	_create_in_game_menu()
+		_setup_floating_damage()
+		_create_in_game_menu()
 
 func _create_in_game_menu() -> void:
 	if _in_game_menu:
@@ -872,7 +903,7 @@ func _on_skill_chosen(skill_path: String) -> void:
 				# YENI SKILL: ekle
 				_player_skills.append(skill_path)
 				player.skill_setups[skill_path] = {"skill": skill_data, "supports": [null, null, null, null]}
-				player.vs_skills.append(skill_path)
+				player.auto_skills.append(skill_path)
 				player._skill_levels[skill_path] = 1
 				print("VS: Yeni skill eklendi: %s (Seviye 1)" % skill_data.display_name)
 			else:

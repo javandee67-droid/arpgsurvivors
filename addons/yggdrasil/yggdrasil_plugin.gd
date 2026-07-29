@@ -21,7 +21,7 @@ func _disable_plugin():
 func _enter_tree():
 	_distraction = EditorInterface.distraction_free_mode
 	_scene_container = EditorInterface.get_base_control().find_children("*", "EditorSceneTabs", true, false)[0]
-	
+
 	if not ProjectSettings.has_setting(Yggdrasil.ROOT_PATH_SETTING):
 		ProjectSettings.set_setting(Yggdrasil.ROOT_PATH_SETTING, Yggdrasil.DEFAULT_ROOT_PATH)
 
@@ -41,10 +41,10 @@ func _enter_tree():
 		"hint_string": "res://"
 	}
 	ProjectSettings.add_property_info(property_info)
-	
+
 	_main_screen_instance = MainScreen.instantiate()
 	EditorInterface.get_editor_main_screen().add_child(_main_screen_instance)
-	
+
 	_main_screen_instance.dirty_changed.connect(_on_tree_dirty_changed)
 	_main_screen_instance.tree_closed.connect(_on_tree_closed)
 	_make_visible(false)
@@ -91,7 +91,7 @@ func _get_unsaved_status(for_scene: String) -> String:
 			trees += "%s, " % editor.name
 		trees = trees.substr(0, trees.length() - 2)
 		return "Unsaved changes found: %s" % trees
-	
+
 	return ""
 
 func _save_external_data():

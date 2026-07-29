@@ -62,7 +62,7 @@ func _build_ui() -> void:
 	_bg.anchor_bottom = 1.0
 	_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_bg)
-	
+
 	# === Main panel ===
 	_main_panel = Panel.new()
 	_main_panel.anchor_left = 0.05
@@ -79,13 +79,13 @@ func _build_ui() -> void:
 	style.set_corner_radius_all(8)
 	_main_panel.add_theme_stylebox_override("panel", style)
 	add_child(_main_panel)
-	
-	var vp_w: float = ProjectSettings.get_setting("display/window/size/viewport_width", 1280)
-	var vp_h: float = ProjectSettings.get_setting("display/window/size/viewport_height", 720)
+
+	var vp_w: float = float(ProjectSettings.get_setting("display/window/size/viewport_width", 1280))
+	var vp_h: float = float(ProjectSettings.get_setting("display/window/size/viewport_height", 720))
 	var m := 12.0
 	var panel_w: float = vp_w * 0.9 - m * 2
 	var panel_h: float = vp_h * 0.9 - m * 2
-	
+
 	# === BASLIK ===
 	var title := Label.new()
 	title.text = "YETENEK GEM PANELI"
@@ -94,7 +94,7 @@ func _build_ui() -> void:
 	title.add_theme_color_override("font_color", ACCENT)
 	title.add_theme_font_size_override("font_size", 16)
 	_main_panel.add_child(title)
-	
+
 	var hint := Label.new()
 	hint.text = "K: Kapat"
 	hint.position = Vector2(panel_w - 80, m + 2)
@@ -103,24 +103,24 @@ func _build_ui() -> void:
 	hint.add_theme_font_size_override("font_size", 10)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_main_panel.add_child(hint)
-	
+
 	var title_bar_border := ColorRect.new()
 	title_bar_border.color = SECTION_BORDER
 	title_bar_border.position = Vector2(4, m + 28)
 	title_bar_border.size = Vector2(panel_w - 8, 1)
 	_main_panel.add_child(title_bar_border)
-	
+
 	# === SOL PANEL: Skill listesi (width 35%) ===
 	var top_y: float = m + 34
 	var skill_w: float = panel_w * 0.35
 	var skill_h: float = panel_h * 0.70 - top_y + m
-	
+
 	var skill_bg := ColorRect.new()
 	skill_bg.color = Color(0.06, 0.06, 0.09, 0.5)
 	skill_bg.position = Vector2(m, top_y)
 	skill_bg.size = Vector2(skill_w, skill_h)
 	_main_panel.add_child(skill_bg)
-	
+
 	var skill_title := Label.new()
 	skill_title.text = "SKILLER"
 	skill_title.position = Vector2(m + 4, top_y + 2)
@@ -128,21 +128,21 @@ func _build_ui() -> void:
 	skill_title.add_theme_color_override("font_color", ACCENT)
 	skill_title.add_theme_font_size_override("font_size", 11)
 	_main_panel.add_child(skill_title)
-	
+
 	var skill_scroll := ScrollContainer.new()
 	skill_scroll.position = Vector2(m + 2, top_y + 24)
 	skill_scroll.size = Vector2(skill_w - 4, skill_h - 26)
 	_main_panel.add_child(skill_scroll)
-	
+
 	_skill_list_container = VBoxContainer.new()
 	_skill_list_container.size = Vector2(skill_w - 18, 0)
 	_skill_list_container.add_theme_constant_override("separation", 2)
 	skill_scroll.add_child(_skill_list_container)
-	
+
 	# === SAG PANEL: Support slotlari (width 60%) ===
 	var slot_x: float = m + skill_w + 8
 	var slot_w: float = panel_w - skill_w - m - 8
-	
+
 	var slot_title := Label.new()
 	slot_title.text = "SUPPORT SOKETLERI"
 	slot_title.position = Vector2(slot_x, top_y + 2)
@@ -150,7 +150,7 @@ func _build_ui() -> void:
 	slot_title.add_theme_color_override("font_color", ACCENT)
 	slot_title.add_theme_font_size_override("font_size", 11)
 	_main_panel.add_child(slot_title)
-	
+
 	_selected_skill_info = RichTextLabel.new()
 	_selected_skill_info.position = Vector2(slot_x, top_y + 24)
 	_selected_skill_info.size = Vector2(slot_w, 40)
@@ -158,12 +158,12 @@ func _build_ui() -> void:
 	_selected_skill_info.add_theme_color_override("default_color", DIM_TEXT)
 	_selected_skill_info.add_theme_font_size_override("normal_font_size", 10)
 	_main_panel.add_child(_selected_skill_info)
-	
+
 	# 5 support slotu
 	var slot_start_y: float = top_y + 72
 	var slot_size: float = 56.0
 	var slot_gap: float = 8.0
-	
+
 	for i in range(5):
 		var sx: float = slot_x + i * (slot_size + slot_gap)
 		var sr := ColorRect.new()
@@ -181,7 +181,7 @@ func _build_ui() -> void:
 		sr.add_theme_stylebox_override("panel", s_style)
 		_main_panel.add_child(sr)
 		_slot_bg_rects.append(sr)
-		
+
 		var sl := Label.new()
 		sl.position = Vector2(sx + 2, slot_start_y + 2)
 		sl.size = Vector2(slot_size - 4, slot_size - 4)
@@ -190,7 +190,7 @@ func _build_ui() -> void:
 		sl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		_main_panel.add_child(sl)
 		_slot_labels.append(sl)
-		
+
 		# Slot numarasi
 		var sn := Label.new()
 		sn.text = str(i + 1)
@@ -200,7 +200,7 @@ func _build_ui() -> void:
 		sn.add_theme_font_size_override("font_size", 8)
 		sn.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		_main_panel.add_child(sn)
-		
+
 		# Slot container (click + hover area)
 		var slot_area := Control.new()
 		slot_area.name = "SlotArea_" + str(i)
@@ -212,17 +212,17 @@ func _build_ui() -> void:
 		slot_area.mouse_exited.connect(_hide_tooltip)
 		_main_panel.add_child(slot_area)
 		_slot_containers.append(slot_area)
-	
+
 	# === ALT PANEL: Gem havuzu ===
 	var stash_y: float = top_y + skill_h + 8
 	var stash_h: float = panel_h - stash_y
-	
+
 	var stash_bg := ColorRect.new()
 	stash_bg.color = GEM_STASH_BG
 	stash_bg.position = Vector2(m, stash_y)
 	stash_bg.size = Vector2(panel_w - m * 2, stash_h - m)
 	_main_panel.add_child(stash_bg)
-	
+
 	var stash_title := Label.new()
 	stash_title.text = "GEM HAVUZU"
 	stash_title.position = Vector2(m + 4, stash_y + 2)
@@ -230,18 +230,18 @@ func _build_ui() -> void:
 	stash_title.add_theme_color_override("font_color", ACCENT)
 	stash_title.add_theme_font_size_override("font_size", 11)
 	_main_panel.add_child(stash_title)
-	
+
 	var gem_scroll := ScrollContainer.new()
 	gem_scroll.position = Vector2(m + 2, stash_y + 24)
 	gem_scroll.size = Vector2(panel_w - m * 2 - 4, stash_h - m - 26)
 	_main_panel.add_child(gem_scroll)
-	
+
 	_gem_grid = GridContainer.new()
 	_gem_grid.columns = 8
 	_gem_grid.size = Vector2(gem_scroll.size.x - 14, 0)
 	_gem_grid.add_theme_constant_override("separation", 4)
 	gem_scroll.add_child(_gem_grid)
-	
+
 	# === TOOLTIP (hover bilgisi) ===
 	_tooltip_bg = ColorRect.new()
 	_tooltip_bg.color = Color(0.04, 0.04, 0.1, 0.95)
@@ -256,7 +256,7 @@ func _build_ui() -> void:
 	tt_style.set_corner_radius_all(4)
 	_tooltip_bg.add_theme_stylebox_override("panel", tt_style)
 	_main_panel.add_child(_tooltip_bg)
-	
+
 	_tooltip_label = RichTextLabel.new()
 	_tooltip_label.position = Vector2(6, 4)
 	_tooltip_label.size = Vector2(268, 52)
@@ -285,7 +285,7 @@ func _refresh_all() -> void:
 		player = get_tree().get_first_node_in_group("player")
 		if not player:
 			return
-	
+
 	# Refresh skill list
 	_refresh_skill_list()
 	# Refresh selected skill info and slots
@@ -298,11 +298,11 @@ func _refresh_skill_list() -> void:
 			btn.queue_free()
 	_skill_buttons.clear()
 	_skill_paths.clear()
-	
+
 	if not player:
 		print("SGP: No player reference!")
 		return
-	
+
 	# Build list from skill_setups
 	var setups: Dictionary = player.skill_setups
 	var paths: Array = setups.keys()
@@ -314,36 +314,36 @@ func _refresh_skill_list() -> void:
 			if skill:
 				player.skill_setups[na_path] = {"supports": [null, null, null, null, null]}
 				paths = [na_path]
-	
+
 	for skill_path in paths:
 		var skill_data: SkillData = null
 		if player.skill_setups.has(skill_path) and player.skill_setups[skill_path].has("skill"):
 			skill_data = player.skill_setups[skill_path]["skill"]
 		elif ResourceLoader.exists(skill_path):
 			skill_data = load(skill_path) as SkillData
-		
+
 		if not skill_data:
 			continue
-		
+
 		# Ensure setup entry has skill ref
 		if not player.skill_setups[skill_path].has("skill"):
 			player.skill_setups[skill_path]["skill"] = skill_data
-		
+
 		var active_count: int = 0
 		if player.skill_setups[skill_path].has("supports"):
 			for s in player.skill_setups[skill_path]["supports"]:
 				if s is SupportData:
 					active_count += 1
-		
+
 		var btn := Button.new()
-		
+
 		# Ikon yukle
 		if not skill_data.icon_path.is_empty():
 			var tex := load(skill_data.icon_path) as Texture2D
 			if tex:
 				btn.icon = tex
 				btn.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		
+
 		var supp_info: String = ""
 		if active_count > 0:
 			supp_info = " (" + str(active_count) + " support)"
@@ -365,7 +365,7 @@ func _refresh_skill_list() -> void:
 		# Right-click: hotbar ata
 		btn.gui_input.connect(_on_skill_gui_input.bind(_skill_paths.size()))
 		_style_skill_btn(btn, _skill_paths.size() == _selected_skill_idx)
-		
+
 		_skill_list_container.add_child(btn)
 		_skill_buttons.append(btn)
 		_skill_paths.append(skill_path)
@@ -404,27 +404,27 @@ func _on_skill_hover(_idx: int) -> void:
 func _refresh_selected_skill() -> void:
 	if not player or _skill_paths.size() == 0:
 		return
-	
+
 	if _selected_skill_idx >= _skill_paths.size():
 		_selected_skill_idx = 0
-	
+
 	var skill_path: String = _skill_paths[_selected_skill_idx]
 	var skill_data: SkillData = null
 	if player.skill_setups.has(skill_path) and player.skill_setups[skill_path].has("skill"):
 		skill_data = player.skill_setups[skill_path]["skill"]
 	if not skill_data and ResourceLoader.exists(skill_path):
 		skill_data = load(skill_path) as SkillData
-	
+
 	if not skill_data:
 		return
-	
+
 	# Info text — sadece skill adi goster
 	var info_text: String = "[b]" + skill_data.display_name + "[/b]"
 	_selected_skill_info.text = info_text
-	
+
 	# Once tum slot ikonlarini temizle (guvenli cleanup)
 	_clear_all_slot_icons()
-	
+
 	# Support slots
 	var slots: Array = player._get_supports_for_skill(skill_path)
 	for i in range(5):
@@ -439,7 +439,7 @@ func _refresh_selected_skill() -> void:
 			_slot_labels[i].text = ""
 			_slot_labels[i].add_theme_color_override("font_color", DIM_TEXT)
 			_slot_bg_rects[i].color = SLOT_EMPTY
-	
+
 	_refresh_gems()
 
 func _refresh_gems() -> void:
@@ -448,10 +448,10 @@ func _refresh_gems() -> void:
 		if is_instance_valid(btn):
 			btn.queue_free()
 	_gem_buttons.clear()
-	
+
 	if not player:
 		return
-	
+
 	var stash: Array = player.gem_stash
 	for gem in stash:
 		if not gem is SupportData:
@@ -462,14 +462,14 @@ func _refresh_gems() -> void:
 		btn.size = Vector2(80, 36)
 		btn.custom_minimum_size = Vector2(80, 36)
 		btn.add_theme_font_size_override("font_size", 9)
-		
+
 		# Ikon yukle
 		if not sd.icon_path.is_empty():
 			var tex := load(sd.icon_path) as Texture2D
 			if tex:
 				btn.icon = tex
 				btn.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		
+
 		var s := StyleBoxFlat.new()
 		s.bg_color = Color(0.08, 0.08, 0.12, 1.0)
 		s.border_color = Color(0.3, 0.5, 0.7, 0.6)
@@ -479,11 +479,11 @@ func _refresh_gems() -> void:
 		s.border_width_bottom = 1
 		s.set_corner_radius_all(3)
 		btn.add_theme_stylebox_override("normal", s)
-		
+
 		var h := s.duplicate()
 		h.bg_color = Color(0.15, 0.15, 0.25, 1.0)
 		btn.add_theme_stylebox_override("hover", h)
-		
+
 		btn.pressed.connect(_on_gem_pressed.bind(sd))
 		btn.mouse_entered.connect(_show_gem_tooltip.bind(sd, btn))
 		btn.mouse_exited.connect(_hide_tooltip)
@@ -498,7 +498,7 @@ func _on_gem_pressed(gem: SupportData) -> void:
 		return
 	var skill_path: String = _skill_paths[_selected_skill_idx]
 	var slots: Array = player._get_supports_for_skill(skill_path)
-	
+
 	# Ilk bos slotu bul
 	for i in range(5):
 		if i >= slots.size() or slots[i] == null or not (slots[i] is SupportData):
@@ -508,11 +508,11 @@ func _on_gem_pressed(gem: SupportData) -> void:
 				skill_data = player.skill_setups[skill_path]["skill"]
 			if not skill_data and ResourceLoader.exists(skill_path):
 				skill_data = load(skill_path) as SkillData
-			
+
 			if skill_data:
 				if not gem.is_compatible(skill_data):
 					continue  # Uyumsuz support'u atla
-			
+
 			player.socket_support(skill_path, i, gem)
 			_refresh_selected_skill()
 			return
@@ -605,7 +605,7 @@ func _on_skill_gui_input(event: InputEvent, skill_idx: int) -> void:
 		if not player:
 			return
 		var skill_path: String = _skill_paths[skill_idx]
-		
+
 		# Basit popup menu
 		var popup := PopupMenu.new()
 		popup.add_label("Hotbar'a Ata:")
@@ -639,12 +639,12 @@ func _on_hotbar_menu_selected(index: int, skill_path: String) -> void:
 	else:
 		# Basit: direkt ata (override)
 		player.hotbar[index] = skill_path
-	
+
 	# SkillBar UI'ini guncelle
 	var skill_bar := get_tree().root.get_node_or_null("SkillBarLayer") as SkillBar
 	if skill_bar:
 		skill_bar.refresh()
-	
+
 	# Panel UI'ini yenile (hotbar numarasi guncellensin)
 	_refresh_skill_list()
 
@@ -659,7 +659,7 @@ func _hotbar_key_name(idx: int) -> String:
 func _build_modifier_lines(sd: SupportData) -> String:
 	"""Support gem'in modifier'larindan okunabilir satirlar olusturur."""
 	var lines: String = ""
-	
+
 	# StatModifier'lari goster - insan tarafindan okunabilir formatta
 	for m in sd.modifiers:
 		if m is StatModifier:
@@ -670,23 +670,23 @@ func _build_modifier_lines(sd: SupportData) -> String:
 					label = m.damage_type_filter.capitalize() + " Hasarı"
 				else:
 					label = "Toplam Hasar"
-			
+
 			var sign: String = "+" if m.value >= 0.0 else ""
 			var value_str: String = sign + str(m.value)
-			
+
 			# Modifier tipine gore format
 			match m.modifier_type:
 				StatModifier.ModifierType.FLAT:
 					# Flat: "+5 Ateş Hasarı" — direkt yaz
 					lines += "\n  [color=#88ff88]+" + str(m.value) + " " + label + "[/color]"
-					
+
 				StatModifier.ModifierType.INCREASED:
 					# Increased: "+%30 Fiziksel Hasar" veya "+%15 Toplam Hasar"
 					var tag_part: String = ""
 					if not m.skill_tag_filter.is_empty():
 						tag_part = " (" + m.skill_tag_filter.capitalize() + ")"
 					lines += "\n  [color=#66aaff]" + sign + "%" + str(m.value) + " " + label + tag_part + "[/color]"
-					
+
 				StatModifier.ModifierType.MORE:
 					# More: "+%25 Toplam Hasar" (pozitif) veya "-%10 Toplam Hasar" (negatif=Less)
 					var color: String = "#ff6666" if m.value < 0.0 else "#ffcc66"
@@ -694,22 +694,22 @@ func _build_modifier_lines(sd: SupportData) -> String:
 					if m.value < 0.0:
 						pct_label = "%" + str(absf(m.value)) + " " + label + " (Less)"
 					lines += "\n  [color=" + color + "]" + pct_label + "[/color]"
-	
+
 	# extra_trigger_count (chain strike icin)
 	if sd.extra_trigger_count > 0:
 		lines += "\n  [color=#88ff88]+" + str(sd.extra_trigger_count) + " Zincirleme Vuruş[/color]"
-	
+
 	# extra_projectiles
 	if sd.extra_projectiles > 0:
 		lines += "\n  [color=#88ff88]+" + str(sd.extra_projectiles) + " Ekstra Mermi[/color]"
-	
+
 	# mana_multiplier
 	if sd.mana_multiplier != 1.0:
 		var mana_pct: float = (sd.mana_multiplier - 1.0) * 100.0
 		var mana_sign: String = "+" if mana_pct > 0 else ""
 		var mana_color: String = "#ff6666" if mana_pct > 0 else "#66ff66"
 		lines += "\n  [color=" + mana_color + "]Mana Maliyeti: " + mana_sign + str(mana_pct) + "%[/color]"
-	
+
 	return lines
 
 func _show_gem_tooltip(sd: SupportData, btn: Button) -> void:
@@ -743,7 +743,7 @@ func _show_tooltip(text: String, _anchor: Control) -> void:
 	content_h = clamp(content_h, 24, 160)
 	_tooltip_bg.size.y = content_h
 	_tooltip_label.size.y = content_h - 8
-	
+
 	var local_pos: Vector2 = _main_panel.get_local_mouse_position()
 	_tooltip_bg.position = Vector2(
 		clamp(local_pos.x + 10, 4, vp_w - _tooltip_bg.size.x - 4),

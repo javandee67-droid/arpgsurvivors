@@ -39,7 +39,7 @@ func setup(data: ItemData) -> void:
 	item_data = data
 	var rarity: String = data.rarity
 	var col: Color = RARITY_COLORS.get(rarity, Color.WHITE)
-	
+
 	# Nadir/unique soft glow (yuvarlak, gradient benzeri, katmanlı)
 	if rarity == "rare" or rarity == "unique":
 		for i in range(3):
@@ -53,7 +53,7 @@ func setup(data: ItemData) -> void:
 			g.self_modulate = Color(1, 1, 1, 1.0)
 			add_child(g)
 			glow_nodes.append(g)
-	
+
 	# İtem simgesi — önce item.icon varsa onu kullan, sonra CURRENCY_ICONS, sonra tür bazlı
 	var use_icon: Texture2D = data.icon
 	if not use_icon:
@@ -87,7 +87,7 @@ func setup(data: ItemData) -> void:
 		inn.position = Vector2(-5, -5)
 		inn.color = col.lerp(Color(0.15, 0.15, 0.2), 0.3)
 		add_child(inn)
-	
+
 	# İsim etiketi
 	var lbl := Label.new()
 	lbl.text = data.display_name
@@ -97,20 +97,20 @@ func setup(data: ItemData) -> void:
 	lbl.add_theme_font_size_override("font_size", 8)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(lbl)
-	
+
 	# Çarpışma (deferred — Area2D physics flush hatasını önler)
 	var cs := CollisionShape2D.new()
 	var sh := CircleShape2D.new()
 	sh.radius = 14
 	cs.shape = sh
 	call_deferred("add_child", cs)
-	
+
 	# Mouse interaksiyonu (Area2D için input_pickable gerekli)
 	input_pickable = true
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
 	input_event.connect(_input_event)
-	
+
 	# WorldUI katmanına tooltip
 	call_deferred("_create_tooltip", col)
 
@@ -121,7 +121,7 @@ func _create_tooltip(border_color: Color) -> void:
 		world_ui.name = "WorldUI"
 		world_ui.layer = 10
 		get_tree().root.add_child(world_ui)
-	
+
 	tooltip_label = RichTextLabel.new()
 	tooltip_label.visible = false
 	tooltip_label.size = Vector2(260, 40)
@@ -148,13 +148,13 @@ func _process(_delta: float) -> void:
 	var player := get_tree().get_first_node_in_group("player")
 	if not player:
 		return
-	
+
 	# Otomatik pickup — pickup_radius'a göre
 	var pickup_range := 50.0
 	if player.has_node("CharacterStats"):
 		var stats := player.get_node("CharacterStats") as CharacterStats
 		pickup_range += stats.pickup_radius
-	
+
 	var dist := global_position.distance_to(player.global_position)
 	if dist < pickup_range:
 		_pickup_mouse()

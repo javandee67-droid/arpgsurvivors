@@ -10,41 +10,41 @@ static func calc_ailment_chance(hit_result: Dictionary, stats: CharacterStats, i
 	# Kritik vuruslarda guaranteed ailment
 	if is_crit:
 		return 1.0
-	
+
 	# Base chance: ailment_power / threshold
 	var ailment_power: float = hit_result.get("ailment_power", 0.0)
 	var base_damage: float = hit_result.get("damage", 1.0)
-	
+
 	# Hasar ne kadar yuksekse sans o kadar artar
 	var chance: float = clampf(ailment_power / (base_damage + 10.0) * 2.0, 0.05, 0.75)
-	
+
 	# Player'in ailment chance modifier'lari
 	if stats:
 		chance *= (1.0 + stats.ailment_chance / 100.0)
-	
+
 	# Defender'in ailment_threshold'u: yüksek threshold = düşük sans
 	if defender_stats and defender_stats.ailment_threshold > 0.0:
 		chance /= (1.0 + defender_stats.ailment_threshold / 100.0)
-	
+
 	return clampf(chance, 0.0, 1.0)
 
 ## Yanma (IGNITE) uygulamayi dene
-static func try_ignite(ac: AilmentController, hit_result: Dictionary, stats: CharacterStats, 
+static func try_ignite(ac: AilmentController, hit_result: Dictionary, stats: CharacterStats,
 		is_crit: bool, source: Node, defender_stats: CharacterStats = null) -> bool:
 	if not ac:
 		return false
-	
+
 	var chance: float = calc_ailment_chance(hit_result, stats, is_crit, defender_stats)
 	if randf() > chance:
 		return false
-	
+
 	var dmg: float = hit_result.get("damage", 0.0)
 	var ap: float = hit_result.get("ailment_power", 0.0)
 	# Per-ailment magnitude bonus
 	if stats:
 		ap *= (1.0 + (stats.ailment_magnitude + stats.ignite_magnitude) / 100.0)
 	var ignite_dps: float = CombatEngine.calculate_ignite_dps(dmg, ap)
-	
+
 	if ignite_dps > 0.0:
 		var duration: float = 4.0
 		# Player'in ailment duration bonusu (generic + ignite-specific)
@@ -55,22 +55,22 @@ static func try_ignite(ac: AilmentController, hit_result: Dictionary, stats: Cha
 	return false
 
 ## Sok (SHOCK) uygulamayi dene
-static func try_shock(ac: AilmentController, hit_result: Dictionary, stats: CharacterStats, 
+static func try_shock(ac: AilmentController, hit_result: Dictionary, stats: CharacterStats,
 		target_max_life: float, is_crit: bool, source: Node, defender_stats: CharacterStats = null) -> bool:
 	if not ac:
 		return false
-	
+
 	var chance: float = calc_ailment_chance(hit_result, stats, is_crit, defender_stats)
 	if randf() > chance:
 		return false
-	
+
 	var dmg: float = hit_result.get("damage", 0.0)
 	var ap: float = hit_result.get("ailment_power", 0.0)
 	# Per-ailment magnitude bonus
 	if stats:
 		ap *= (1.0 + (stats.ailment_magnitude + stats.shock_magnitude) / 100.0)
 	var shock_mag: float = CombatEngine.calculate_shock_magnitude(dmg, ap, target_max_life)
-	
+
 	if shock_mag > 0.0:
 		var dur: float = 2.0
 		if stats:
@@ -80,21 +80,21 @@ static func try_shock(ac: AilmentController, hit_result: Dictionary, stats: Char
 	return false
 
 ## Electrocute uygulamayi dene (shock uygular + electrocute buildup ekler)
-static func try_electrocute(ac: AilmentController, hit_result: Dictionary, stats: CharacterStats, 
+static func try_electrocute(ac: AilmentController, hit_result: Dictionary, stats: CharacterStats,
 		target_max_life: float, is_crit: bool, source: Node, defender_stats: CharacterStats = null) -> bool:
 	if not ac:
 		return false
-	
+
 	# Lightning hasari once SHOCK uygular
 	var shocked: bool = try_shock(ac, hit_result, stats, target_max_life, is_crit, source, defender_stats)
-	
+
 	# Electrocute buildup: shock magnitude uzerinden hesapla
 	var dmg: float = hit_result.get("damage", 0.0)
 	var ap: float = hit_result.get("ailment_power", 0.0)
 	if stats:
 		ap *= (1.0 + (stats.ailment_magnitude + stats.shock_magnitude) / 100.0)
 	var shock_mag: float = CombatEngine.calculate_shock_magnitude(dmg, ap, target_max_life)
-	
+
 	if shock_mag > 0.0:
 		# Electrocute buildup: shock_mag'in 2x'i kadar (chill buildup'tan biraz az)
 		var buildup: float = shock_mag * 1.2 + (0.08 if is_crit else 0.0)
@@ -106,22 +106,22 @@ static func try_electrocute(ac: AilmentController, hit_result: Dictionary, stats
 	return shocked
 
 ## Chill uygulamayi dene (ve chill buildup ekle)
-static func try_chill(ac: AilmentController, hit_result: Dictionary, stats: CharacterStats, 
+static func try_chill(ac: AilmentController, hit_result: Dictionary, stats: CharacterStats,
 		target_max_life: float, is_crit: bool, source: Node, defender_stats: CharacterStats = null) -> bool:
 	if not ac:
 		return false
-	
+
 	var chance: float = calc_ailment_chance(hit_result, stats, is_crit, defender_stats)
 	if randf() > chance:
 		return false
-	
+
 	var dmg: float = hit_result.get("damage", 0.0)
 	var ap: float = hit_result.get("ailment_power", 0.0)
 	# Per-ailment magnitude bonus
 	if stats:
 		ap *= (1.0 + (stats.ailment_magnitude + stats.chill_magnitude + stats.slow_magnitude) / 100.0)
 	var chill_mag: float = CombatEngine.calculate_chill_magnitude(dmg, ap, target_max_life)
-	
+
 	if chill_mag > 0.0:
 		var dur: float = 2.0
 		if stats:
@@ -142,19 +142,19 @@ static func try_chill(ac: AilmentController, hit_result: Dictionary, stats: Char
 	return false
 
 ## Zehir (POISON) uygulamayi dene
-static func try_poison(ac: AilmentController, hit_result: Dictionary, stats: CharacterStats, 
+static func try_poison(ac: AilmentController, hit_result: Dictionary, stats: CharacterStats,
 		is_crit: bool, source: Node, defender_stats: CharacterStats = null) -> bool:
 	if not ac:
 		return false
-	
+
 	var chance: float = calc_ailment_chance(hit_result, stats, is_crit, defender_stats)
 	if randf() > chance:
 		return false
-	
+
 	var dmg: float = hit_result.get("damage", 0.0)
 	var ap: float = hit_result.get("ailment_power", 0.0)
 	var poison_dps: float = CombatEngine.calculate_poison_dps(dmg, ap)
-	
+
 	if poison_dps > 0.0:
 		var duration: float = 2.0
 		if stats:
@@ -165,22 +165,22 @@ static func try_poison(ac: AilmentController, hit_result: Dictionary, stats: Cha
 	return false
 
 ## Kana (BLEED) uygulamayi dene
-static func try_bleed(ac: AilmentController, hit_result: Dictionary, stats: CharacterStats, 
+static func try_bleed(ac: AilmentController, hit_result: Dictionary, stats: CharacterStats,
 		is_crit: bool, source: Node, defender_stats: CharacterStats = null) -> bool:
 	if not ac:
 		return false
-	
+
 	var chance: float = calc_ailment_chance(hit_result, stats, is_crit, defender_stats) * 0.7  # Bleed daha zor
 	if randf() > chance:
 		return false
-	
+
 	var dmg: float = hit_result.get("damage", 0.0)
 	var ap: float = hit_result.get("ailment_power", 0.0)
 	# Per-ailment magnitude bonus
 	if stats:
 		ap *= (1.0 + (stats.ailment_magnitude + stats.bleed_magnitude) / 100.0)
 	var bleed_dps: float = CombatEngine.calculate_bleed_dps(dmg, ap)
-	
+
 	if bleed_dps > 0.0:
 		# Check for Aggravated Bleeding (from passive tree)
 		# Player'dan gelen bleed'ler her zaman hasar verir (hareket sartı yok)
@@ -207,34 +207,34 @@ static func apply_ailments_for_tags(ac: AilmentController, hit_result: Dictionar
 		target_max_life: float, tags: Array, source: Node) -> void:
 	if not ac:
 		return
-	
+
 	var is_crit: bool = hit_result.get("is_crit", false)
 	var dmg_type: String = hit_result.get("damage_type", "physical")
-	
+
 	# Defender'in stat'lari (ailment_threshold, ailment_duration_on_you icin)
 	var defender_stats: CharacterStats = ac.get_defender_stats() if ac.has_method("get_defender_stats") else null
-	
+
 	# Ailment uygulama sansi, dusmanin direncinden etkilenir
 	# (zaten hit_result.damage direnc dusuruldukten sonraki hasardir)
-	
+
 	if tags.has("fire") or (tags.has("spell") and dmg_type == "fire"):
 		try_ignite(ac, hit_result, stats, is_crit, source, defender_stats)
-	
+
 	if tags.has("lightning") or (tags.has("spell") and dmg_type == "lightning"):
 		try_electrocute(ac, hit_result, stats, target_max_life, is_crit, source, defender_stats)
-	
+
 	if tags.has("cold") or (tags.has("spell") and dmg_type == "cold"):
 		try_chill(ac, hit_result, stats, target_max_life, is_crit, source, defender_stats)
-	
+
 	if tags.has("chaos") or (tags.has("spell") and dmg_type == "chaos"):
 		try_poison(ac, hit_result, stats, is_crit, source, defender_stats)
-	
+
 	if tags.has("bleed") or (tags.has("physical") and dmg_type == "physical"):
 		try_bleed(ac, hit_result, stats, is_crit, source, defender_stats)
-	
+
 	# Wither: chaos damage applies Withered stacks (increases chaos damage taken)
 	try_withered(ac, hit_result, stats, is_crit, source)
-	
+
 	# Maim: chance-based, from passive tree "X% chance to Maim on Hit"
 	if stats and stats.maim_chance > 0.0:
 		if randf() * 100.0 < stats.maim_chance:

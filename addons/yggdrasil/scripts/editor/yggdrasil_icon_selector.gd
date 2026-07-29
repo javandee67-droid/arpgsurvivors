@@ -29,11 +29,11 @@ func load_icons(node_type: YggdrasilNode.NodeType):
 		path_input.text = ""
 		clear_button.hide()
 		return
-	
+
 	var icon_size = editor.tree.icon_sizes[node_type]
 	if icon_size == Vector2.ZERO:
 		return
-	
+
 	icons_list.fixed_icon_size = icon_size
 	clear_button.show()
 	path_input.text = icons_texture.resource_path
@@ -45,7 +45,7 @@ func load_icons(node_type: YggdrasilNode.NodeType):
 			var region = Rect2(x * icon_size.x, y * icon_size.y, icon_size.x, icon_size.y)
 			if _is_region_empty(icons_texture, region):
 				continue
-			
+
 			var icon = AtlasTexture.new()
 			icon.atlas = icons_texture
 			icon.region = region
@@ -89,14 +89,14 @@ func _on_icon_texture_selected(path: String):
 	editor.tree.icons[node_type] = texture
 	path_input.text = path
 	clear_button.show()
-	
+
 	load_icons(node_type)
 
 func _get_selected_region(texture: Texture2D) -> Vector2:
 	var selected = icons_list.get_selected_items()
 	if selected.is_empty():
 		return Vector2.ZERO
-	
+
 	var index = selected[0]
 	var icon_size = editor.tree.icon_sizes[icon_type_dropdown.selected]
 	var columns = floori(texture.get_width() / icon_size.x)

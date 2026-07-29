@@ -21,7 +21,7 @@ func get_registry() -> YggdrasilRegistry:
 # Returns tree by path (group_name/tree_name, e.g. "my group/my tree", case insensitive)
 func load_tree(path: String, as_unique: bool = false) -> YggdrasilTree:
 	path = path.to_lower()
-	
+
 	var tree: YggdrasilTree = null
 	if Engine.is_editor_hint():
 		if not _path_to_resource_path.has(path):
@@ -37,7 +37,7 @@ func load_tree(path: String, as_unique: bool = false) -> YggdrasilTree:
 
 	if tree == null:
 		push_error("Yggdrasil: Failed to load tree at path '%s'" % path)
-	
+
 	if as_unique:
 		return tree.duplicate(true)
 
@@ -56,7 +56,7 @@ func _load_registry():
 		if not ResourceLoader.exists(Yggdrasil.get_registry_path()):
 			push_error("Yggdrasil: Registry file not found at path '%s'" % Yggdrasil.get_registry_path())
 			return
-	
+
 	_registry = ResourceLoader.load(Yggdrasil.get_registry_path(), "", ResourceLoader.CACHE_MODE_IGNORE)
 	_cache_paths_to_trees()
 

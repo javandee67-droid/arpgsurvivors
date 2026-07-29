@@ -31,7 +31,7 @@ func _process(delta: float) -> void:
 		if _fade_after <= 0.0 and _fade_timer <= 0.0:
 			_fade_timer = _fade_duration
 			_fading = true
-	
+
 	if _fading:
 		if _fade_timer > 0.0:
 			_fade_timer -= delta

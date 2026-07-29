@@ -1,5 +1,5 @@
-class_name SimpleSkillTreeUI
 extends Control
+class_name SimpleSkillTreeUIl
 ## Basit, kategorize edilmiş pasif yetenek ağacı UI'ı.
 ## Yggdrasil'in karmaşık tree view'ı yerine düz scroll list.
 
@@ -767,19 +767,19 @@ func _toggle_category(category: String) -> void:
 	var w: Dictionary = _category_widgets.get(category, {})
 	if w.is_empty():
 		return
-	
+
 	var list_vbox: VBoxContainer = w.get("list", null) as VBoxContainer
 	var arrow_lbl: Label = w.get("arrow", null) as Label
 	if not list_vbox or not arrow_lbl:
 		return
-	
+
 	# Eger zaten aciksa, sadece kapat
 	if _expanded_category == category:
 		list_vbox.visible = false
 		arrow_lbl.text = "▸ "
 		_expanded_category = ""
 		return
-	
+
 	# Once acik olani kapat
 	if _expanded_category != "" and _category_widgets.has(_expanded_category):
 		var old_w: Dictionary = _category_widgets[_expanded_category]
@@ -788,7 +788,7 @@ func _toggle_category(category: String) -> void:
 		if old_list and old_arrow:
 			old_list.visible = false
 			old_arrow.text = "▸ "
-	
+
 	# Yenisini ac
 	list_vbox.visible = true
 	arrow_lbl.text = "▾ "

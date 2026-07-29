@@ -43,10 +43,10 @@ func _process(_delta: float) -> void:
 		_update_cooldown_overlays()
 
 func _build_ui() -> void:
-	var vp_w: float = ProjectSettings.get_setting("display/window/size/viewport_width", 1280)
+	var vp_w: float = float(ProjectSettings.get_setting("display/window/size/viewport_width", 1280))
 	var bar_w: float = 20 * SLOT_SIZE + 19 * SLOT_GAP
 	var bar_x: float = (vp_w - bar_w) / 2
-	var bar_y: float = ProjectSettings.get_setting("display/window/size/viewport_height", 720) - SLOT_SIZE - 10
+	var bar_y: float = float(ProjectSettings.get_setting("display/window/size/viewport_height", 720)) - SLOT_SIZE - 10
 	
 	# Arkaplan panel
 	var panel := ColorRect.new()
@@ -88,29 +88,29 @@ func _build_ui() -> void:
 		icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(icon_rect)
 		_slot_icons.append(icon_rect)
-			
-			# Cooldown overlay
-			var cd_overlay := ColorRect.new()
-			cd_overlay.name = "CDOverlay_" + str(i)
-			cd_overlay.color = Color(0, 0, 0, 0)
-			cd_overlay.position = Vector2(sx, bar_y)
-			cd_overlay.size = Vector2(SLOT_SIZE, SLOT_SIZE)
-			add_child(cd_overlay)
-			_slot_cooldown_overlays.append(cd_overlay)
-			
-			# Cooldown label
-			var cd_label := Label.new()
-			cd_label.name = "CDLabel_" + str(i)
-			cd_label.text = ""
-			cd_label.add_theme_color_override("font_color", Color.WHITE)
-			cd_label.add_theme_font_size_override("font_size", 14)
-			cd_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			cd_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-			cd_label.position = Vector2(sx, bar_y)
-			cd_label.size = Vector2(SLOT_SIZE, SLOT_SIZE)
-			cd_label.modulate = Color(1, 1, 1, 0.9)
-			add_child(cd_label)
-			_slot_cooldown_labels.append(cd_label)
+		
+		# Cooldown overlay
+		var cd_overlay := ColorRect.new()
+		cd_overlay.name = "CDOverlay_" + str(i)
+		cd_overlay.color = Color(0, 0, 0, 0)
+		cd_overlay.position = Vector2(sx, bar_y)
+		cd_overlay.size = Vector2(SLOT_SIZE, SLOT_SIZE)
+		add_child(cd_overlay)
+		_slot_cooldown_overlays.append(cd_overlay)
+		
+		# Cooldown label
+		var cd_label := Label.new()
+		cd_label.name = "CDLabel_" + str(i)
+		cd_label.text = ""
+		cd_label.add_theme_color_override("font_color", Color.WHITE)
+		cd_label.add_theme_font_size_override("font_size", 14)
+		cd_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		cd_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		cd_label.position = Vector2(sx, bar_y)
+		cd_label.size = Vector2(SLOT_SIZE, SLOT_SIZE)
+		cd_label.modulate = Color(1, 1, 1, 0.9)
+		add_child(cd_label)
+		_slot_cooldown_labels.append(cd_label)
 		
 		# Skill adı (ikon altında)
 		var lbl := Label.new()
@@ -223,16 +223,14 @@ func refresh() -> void:
 				_slot_icons[i].texture = tex
 			else:
 				_slot_icons[i].texture = null
-		else:
-			_slot_icons[i].texture = null
-	
+
 	# ── Mana cost göstergelerini güncelle ──
 	_update_mana_costs()
 	
 	# ── Aktif aura glow gösterimi ──
 	_update_aura_glows()
 
-## ⚠️ MANA SİSTEMİ KALDIRILDI: Vampire Survivors modunda tüm yetenekler ücretsizdir
+## ⚠️ MANA SİSTEMİ KALDIRILDI: Tüm yetenekler ücretsizdir
 func _update_mana_costs() -> void:
 	# Tüm mana cost etiketlerini gizle
 	for i in range(_slot_mana_labels.size()):
@@ -483,10 +481,10 @@ func _swap_slots(from_idx: int, to_idx: int) -> void:
 
 ## Global pozisyona gore hangi slotun uzerinde oldugumuzu bul
 func _get_slot_at_position(pos: Vector2) -> int:
-	var vp_w: float = ProjectSettings.get_setting("display/window/size/viewport_width", 1280)
+	var vp_w: float = float(ProjectSettings.get_setting("display/window/size/viewport_width", 1280))
 	var bar_w: float = 20 * SLOT_SIZE + 19 * SLOT_GAP
 	var bar_x: float = (vp_w - bar_w) / 2
-	var vp_h: float = ProjectSettings.get_setting("display/window/size/viewport_height", 720)
+	var vp_h: float = float(ProjectSettings.get_setting("display/window/size/viewport_height", 720))
 	var bar_y: float = vp_h - SLOT_SIZE - 10
 	
 	var rel_x: float = pos.x - bar_x
@@ -847,11 +845,11 @@ func _on_slot_hover(slot_idx: int) -> void:
 		_tooltip_label.text = tt
 		_tooltip_panel.size = Vector2(250, _tooltip_label.get_content_height() + 12)
 		# Tooltip'i slot'un yaninda goster
-		var tt_vp_w: float = ProjectSettings.get_setting("display/window/size/viewport_width", 1280)
+		var tt_vp_w: float = float(ProjectSettings.get_setting("display/window/size/viewport_width", 1280))
 		var tt_bar_w: float = 20 * SLOT_SIZE + 19 * SLOT_GAP
 		var tt_bar_x: float = (tt_vp_w - tt_bar_w) / 2
 		var tt_sx: float = tt_bar_x + slot_idx * (SLOT_SIZE + SLOT_GAP)
-		var tt_vp_h: float = ProjectSettings.get_setting("display/window/size/viewport_height", 720)
+		var tt_vp_h: float = float(ProjectSettings.get_setting("display/window/size/viewport_height", 720))
 		var tt_bar_y: float = tt_vp_h - SLOT_SIZE - 10
 		_tooltip_panel.position = Vector2(tt_sx, tt_bar_y - _tooltip_panel.size.y - 4)
 		_tooltip_panel.visible = true
@@ -950,11 +948,11 @@ func _on_slot_hover(slot_idx: int) -> void:
 		
 		_tooltip_label.text = tt
 		_tooltip_panel.size = Vector2(250, _tooltip_label.get_content_height() + 12)
-		var vp_w: float = ProjectSettings.get_setting("display/window/size/viewport_width", 1280)
+		var vp_w: float = float(ProjectSettings.get_setting("display/window/size/viewport_width", 1280))
 		var bar_w: float = 20 * SLOT_SIZE + 19 * SLOT_GAP
 		var bar_x: float = (vp_w - bar_w) / 2
 		var sx: float = bar_x + slot_idx * (SLOT_SIZE + SLOT_GAP)
-		var vp_h: float = ProjectSettings.get_setting("display/window/size/viewport_height", 720)
+		var vp_h: float = float(ProjectSettings.get_setting("display/window/size/viewport_height", 720))
 		var bar_y: float = vp_h - SLOT_SIZE - 10
 		_tooltip_panel.position = Vector2(sx, bar_y - _tooltip_panel.size.y - 4)
 		_tooltip_panel.visible = true
@@ -1143,12 +1141,12 @@ func _on_slot_hover(slot_idx: int) -> void:
 	_tooltip_panel.size = Vector2(250, _tooltip_label.get_content_height() + 12)
 	
 	# Tooltip'i slot'un yaninda goster
-	var vp_w: float = ProjectSettings.get_setting("display/window/size/viewport_width", 1280)
+	var vp_w: float = float(ProjectSettings.get_setting("display/window/size/viewport_width", 1280))
 	var bar_w: float = 20 * SLOT_SIZE + 19 * SLOT_GAP
 	var bar_x: float = (vp_w - bar_w) / 2
 	var sx: float = bar_x + slot_idx * (SLOT_SIZE + SLOT_GAP)
 	
-	var vp_h: float = ProjectSettings.get_setting("display/window/size/viewport_height", 720)
+	var vp_h: float = float(ProjectSettings.get_setting("display/window/size/viewport_height", 720))
 	var bar_y: float = vp_h - SLOT_SIZE - 10
 	_tooltip_panel.position = Vector2(sx, bar_y - _tooltip_panel.size.y - 4)
 	

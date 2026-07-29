@@ -43,7 +43,7 @@ func _process(delta: float) -> void:
 			if dist < 20.0:
 				_explode(player)
 		return
-	
+
 	# Dönme hareketi
 	if boss and is_instance_valid(boss):
 		angle_offset += orbit_speed * delta
@@ -53,7 +53,7 @@ func _process(delta: float) -> void:
 			cx + cos(angle_offset) * orbit_radius,
 			cy + sin(angle_offset) * orbit_radius
 		)
-		
+
 		# Oyuncu menzilde mi kontrol et
 		var player: Node = get_tree().get_first_node_in_group("player")
 		if player and is_instance_valid(player):
@@ -74,7 +74,7 @@ func _explode(player: Node) -> void:
 	if _exploded:
 		return
 	_exploded = true
-	
+
 	# Patlama efekti
 	if hit_tex != "" and ResourceLoader.exists(hit_tex):
 		var hit_spr := Sprite2D.new()
@@ -86,7 +86,7 @@ func _explode(player: Node) -> void:
 		var tween := create_tween()
 		tween.tween_property(hit_spr, "modulate:a", 0.0, 0.3)
 		tween.tween_callback(hit_spr.queue_free)
-	
+
 	# Oyuncuya hasar ver
 	if player and is_instance_valid(player):
 		var health: Health = player.get_node_or_null("Health")
@@ -95,7 +95,7 @@ func _explode(player: Node) -> void:
 			var base_dmg: float = boss_stats.strength * 3.0 if boss_stats else 50.0
 			var final_dmg: float = base_dmg * damage_pct
 			health.take_damage(final_dmg, boss, ["attack", "fire", "projectile"], false)
-	
+
 	# Görsel olarak kaybol
 	$AnimatedSprite2D.visible = false
 	var t2 := create_tween()

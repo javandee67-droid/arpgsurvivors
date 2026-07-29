@@ -18,11 +18,11 @@ func setup(boss: Node, sdata: Dictionary) -> void:
 	_orbital_scene = preload("res://scripts/enemy/OrbitalProjectile.tscn") as PackedScene
 	if not _orbital_scene:
 		return
-	
+
 	var count: int = sdata.get("orbital_count", 6)
 	var radius: float = sdata.get("orbital_radius", 80.0)
 	var orbit_speed: float = sdata.get("orbital_speed", 1.5)
-	
+
 	for i in range(count):
 		var orb: Node = _orbital_scene.instantiate()
 		orb.orbit_radius = radius
@@ -35,27 +35,27 @@ func setup(boss: Node, sdata: Dictionary) -> void:
 		orb.hit_tex = sdata.get("hit_tex", "")
 		add_child(orb)
 		_orbitals.append(orb)
-	
+
 	name = "OrbitalController"
 
 func _process(delta: float) -> void:
 	_fire_cooldown = maxf(_fire_cooldown - delta, 0.0)
-	
+
 	if not _boss or not is_instance_valid(_boss):
 		return
-	
+
 	var player: Node = get_tree().get_first_node_in_group("player")
 	if not player or not is_instance_valid(player):
 		return
-	
+
 	var dist: float = _boss.global_position.distance_to(player.global_position)
 	var aggro: float = _skill_data.get("aggro_range", 200.0)
-	
+
 	if dist > aggro:
 		# Menzil dışında — tüm fırlatılmış orb'ları geri getir
 		_reset_orbitals()
 		return
-	
+
 	# Menzilde — sırayla fırlat
 	if _fire_cooldown <= 0.0:
 		_fire_next_orb(player.global_position)
@@ -64,7 +64,7 @@ func _process(delta: float) -> void:
 func _fire_next_orb(target_pos: Vector2) -> void:
 	if _orbitals.is_empty():
 		return
-	
+
 	# Sıradaki fırlatılmamış orb'u bul
 	for attempt in range(_orbitals.size()):
 		var idx: int = (_next_index + attempt) % _orbitals.size()
@@ -73,7 +73,7 @@ func _fire_next_orb(target_pos: Vector2) -> void:
 			_next_index = (idx + 1) % _orbitals.size()
 			orb.fire_at(target_pos)
 			return
-	
+
 	# Tüm orb'lar fırlatılmışsa bekle
 	pass
 
@@ -81,22 +81,22 @@ func _reset_orbitals() -> void:
 	# Oyunucu menzilden çıkarsa, orb'ları resetle
 	# Not: OrbitalProjectile fırlatılınca geri dönmez, yok edilir.
 	# Yeni orb'lar spawn etmek için buradayız — boşalan slotları doldur
-	
+
 	# Eksik orb sayısını hesapla
 	var count: int = _skill_data.get("orbital_count", 6)
 	var active_count: int = 0
 	for orb in _orbitals:
 		if orb and is_instance_valid(orb) and not orb._exploded:
 			active_count += 1
-	
+
 	# Eksik orb'ları yeniden oluştur
 	var missing: int = count - active_count
 	if missing <= 0:
 		return
-	
+
 	var radius: float = _skill_data.get("orbital_radius", 80.0)
 	var orbit_speed: float = _skill_data.get("orbital_speed", 1.5)
-	
+
 	# Eski fırlatılmış orb'ları temizle
 	for i in range(_orbitals.size() - 1, -1, -1):
 		var orb: Node = _orbitals[i]
@@ -104,7 +104,7 @@ func _reset_orbitals() -> void:
 			_orbitals.remove_at(i)
 			if orb and is_instance_valid(orb):
 				orb.queue_free()
-	
+
 	# Yeni orb'lar ekle
 	for i in range(missing):
 		if not _orbital_scene:
@@ -121,5 +121,5 @@ func _reset_orbitals() -> void:
 		orb.hit_tex = _skill_data.get("hit_tex", "")
 		add_child(orb)
 		_orbitals.append(orb)
-	
+
 	_next_index = 0

@@ -70,7 +70,7 @@ func create_from_prefab(position: Vector2, prefab: YggdrasilPrefab) -> void:
 		node.prefab = prefab
 		node.reference_id = prefab.reference_id
 		prefab.add_node(node)
-	
+
 	node.type = prefab.type
 	node.icon = prefab.icon
 	node.size = node.icon.get_size()
@@ -89,7 +89,7 @@ func create_from_prefab(position: Vector2, prefab: YggdrasilPrefab) -> void:
 
 	_tree_view.decorations_container.add_child(node)
 	node.pressed.connect(_on_node_pressed.bind(node))
-	
+
 	decoration_created.emit(node)
 
 func _on_node_pressed(node: YggdrasilNodeButton):

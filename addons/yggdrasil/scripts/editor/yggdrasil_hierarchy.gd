@@ -38,7 +38,7 @@ func _on_item_activated():
 func _on_item_selected(item: TreeItem, column: int, selected: bool):
 	if item.get_parent() == get_root():
 		return
-	
+
 	if selected:
 		var node = item.get_metadata(0)
 		editor.select_node(node)
@@ -47,7 +47,7 @@ func _on_node_selected(selected_node: YggdrasilNodeButton):
 	deselect_all()
 	if not selected_node:
 		return
-	
+
 	for node in editor.selected_nodes:
 		if node.type == YggdrasilNode.NodeType.DECORATION:
 			var id = "Decoration %d" % node.id
@@ -70,7 +70,7 @@ func on_node_created(node: YggdrasilNodeButton):
 	else:
 		item = _nodes.create_child()
 		item.set_text(0, "Node %d" % node.id)
-	
+
 	if node.locked:
 		item.add_button(0, EditorInterface.get_editor_theme().get_icon("Lock", Yggdrasil.ICON_THEME), 0)
 		item.set_button_tooltip_text(0, 0, "Unlock Node")

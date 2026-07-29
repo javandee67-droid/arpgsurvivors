@@ -298,17 +298,17 @@ func _get_node_cluster_from_raw(raw_node: Dictionary) -> String:
 	"""Determine which cluster a node belongs to from raw JSON data."""
 	var mods = raw_node.get("modifiers", [])
 	if mods.size() == 0: return "generic"
-	
+
 	var keys = []
 	for m in mods:
 		if m is Dictionary and m.has("key"):
 			keys.push_back(str(m["key"]))
-	
+
 	if keys.size() == 0: return "generic"
-	
+
 	if "keystone_special" in keys: return "keystone"
 	if "immunity_or_prohibition" in keys: return "keystone"
-	
+
 	var priority = [
 		"fire_damage", "cold_damage", "lightning_damage",
 		"chaos_damage", "physical_damage",
@@ -333,7 +333,7 @@ func _get_node_cluster_from_raw(raw_node: Dictionary) -> String:
 func _compute_tree_layout(ygg_nodes: Dictionary, cluster_map: Dictionary = {}) -> Dictionary:
 	"""Radial flower layout — each cluster is a distinct petal/arm extending from center.
 	Only notable and keystone nodes. NO depth-based positioning — everything is radial sector."""
-	
+
 	# 1. Merge tiny clusters (< 8 nodes) into "other"
 	var MIN_CLUSTER_SIZE := 8
 	var merged_cluster_map = {}
@@ -343,18 +343,18 @@ func _compute_tree_layout(ygg_nodes: Dictionary, cluster_map: Dictionary = {}) -
 		var cl = cluster_map.get(nid, "generic")
 		if cl.is_empty(): cl = "generic"
 		merged_cluster_map[nid] = cl
-	
+
 	# Count, merge tiny ones
 	var cl_counts := {}
 	for nid in ygg_nodes:
 		var cl = merged_cluster_map[nid]
 		cl_counts[cl] = cl_counts.get(cl, 0) + 1
-	
+
 	# Merge all tiny clusters (< 8 nodes) into "other"
 	for nid in ygg_nodes:
 		if cl_counts.get(merged_cluster_map[nid], 0) < MIN_CLUSTER_SIZE:
 			merged_cluster_map[nid] = "other"
-	
+
 	# Group into clusters using merged map
 	var clusters = {}
 	for nid in ygg_nodes:
@@ -362,13 +362,13 @@ func _compute_tree_layout(ygg_nodes: Dictionary, cluster_map: Dictionary = {}) -
 		if cl.is_empty(): cl = "generic"
 		if not clusters.has(cl): clusters[cl] = []
 		clusters[cl].push_back(nid)
-	
+
 	var cl_list = []
 	for cl in clusters:
 		cl_list.push_back({"name": cl, "count": clusters[cl].size()})
 	cl_list.sort_custom(func(a, b): return a.count > b.count)
 	print("Layout clusters: %d" % cl_list.size())
-	
+
 	# 2. Assign angles — each cluster gets a sector
 	var positions = {}
 	var total_weight := 0.0
@@ -377,27 +377,27 @@ func _compute_tree_layout(ygg_nodes: Dictionary, cluster_map: Dictionary = {}) -
 		var w = max(1.0, float(cl.count))
 		total_weight += w
 		weights[cl.name] = w
-	
+
 	# Draw clusters in a 360° circle, starting from top (-90°) going clockwise
 	var arc_start_deg := -90.0
 	var arc_range_deg := 360.0
 	var current_angle := arc_start_deg
-	
+
 	# Track which angles have been used (for collision avoidance between clusters)
 	var used_spots := []  # [{angle, radius}]
-	
+
 	for ci in range(cl_list.size()):
 		var cl_name = cl_list[ci].name
 		var cl_nodes = clusters[cl_name]
 		var wedge_deg = max(18.0, (weights[cl_name] / total_weight) * arc_range_deg)
-		
+
 		# Place center of this cluster's arm at the middle of its wedge
 		var wedge_center_deg = current_angle + wedge_deg * 0.5
 		current_angle += wedge_deg
-		
+
 		var ba = deg_to_rad(wedge_center_deg)
 		var half_spread = deg_to_rad(min(25.0, wedge_deg * 0.35))
-		
+
 		# Separate keystone from notable nodes
 		var keystones := []
 		var notables := []
@@ -406,14 +406,14 @@ func _compute_tree_layout(ygg_nodes: Dictionary, cluster_map: Dictionary = {}) -
 				keystones.push_back(nid)
 			else:
 				notables.push_back(nid)
-		
+
 		# Sort notables for consistent placement
 		notables.sort()
 		keystones.sort()
-		
+
 		# Base radius for this cluster — clusters with more nodes go slightly farther
 		var base_r = 120.0 + min(cl_nodes.size(), 50) * 1.0
-		
+
 		# Place keystones at the TIP of the arm (farthest from center)
 		for ki in range(keystones.size()):
 			var nid = keystones[ki]
@@ -422,23 +422,23 @@ func _compute_tree_layout(ygg_nodes: Dictionary, cluster_map: Dictionary = {}) -
 			var a = ba + rel * half_spread * 0.5
 			var r = base_r + 50.0  # Keystones at tip
 			positions[nid] = Vector2(cos(a), sin(a)) * r
-		
+
 		# Place notables spread along the arm — earlier ones closer to center
 		# Use multi-ring approach similar to flower petals
 		var n_per_ring = 8  # 8 nodes per ring layer = more compact
 		var ring_spacing = 48.0
 		var angle_per_node = half_spread * 0.7 / max(1.0, n_per_ring - 1)
-		
+
 		for pi in range(notables.size()):
 			var nid = notables[pi]
 			var ring_idx = pi / n_per_ring  # Which ring layer
 			var pos_in_ring = pi % n_per_ring  # Position within ring
-			
+
 			var r = base_r + ring_idx * ring_spacing
 			var spread_frac = half_spread * (1.0 - ring_idx * 0.15)
 			var rel_pos = (pos_in_ring - (n_per_ring - 1) * 0.5) / max(1.0, n_per_ring - 1)
 			var a = ba + rel_pos * spread_frac
-			
+
 			# Collision check — push outward if too close to existing node
 			var r_actual = r
 			var collision = true
@@ -453,16 +453,16 @@ func _compute_tree_layout(ygg_nodes: Dictionary, cluster_map: Dictionary = {}) -
 						r_actual += 30.0
 						safety += 1
 						break
-			
+
 			used_spots.push_back({"angle": a, "radius": r_actual})
 			positions[nid] = Vector2(cos(a), sin(a)) * r_actual
-	
+
 	# Start nodes at exact center
 	var start_ids = [20499, 2653, 18441, 2955, 42452]
 	for nid in ygg_nodes:
 		if nid in start_ids:
 			positions[nid] = Vector2(0, 0)
-	
+
 	return positions
 
 func _has_modifier_key(n: Dictionary) -> bool:
@@ -537,7 +537,7 @@ func _build_main_tree(data: Dictionary) -> YggdrasilTree:
 	for n in all_filtered_nodes:
 		var nid = int(n.get("id", 0))
 		cluster_map[nid] = _get_node_cluster_from_raw(n)
-	
+
 	# NEW: compute tree layout (cluster-based radial)
 	var layout_positions = _compute_tree_layout(ygg_nodes, cluster_map)
 	for nid in layout_positions:

@@ -50,16 +50,16 @@ func _process(delta: float) -> void:
 			heal(heal_amount)
 		# Clean up finished leech instances
 		_life_leech_instances = _life_leech_instances.filter(func(l): return l.remaining > 0.0)
-	
+
 	# --- Passive Life Regeneration ---
 	if _stats and _stats.life_regen_per_second > 0.0 and current_health < max_health:
 		heal(_stats.life_regen_per_second * delta)
-	
+
 	# --- Passive ES Regeneration ---
 	if _stats and _stats.es_regen_per_second > 0.0 and current_es < max_es:
 		current_es = minf(current_es + _stats.es_regen_per_second * delta, max_es)
 		es_changed.emit(current_es, max_es)
-	
+
 	# Energy Shield Recharge (default 5sn gecikme, %33/sn hız)
 	if _stats and current_es < max_es:
 		_es_recharge_timer += delta
@@ -74,7 +74,7 @@ func _on_stats_changed() -> void:
 	max_health = _stats.max_life
 	var old_es_max := max_es
 	max_es = _stats.max_energy_shield
-	
+
 	if not _initialized:
 		current_health = max_health
 		current_es = max_es
@@ -86,7 +86,7 @@ func _on_stats_changed() -> void:
 			current_es = current_es * (max_es / old_es_max)
 		else:
 			current_es = max_es
-	
+
 	current_health = minf(current_health, max_health)
 	current_es = minf(current_es, max_es)
 	health_changed.emit(current_health, max_health)
@@ -99,17 +99,17 @@ func take_damage(amount: float, source: Node = null, tags: Array = [], is_spell:
 	# Track last attacker for on-kill / on-hit effects
 	if source and is_instance_valid(source):
 		_last_attacker = source
-	
+
 	if amount <= 0.0:
 		return {"final_damage": 0.0, "blocked": false, "dodged": false, "evaded": false, "es_absorbed": 0.0}
-	
+
 	var result := {"final_damage": 0.0, "blocked": false, "dodged": false, "evaded": false, "es_absorbed": 0.0}
 	var damage_type := _extract_damage_type(tags)
-	
+
 	# --- Evasion-based Dodge (CombatEngine.calculate_hit zaten accuracy vs evasion kontrolü yaptı) ---
 	# Ayrı bir flat attack_dodge_chance artık yok.
 	# Kaçınma tamamen evasion puanı üzerinden CombatEngine'de hesaplanır.
-	
+
 	# --- Block (75% cap applied in CombatEngine) ---
 	if not is_spell and _stats and _stats.attack_block_chance > 0.0:
 		if CombatEngine.roll_block(_stats.attack_block_chance):
@@ -120,7 +120,7 @@ func take_damage(amount: float, source: Node = null, tags: Array = [], is_spell:
 			amount = maxf(amount - amount * block_reduction, 0.0)
 			if amount <= 0.0:
 				return result
-	
+
 	if is_spell and _stats and _stats.spell_block_chance > 0.0:
 		if CombatEngine.roll_block(_stats.spell_block_chance):
 			result.blocked = true
@@ -129,7 +129,7 @@ func take_damage(amount: float, source: Node = null, tags: Array = [], is_spell:
 			amount = maxf(amount - amount * block_reduction, 0.0)
 			if amount <= 0.0:
 				return result
-	
+
 	# --- Energy Shield absorbs damage first ---
 	var es_absorbed: float = 0.0
 	if current_es > 0.0 and damage_type != "chaos":
@@ -141,15 +141,15 @@ func take_damage(amount: float, source: Node = null, tags: Array = [], is_spell:
 		es_changed.emit(current_es, max_es)
 	elif damage_type == "chaos":
 		pass  ## Chaos bypasses ES
-	
+
 	# --- Apply resistances (penetration reduces enemy resistance) ---
 	var final_amount: float = amount
 	if _stats:
 		var effective_pen: float = penetration
 		final_amount = amount * _stats.get_incoming_damage_multiplier(damage_type, effective_pen)
-	
+
 	result.final_damage = final_amount
-	
+
 	# --- Culling Strike: attacker with culling_threshold instantly kills low-life enemies ---
 	if source and is_instance_valid(source) and source.has_node("CharacterStats"):
 		var caster_stats: CharacterStats = source.get_node("CharacterStats") as CharacterStats
@@ -158,12 +158,12 @@ func take_damage(amount: float, source: Node = null, tags: Array = [], is_spell:
 			if current_health / max_health <= cull_pct / 100.0:
 				current_health = 0.0
 				health_changed.emit(current_health, max_health)
-				
+
 	# --- Apply damage to health ---
 	if final_amount > 0.0 and current_health > 0.0:
 		current_health = maxf(current_health - final_amount, 0.0)
 		health_changed.emit(current_health, max_health)
-	
+
 	# --- Emit events ---
 	var payload := {
 		"amount": final_amount + es_absorbed,
@@ -175,19 +175,19 @@ func take_damage(amount: float, source: Node = null, tags: Array = [], is_spell:
 		"es_absorbed": es_absorbed,
 	}
 	EventBus.damage_taken.emit(payload)
-	
+
 	if source:
 		var dealt_payload := payload.duplicate()
 		dealt_payload["amount"] = final_amount
 		EventBus.damage_dealt.emit(dealt_payload)
 		if payload.get("is_crit", false):
 			EventBus.crit_landed.emit(dealt_payload)
-	
+
 	damage_taken_signal.emit(final_amount, source, tags)
-	
+
 	if current_health <= 0.0:
 		die()
-	
+
 	return result
 
 func _extract_damage_type(tags: Array) -> String:
@@ -256,11 +256,11 @@ func die() -> void:
 		if parent.is_in_group("player"):
 			died.emit()
 			return
-		
+
 		# Düşman öldü — saldırgan eğer player ise on-kill affix'lerini uygula
 		if _last_attacker and is_instance_valid(_last_attacker) and _last_attacker.is_in_group("player"):
 			_apply_on_kill_effects(_last_attacker)
-		
+
 		EventBus.enemy_killed.emit(parent)
 	died.emit()
 	# Enemy.gd _on_death() zaten queue_free cagiriyor (tween + drop islemlerinden sonra).
@@ -275,25 +275,25 @@ static func apply_on_hit_effects_to_attacker(attacker: Node, damage_dealt: float
 	var stats: CharacterStats = attacker.get_node_or_null("CharacterStats")
 	if not stats:
 		return
-	
+
 	# Life gain on hit
 	if stats.life_gain_on_hit > 0.0:
 		var p_health: Health = attacker.get_node_or_null("Health")
 		if p_health:
 			p_health.heal(stats.life_gain_on_hit)
-	
+
 	# Life leech
 	if stats.life_leech_percent > 0.0:
 		var p_health: Health = attacker.get_node_or_null("Health")
 		if p_health:
 			p_health.add_life_leech(damage_dealt, stats.life_leech_percent)
-	
+
 ## Düşman öldürünce player'ın life_on_kill affix'lerini uygula
 func _apply_on_kill_effects(player_node: Node) -> void:
 	var p_stats: CharacterStats = player_node.get_node_or_null("CharacterStats")
 	if not p_stats:
 		return
-	
+
 	# Life on kill
 	if p_stats.life_on_kill > 0.0:
 		var p_health: Health = player_node.get_node_or_null("Health")

@@ -11,6 +11,6 @@ func _init(tree_view: YggdrasilTreeView):
 
 func set_scene(scene: PackedScene) -> void:
 	_scene = scene
-	
+
 func _position(object: Control, position: Vector2):
 	object.set_position(position - (object.size / 2) + (_tree_data.size / 2))

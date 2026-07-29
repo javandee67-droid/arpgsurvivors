@@ -74,7 +74,7 @@ func _create_containers() -> void:
 	nodes_container.mouse_filter = MOUSE_FILTER_IGNORE
 	nodes_container.set_anchors_preset(PRESET_FULL_RECT)
 	main_container.add_child(nodes_container)
-	
+
 	add_child(main_container)
 
 func _create_background():
@@ -98,7 +98,7 @@ func _create_camera() -> void:
 	camera.set_viewport(main_container)
 	camera.set_bounds(Rect2(Vector2.ZERO, _tree_data.size))
 	# Camera fitted externally via YggdrasilSkillTreeUI._center_tree_manual
-	
+
 
 func _fit_camera_to_view(use_size: Vector2 = Vector2.ZERO) -> void:
 	if not camera or not is_inside_tree():
@@ -153,7 +153,7 @@ func _create_services(decoration_scene: PackedScene, node_scene: PackedScene, li
 	prefabs_service.load_tree(_tree_data)
 
 	allocation_service = YggdrasilAllocationService.new(self)
-	
+
 	allocation_service.node_preallocated.connect(nodes_service.on_node_preallocated)
 	allocation_service.node_unpreallocated.connect(nodes_service.on_node_unpreallocated)
 	allocation_service.node_allocated.connect(nodes_service.on_node_allocated)
@@ -167,7 +167,7 @@ func _create_services(decoration_scene: PackedScene, node_scene: PackedScene, li
 	allocation_service.node_deallocated.connect(connections_service.on_node_allocation_changed)
 	allocation_service.node_refund_added.connect(connections_service.on_node_allocation_changed)
 	allocation_service.node_refund_removed.connect(connections_service.on_node_allocation_changed)
-	
+
 	allocation_service.node_allocated.connect(_on_node_allocated)
 	allocation_service.node_deallocated.connect(_on_node_deallocated)
 
@@ -178,7 +178,7 @@ func _create_services(decoration_scene: PackedScene, node_scene: PackedScene, li
 func _gui_input(event):
 	if not is_visible_in_tree() or not _tree_data:
 		return
-	
+
 	camera.input(event)
 
 func _on_node_hovered(node: YggdrasilNodeButton, is_hovered: bool):
@@ -207,7 +207,7 @@ func _on_node_deallocated(node: YggdrasilNodeButton):
 	if _tooltip and _tooltip.visible:
 		_tooltip.reset_size()
 		_tooltip.inspect(node)
-	
+
 	node_deallocated.emit(node)
 
 func get_local_space() -> Transform2D:
