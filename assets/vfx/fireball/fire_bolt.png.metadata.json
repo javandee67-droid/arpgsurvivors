@@ -1,0 +1,9 @@
+{
+	"frame_width": 64,
+	"frame_height": 64,
+	"columns": 4,
+	"frame_count": 8,
+	"fps": 12.0,
+	"spritesheet_width": 1024,
+	"spritesheet_height": 1024
+}

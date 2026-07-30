@@ -33,6 +33,24 @@ var _is_crit: bool = false
 var _ailment_power_override: float = 0.0
 var _damage_type: String = "physical"
 
+## Pulse/time for breathing visual effect
+var _pulse_time: float = 0.0
+## Breathing effect is ENABLED
+var _breathing_enabled: bool = false
+
+## Breathing & trail parametreleri (skill tipine göre _setup_skill_effects'te doldurulur)
+var _breathing_speed: float = 8.0
+var _breathing_amp: float = 0.08
+var _wobble_speed: float = 3.0
+var _wobble_amp: float = 0.05
+var _trail_color: Color = Color(1.0, 0.6, 0.2, 0.5)
+var _trail_scale_min: float = 0.1
+var _trail_scale_max: float = 0.25
+var _trail_vel_min: float = 10.0
+var _trail_vel_max: float = 30.0
+var _trail_lifetime: float = 0.3
+var _trail_amount: int = 8
+
 ## Animasyonlu mermi sprite'ı için frame bilgileri
 var proj_anim_tex: String = ""       ## Spritesheet texture yolu
 var proj_anim_fw: int = 32           ## Her frame genişliği
@@ -42,6 +60,7 @@ var proj_anim_count: int = 8         ## Toplam frame sayısı
 var proj_anim_fps: float = 10.0      ## Animasyon hızı
 
 @onready var _anim_sprite: AnimatedSprite2D = $AnimatedSprite2D
+@onready var _trail_particles: GPUParticles2D = $GPUParticles2D
 
 func setup(target_position: Vector2, damage: float, tags: Array[String], source: Node = null,
 		texture_path: String = "", hit_effect_path: String = "", skill: String = "",
@@ -66,6 +85,184 @@ func setup(target_position: Vector2, damage: float, tags: Array[String], source:
 	# Çarpma efekti
 	if hit_effect_path != "" and ResourceLoader.exists(hit_effect_path):
 		hit_effect_texture = hit_effect_path
+
+	# HER skill için breath efekti + trail partikülleri (skill_id'ye göre özelleştirilmiş)
+	_breathing_enabled = true
+	_setup_skill_effects(skill)
+
+## Skill ID'sine göre breathing ve trail efektlerini ayarla
+func _setup_skill_effects(skill: String) -> void:
+	match skill:
+		"fire_bolt":
+			# Ateş oku: kırmızı-turuncu trail, hızlı nefes (8x)
+			_breathing_speed = 8.0
+			_breathing_amp = 0.08
+			_wobble_speed = 3.0
+			_wobble_amp = 0.05
+			_trail_color = Color(1.0, 0.6, 0.2, 0.5)
+			_trail_scale_min = 0.1
+			_trail_scale_max = 0.25
+			_trail_vel_min = 10.0
+			_trail_vel_max = 30.0
+			_trail_lifetime = 0.3
+			_trail_amount = 8
+		"fireball":
+			# Fireball: daha küçük boyut, daha yavaş nefes
+			_breathing_speed = 6.0
+			_breathing_amp = 0.03
+			_wobble_speed = 2.0
+			_wobble_amp = 0.03
+			_trail_color = Color(1.0, 0.6, 0.2, 0.4)
+			_trail_scale_min = 0.06
+			_trail_scale_max = 0.15
+			_trail_vel_min = 8.0
+			_trail_vel_max = 20.0
+			_trail_lifetime = 0.2
+			_trail_amount = 6
+		"ice_shard":
+			# Buz: mavi-beyaz trail, yavaş nefes, dönüş
+			_breathing_speed = 5.0
+			_breathing_amp = 0.05
+			_wobble_speed = 2.0
+			_wobble_amp = 0.03
+			_trail_color = Color(0.5, 0.8, 1.0, 0.4)
+			_trail_scale_min = 0.08
+			_trail_scale_max = 0.2
+			_trail_vel_min = 8.0
+			_trail_vel_max = 25.0
+			_trail_lifetime = 0.4
+			_trail_amount = 6
+		"slice_wave", "whirlwind":
+			# Rüzgar/Kesme: soluk mavi-beyaz trail, hızlı
+			_breathing_speed = 10.0
+			_breathing_amp = 0.06
+			_wobble_speed = 4.0
+			_wobble_amp = 0.04
+			_trail_color = Color(0.6, 0.9, 1.0, 0.3)
+			_trail_scale_min = 0.05
+			_trail_scale_max = 0.15
+			_trail_vel_min = 15.0
+			_trail_vel_max = 35.0
+			_trail_lifetime = 0.2
+			_trail_amount = 5
+		"arcane_orb":
+			# Gizem: mor trail, yavaş nefes
+			_breathing_speed = 6.0
+			_breathing_amp = 0.07
+			_wobble_speed = 2.5
+			_wobble_amp = 0.04
+			_trail_color = Color(0.7, 0.3, 1.0, 0.4)
+			_trail_scale_min = 0.1
+			_trail_scale_max = 0.2
+			_trail_vel_min = 5.0
+			_trail_vel_max = 20.0
+			_trail_lifetime = 0.5
+			_trail_amount = 7
+		"toxic_circle":
+			# Zehir: yeşil trail
+			_breathing_speed = 7.0
+			_breathing_amp = 0.06
+			_wobble_speed = 3.0
+			_wobble_amp = 0.03
+			_trail_color = Color(0.3, 0.8, 0.2, 0.4)
+			_trail_scale_min = 0.08
+			_trail_scale_max = 0.2
+			_trail_vel_min = 8.0
+			_trail_vel_max = 22.0
+			_trail_lifetime = 0.35
+			_trail_amount = 6
+		"dark_beam":
+			# Karanlık: mor-siyah trail
+			_breathing_speed = 6.0
+			_breathing_amp = 0.05
+			_wobble_speed = 2.5
+			_wobble_amp = 0.02
+			_trail_color = Color(0.4, 0.1, 0.6, 0.4)
+			_trail_scale_min = 0.1
+			_trail_scale_max = 0.25
+			_trail_vel_min = 6.0
+			_trail_vel_max = 18.0
+			_trail_lifetime = 0.4
+			_trail_amount = 6
+		"lightning_chain", "thunder_strike":
+			# Yıldırım: parlak sarı trail
+			_breathing_speed = 12.0
+			_breathing_amp = 0.1
+			_wobble_speed = 5.0
+			_wobble_amp = 0.06
+			_trail_color = Color(1.0, 0.9, 0.3, 0.5)
+			_trail_scale_min = 0.1
+			_trail_scale_max = 0.25
+			_trail_vel_min = 12.0
+			_trail_vel_max = 30.0
+			_trail_lifetime = 0.25
+			_trail_amount = 8
+		"ice_nova", "frost_explosion":
+			# Buz patlaması: buz mavisi trail, yavaş
+			_breathing_speed = 5.0
+			_breathing_amp = 0.06
+			_wobble_speed = 2.0
+			_wobble_amp = 0.03
+			_trail_color = Color(0.3, 0.7, 1.0, 0.4)
+			_trail_scale_min = 0.08
+			_trail_scale_max = 0.2
+			_trail_vel_min = 6.0
+			_trail_vel_max = 20.0
+			_trail_lifetime = 0.35
+			_trail_amount = 6
+		"holy_nova":
+			# Kutsal: altın-sarı trail
+			_breathing_speed = 7.0
+			_breathing_amp = 0.07
+			_wobble_speed = 3.0
+			_wobble_amp = 0.04
+			_trail_color = Color(1.0, 0.85, 0.3, 0.4)
+			_trail_scale_min = 0.1
+			_trail_scale_max = 0.2
+			_trail_vel_min = 8.0
+			_trail_vel_max = 22.0
+			_trail_lifetime = 0.3
+			_trail_amount = 6
+		_:
+			# Varsayılan: yumuşak beyaz trail, orta nefes
+			_breathing_speed = 6.0
+			_breathing_amp = 0.05
+			_wobble_speed = 3.0
+			_wobble_amp = 0.03
+			_trail_color = Color(1.0, 1.0, 1.0, 0.3)
+			_trail_scale_min = 0.08
+			_trail_scale_max = 0.15
+			_trail_vel_min = 8.0
+			_trail_vel_max = 20.0
+			_trail_lifetime = 0.3
+			_trail_amount = 5
+	
+	_setup_trail_from_params()
+
+## Trail partiküllerini _setup_skill_effects'te atanan parametrelerle oluştur
+func _setup_trail_from_params() -> void:
+	if not _trail_particles or not _anim_sprite or not _anim_sprite.sprite_frames:
+		return
+	var first_tex: Texture2D = _anim_sprite.sprite_frames.get_frame_texture("default", 0)
+	if not first_tex:
+		return
+
+	var pm := ParticleProcessMaterial.new()
+	pm.direction = Vector3(0, -1, 0)
+	pm.spread = 180.0
+	pm.gravity = Vector3.ZERO
+	pm.initial_velocity_min = _trail_vel_min
+	pm.initial_velocity_max = _trail_vel_max
+	pm.scale_min = _trail_scale_min
+	pm.scale_max = _trail_scale_max
+	pm.color = _trail_color
+
+	_trail_particles.process_material = pm
+	_trail_particles.texture = first_tex
+	_trail_particles.emitting = true
+	_trail_particles.one_shot = false
+	_trail_particles.lifetime = _trail_lifetime
+	_trail_particles.amount = _trail_amount
 
 ## Mermi sprite'ını ayarla — animasyonlu spritesheet varsa AnimatedSprite2D kullan, yoksa statik texture ata
 func _setup_projectile_sprite(texture_path: String) -> void:
@@ -129,6 +326,16 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	global_position += _velocity * delta
+
+func _process(delta: float) -> void:
+	if not _breathing_enabled:
+		return
+	_pulse_time += delta
+	# Skill'e özel nefes efekti (büyüyüp küçülme)
+	var breathe: float = 1.0 + sin(_pulse_time * _breathing_speed) * _breathing_amp
+	_anim_sprite.scale = Vector2.ONE * breathe
+	# Skill'e özel sallanma efekti
+	_anim_sprite.rotation = sin(_pulse_time * _wobble_speed) * _wobble_amp
 
 func _on_body_entered(body: Node) -> void:
 	if body == _source or _hit_bodies.has(body):
@@ -252,146 +459,184 @@ func _spawn_texture_vfx(pos: Vector2, tex_path: String) -> void:
 				cols = json.get("columns", cols)
 				count = json.get("frame_count", count)
 				fps = json.get("fps", fps)
-	var asp := AnimatedSprite2D.new()
 	var frames := SpriteFrames.new()
-	frames.add_animation("vfx")
-	frames.set_animation_loop("vfx", false)
+	if not frames.has_animation("default"):
+		frames.add_animation("default")
+	frames.set_animation_loop("default", false)
 	for i in range(count):
 		var col: int = i % cols
 		var row: int = i / cols
 		var at := AtlasTexture.new()
 		at.atlas = tex
 		at.region = Rect2(col * fw, row * fh, fw, fh)
-		frames.add_frame("vfx", at, 1.0 / fps)
-	asp.sprite_frames = frames
-	asp.animation = "vfx"
-	asp.centered = true
-	asp.position = pos
-	asp.z_index = 15
-	asp.scale = Vector2(2.2, 2.2)
-	get_tree().current_scene.add_child(asp)
-	asp.play()
-	asp.animation_finished.connect(func():
-		if is_instance_valid(asp):
-			asp.queue_free()
-	, CONNECT_ONE_SHOT)
+		frames.add_frame("default", at, 1.0 / fps)
+	var vfx := AnimatedSprite2D.new()
+	vfx.sprite_frames = frames
+	vfx.animation = "default"
+	vfx.play()
+	vfx.global_position = pos
+	vfx.z_index = 10
+	get_tree().current_scene.add_child(vfx)
+	vfx.animation_finished.connect(func(): if is_instance_valid(vfx): vfx.queue_free())
 
 func _spawn_blood_vfx(pos: Vector2) -> void:
-	var tex_path := "res://assets/generated/hit_blood_splatter.png"
-	if not ResourceLoader.exists(tex_path):
+	"""Kucuk kan sıçraması efekti."""
+	var blood_path: String = "res://assets/generated/hit_blood_splatter.png"
+	if not ResourceLoader.exists(blood_path):
 		return
-	var tex: Texture2D = ResourceLoader.load(tex_path)
+	var meta_path: String = blood_path.get_basename() + ".metadata.json"
+	var fw: int = 48; var fh: int = 48; var cols: int = 4; var count: int = 16; var fps: float = 12.0
+	if ResourceLoader.exists(meta_path):
+		var file: FileAccess = FileAccess.open(meta_path, FileAccess.READ)
+		if file:
+			var json_str: String = file.get_as_text()
+			file.close()
+			var json: Variant = JSON.parse_string(json_str)
+			if json is Dictionary:
+				fw = json.get("frame_width", fw)
+				fh = json.get("frame_height", fh)
+				cols = json.get("columns", cols)
+				count = json.get("frame_count", count)
+				fps = json.get("fps", fps)
+	var tex: Texture2D = ResourceLoader.load(blood_path)
 	if not tex:
 		return
-	var asp := AnimatedSprite2D.new()
-	asp.sprite_frames = _create_vfx_frames(tex, 48, 48, 4, 16)
-	asp.animation = "vfx"
-	asp.centered = true
-	asp.position = pos + Vector2(randf_range(-4.0, 4.0), randf_range(-4.0, 4.0))
-	asp.z_index = 11  # blood above other effects
-	asp.scale = Vector2(0.35, 0.35)
-	get_tree().current_scene.add_child(asp)
-	asp.play()
-	asp.animation_finished.connect(func():
-		if is_instance_valid(asp):
-			asp.queue_free()
-	, CONNECT_ONE_SHOT)
-
-static func _create_vfx_frames(tex: Texture2D, fw: int, fh: int,
-		cols: int, count: int) -> SpriteFrames:
 	var frames := SpriteFrames.new()
-	frames.add_animation("vfx")
-	frames.set_animation_loop("vfx", false)
+	if not frames.has_animation("default"):
+		frames.add_animation("default")
+	frames.set_animation_loop("default", false)
 	for i in range(count):
 		var col: int = i % cols
 		var row: int = i / cols
 		var at := AtlasTexture.new()
 		at.atlas = tex
 		at.region = Rect2(col * fw, row * fh, fw, fh)
-		frames.add_frame("vfx", at, 0.22)
-	return frames
-
-func _apply_ailments(target: Node) -> void:
-	var ac: AilmentController = target.get_node_or_null("AilmentController")
-	if not ac:
-		return
-	var th: Health = target.get_node_or_null("Health")
-	var max_life: float = th.max_health if th else 100.0
-	var valid_source: Node = _source if (is_instance_valid(_source)) else null
-	var caster_stats: CharacterStats = null
-	if valid_source and valid_source.has_node("CharacterStats"):
-		caster_stats = valid_source.get_node("CharacterStats") as CharacterStats
-
-	# Hit result benzeri bir dict olustur
-	var ap: float = _ailment_power_override if _ailment_power_override > 0.0 else _damage * 0.5
-	var hit_result: Dictionary = {
-		"damage": _damage,
-		"is_crit": _is_crit,
-		"ailment_power": ap,
-		"damage_type": _damage_type,
-	}
-
-	AilmentUtils.apply_ailments_for_tags(ac, hit_result, caster_stats, max_life, _tags, valid_source)
+		frames.add_frame("default", at, 1.0 / fps)
+	var blood := AnimatedSprite2D.new()
+	blood.sprite_frames = frames
+	blood.animation = "default"
+	blood.play()
+	blood.global_position = pos + Vector2(randf_range(-8, 8), randf_range(-8, 8))
+	blood.z_index = 9
+	blood.scale = Vector2(0.7, 0.7)
+	get_tree().current_scene.add_child(blood)
+	blood.animation_finished.connect(func(): if is_instance_valid(blood): blood.queue_free())
 
 func _spawn_miss_effect(pos: Vector2) -> void:
-	# Simple floating miss indicator
-	var lbl := Label.new()
-	lbl.text = "Iska!"
-	lbl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6, 1.0))
-	lbl.add_theme_font_size_override("font_size", 10)
-	lbl.position = pos - Vector2(16, 0)
-	lbl.z_index = 20
-	get_tree().current_scene.add_child(lbl)
-	var tween := create_tween()
-	tween.tween_property(lbl, "position", lbl.position + Vector2(0, -24), 0.6)
-	tween.tween_property(lbl, "modulate:a", 0.0, 0.6)
-	tween.finished.connect(func():
-		if is_instance_valid(lbl):
-			lbl.queue_free()
-	)
+	"""'Iska!' yazısı spawnla."""
+	var label := Label.new()
+	label.text = "Iska!"
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 18)
+	label.modulate = Color(0.8, 0.8, 0.8, 1.0)
+	label.global_position = pos - Vector2(30, 10)
+	label.z_index = 50
+	get_tree().current_scene.add_child(label)
+	var tw := create_tween()
+	tw.tween_property(label, "position:y", label.position.y - 20, 0.8)
+	tw.tween_property(label, "modulate:a", 0.0, 0.8)
+	tw.tween_callback(func(): if is_instance_valid(label): label.queue_free())
 
 func _deal_area_damage(center: Vector2) -> void:
 	var enemies: Array[Node] = get_tree().get_nodes_in_group("enemy")
-	for enemy in enemies:
-		if not is_instance_valid(enemy) or _hit_bodies.has(enemy):
+	for e in enemies:
+		if not is_instance_valid(e) or not e.has_node("Health"):
 			continue
-		if enemy.global_position.distance_to(center) <= area_damage_radius:
-			if enemy.has_node("Health"):
-				var valid_source: Node = _source if (is_instance_valid(_source)) else null
-				enemy.get_node("Health").take_damage(_damage * 0.5, valid_source, _tags)  ## 50% area damage
+		if _hit_bodies.has(e):
+			continue
+		var h: Health = e.get_node("Health") as Health
+		if h.current_health <= 0:
+			continue
+		var dist: float = center.distance_to(e.global_position)
+		if dist > area_damage_radius:
+			continue
+		var valid_source: Node = _source if (is_instance_valid(_source)) else null
+		var pen: float = 0.0
+		h.take_damage(_damage * 0.5, valid_source, _tags, false, pen)
 
-func _fork_projectiles() -> void:
-	var fork_angles: Array[float] = [-0.5, 0.5]  ## Fork left and right
-	for angle_off in fork_angles:
-		var forked := duplicate() as Projectile
-		get_tree().current_scene.add_child(forked)
-		forked.global_position = global_position
-		forked._velocity = _velocity.rotated(angle_off)
-		forked.rotation = forked._velocity.angle()
-		forked._remaining_fork = 0  ## Forked projectiles don't fork again
-		forked._remaining_chain = maxi(0, _remaining_chain)
-		forked._remaining_pierce = 0
-		forked._hit_bodies = _hit_bodies.duplicate()
-
-func _chain_to_nearest(hit_body: Node) -> bool:
+func _chain_to_nearest(exclude_body: Node) -> bool:
+	"""En yakin canli dusmana yon degistir. Basariliysa true."""
 	var enemies: Array[Node] = get_tree().get_nodes_in_group("enemy")
 	var nearest: Node = null
-	var nearest_dist: float = 500.0  ## Max chain range
-
-	for enemy in enemies:
-		if not is_instance_valid(enemy) or enemy == hit_body or _hit_bodies.has(enemy):
+	var nearest_dist: float = 999999.0
+	for e in enemies:
+		if not is_instance_valid(e) or e == exclude_body:
 			continue
-		var dist: float = enemy.global_position.distance_to(global_position)
-		if dist < nearest_dist:
-			nearest_dist = dist
-			nearest = enemy
-
+		if not e.has_node("Health"):
+			continue
+		var h: Health = e.get_node("Health") as Health
+		if h.current_health <= 0:
+			continue
+		if _hit_bodies.has(e):
+			continue
+		var d: float = global_position.distance_to(e.global_position)
+		if d < nearest_dist:
+			nearest_dist = d
+			nearest = e
 	if nearest:
-		# Redirect to nearest enemy
-		global_position = hit_body.global_position
 		_velocity = (nearest.global_position - global_position).normalized() * speed
 		rotation = _velocity.angle()
 		return true
-
-	# Hedef yok, mermi pierce/fork ile devam etsin
 	return false
+
+func _fork_projectiles() -> void:
+	"""2 adet fork mermisi olustur, ±25 derece acili."""
+	for angle_offset in [-25.0, 25.0]:
+		var proj := _clone_self()
+		if not proj:
+			continue
+		var dir: Vector2 = _velocity.rotated(deg_to_rad(angle_offset)).normalized()
+		proj._velocity = dir * speed
+		get_tree().current_scene.add_child(proj)
+
+## Bumerang/arcane_orb için: hızı ters çevir (geri dönüş)
+func reverse_velocity(speed_mult: float = 0.8) -> void:
+	_velocity = -_velocity.normalized() * speed * speed_mult
+	speed = speed * speed_mult
+	lifetime = lifetime + 999.0  # Geri dönene kadar yaşa
+
+func _clone_self() -> Projectile:
+	"""Kendini clone'la (fork icin)"""
+	if not ResourceLoader.exists("res://scripts/projectile.tscn"):
+		return null
+	var scene := load("res://scripts/projectile.tscn") as PackedScene
+	if not scene:
+		return null
+	var clone := scene.instantiate() as Projectile
+	if not clone:
+		return null
+	clone.global_position = global_position
+	clone._damage = _damage
+	clone._tags = _tags.duplicate()
+	clone._source = _source
+	clone.skill_id = skill_id
+	clone._is_crit = _is_crit
+	clone._ailment_power_override = _ailment_power_override
+	clone._damage_type = _damage_type
+	clone.pierce_count = pierce_count
+	clone.chain_count = chain_count
+	clone.area_damage_radius = area_damage_radius
+	clone._remaining_pierce = _remaining_pierce
+	clone._remaining_chain = _remaining_chain
+	clone.speed = speed
+	clone.lifetime = lifetime
+	clone.hit_effect_texture = hit_effect_texture
+	return clone
+
+func _apply_ailments(body: Node) -> void:
+	if not body.has_node("CharacterStats"):
+		return
+	var target_stats: CharacterStats = body.get_node("CharacterStats") as CharacterStats
+	var ailment_power: float = _ailment_power_override if _ailment_power_override > 0.0 else _damage * 0.25
+	if _tags.has("fire") and _tags.has("spell"):
+		if _is_crit:
+			target_stats.apply_ailment("ignite", ailment_power * 1.5, _source)
+		else:
+			target_stats.apply_ailment("ignite", ailment_power, _source)
+	if _tags.has("cold") and _tags.has("spell"):
+		target_stats.apply_ailment("chill", ailment_power * 0.5, _source)
+	if _tags.has("lightning") and _tags.has("spell"):
+		target_stats.apply_ailment("shock", ailment_power * 0.3, _source)
+	if _tags.has("chaos") and _tags.has("spell"):
+		target_stats.apply_ailment("poison", ailment_power, _source)

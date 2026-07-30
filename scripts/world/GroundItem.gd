@@ -291,10 +291,7 @@ func _build_tooltip(item: ItemData) -> String:
 		t += "[color=%s][b]%s[/b]\n" % [rc, item.display_name]
 		if rt != "": t += "[i]%s[/i][/color]\n" % rt
 	# Currency item tooltip — açıklamayı CurrencyRegistry'den al
-	if item.item_type == "currency" or item.rarity == "currency":
-		var cd: CurrencyData = CurrencyRegistry.get_orb(item.id)
-		if cd:
-			t += "[color=#88ff88]" + cd.description + "[/color]\n"
+	if item.item_type == "currency"	t += "[color=#888888]%s  •  Eşya Seviyesi: %d  •  Gerekli Seviye: %d[/color]\n" % [_item_type_label(item), item.item_level, item.required_level]+ cd.description + "[/color]\n"
 		t += "[color=#888888]Orb  •  Envanterde stack'lenir[/color]\n"
 		return t
 	# Item Level gösterimi
@@ -332,8 +329,21 @@ func _build_tooltip(item: ItemData) -> String:
 		req_lines.append("[color=#66b3e0]Çeviklik: %d[/color]" % [item.required_dexterity])
 	if item.required_intelligence > 0:
 		req_lines.append("[color=#9966cc]Zeka: %d[/color]" % [item.required_intelligence])
-	if req_lines.size() > 0:
-		t += "[color=#aaaaaa]Gereken: [/color]" + "  ".join(req_lines) + "\n"
+	i# Otomatik pickup KALDIRILDI - sadece sol tıkla alınır
+
+static func _item_type_label(item) -> String:
+	var t := item.item_type
+	if t == "helmet": return "Kask"
+	if t == "body_armour": return "Gövde Zırhı"
+	if t == "gloves": return "Eldiven"
+	if t == "boots": return "Çizme"
+	if t == "belt": return "Kemer"
+	if t == "amulet" or item.equip_slot == "amulet": return "Kolye"
+	if t == "ring_1" or t == "ring_2" or item.equip_slot in ["ring_1","ring_2"]: return "Yüzük"
+	if t == "weapon": return "Silah"
+	if t == "offhand": return "Savunma"
+	if t == "currency": return "Küre"
+	return t.capitalize()Gereken: [/color]" + "  ".join(req_lines) + "\n"
 
 	# === AFFIXES ===
 	if item.affixes.is_empty():

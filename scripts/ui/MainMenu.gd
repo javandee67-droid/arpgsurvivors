@@ -131,7 +131,6 @@ func _build_ui() -> void:
 	_gold_label.add_theme_color_override("font_color", ACCENT_GOLD)
 	add_child(_gold_label)
 	_create_gold_glow()
-	_create_stats_bar()
 	# Version
 	var ver := Label.new()
 	ver.name = "Version"
@@ -200,6 +199,7 @@ func _create_menu_buttons(parent: VBoxContainer) -> void:
 		{"text": "▶  DEVAM ET", "id": "continue", "color": SUCCESS},
 		{"text": "✦  YENİ OYUN", "id": "new_game", "color": ACCENT_GOLD},
 		{"text": "⬆  YÜKSELTİLER", "id": "upgrades", "color": BLUE_ACCENT},
+		{"text": "📊  İSTATİSTİKLER", "id": "stats", "color": Color(0.5, 0.9, 0.7)},
 		{"text": "⚙  AYARLAR", "id": "settings", "color": TEXT_MAIN},
 		{"text": "✕  ÇIKIŞ", "id": "quit", "color": DANGER},
 	]
@@ -230,29 +230,79 @@ func _create_menu_buttons(parent: VBoxContainer) -> void:
 		for b in _buttons:
 			if b.name == "Btn_continue": b.disabled = true; b.modulate = Color(1,1,1,0.4)
 
-## ─── STATS ───
-func _create_stats_bar() -> void:
-	var container := HBoxContainer.new()
-	container.name = "StatsContainer"
-	container.anchor_left = 0.5; container.anchor_right = 0.5
-	container.anchor_top = 1.0; container.anchor_bottom = 1.0
-	container.offset_left = -350; container.offset_right = 350
-	container.offset_top = -60; container.offset_bottom = -30
-	container.alignment = BoxContainer.ALIGNMENT_CENTER
-	add_child(container)
+## ─── STATS PANEL (menüde yeni sekme) ───
+func _show_stats_panel() -> void:
+	if _current_panel: _current_panel.queue_free()
+	var pu = persistent_upgrades
 	var upg_count := 0
-	for k in persistent_upgrades.upgrade_levels.keys(): upg_count += persistent_upgrades.upgrade_levels[k]
-	var items := [{"l":"Oynanan: %d"%persistent_upgrades.games_played}, {"l":"Öldürme: %s"%_format_number(persistent_upgrades.total_kills)}, {"l":"Yükseltme: %d"%upg_count}]
-	var first := true
-	for it in items:
-		if not first:
-			var sep := Label.new(); sep.text = "  •  "
-			sep.add_theme_color_override("font_color", TEXT_DIM); sep.add_theme_font_size_override("font_size", FONT_SMALL)
-			container.add_child(sep)
-		first = false
-		var lb := Label.new(); lb.text = it["l"]
-		lb.add_theme_font_size_override("font_size", FONT_SMALL); lb.add_theme_color_override("font_color", TEXT_MUTED)
-		container.add_child(lb)
+	for k in pu.upgrade_levels.keys(): upg_count += pu.upgrade_levels[k]
+	var panel := Panel.new(); panel.name = "StatsPanel"
+	panel.anchor_left = 0.25; panel.anchor_right = 0.75
+	panel.anchor_top = 0.25; panel.anchor_bottom = 0.75
+	panel.add_theme_stylebox_override("panel", _make_s(PANEL_BG, Color(0.4, 0.8, 0.6, 0.8), 2, 8))
+	_current_panel = panel; add_child(panel)
+	panel.scale = Vector2(0.85, 0.85); panel.modulate = Color(1, 1, 1, 0)
+	var tw := create_tween().set_parallel().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(panel, "scale", Vector2.ONE, 0.25); tw.tween_property(panel, "modulate", Color.WHITE, 0.2)
+	
+	# Title
+	var title := Label.new(); title.text = "📊 İSTATİSTİKLER"
+	title.anchor_left = 0.0; title.anchor_right = 1.0; title.anchor_top = 0.0; title.anchor_bottom = 0.0
+	title.offset_left = 0; title.offset_right = 0; title.offset_top = 16; title.offset_bottom = 52
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", FONT_PANEL_TITLE)
+	title.add_theme_color_override("font_color", Color(0.4, 0.9, 0.7))
+	panel.add_child(title)
+	
+	# Close button
+	var cb := Button.new(); cb.text = "✕"
+	cb.anchor_left = 1.0; cb.anchor_right = 1.0; cb.anchor_top = 0.0; cb.anchor_bottom = 0.0
+	cb.offset_left = -50; cb.offset_right = -12; cb.offset_top = 10; cb.offset_bottom = 42
+	cb.add_theme_font_size_override("font_size", 18)
+	cb.add_theme_color_override("font_color", TEXT_MUTED); cb.add_theme_color_override("font_hover_color", Color.WHITE)
+	cb.add_theme_stylebox_override("normal", _make_s(Color.TRANSPARENT, Color.TRANSPARENT))
+	cb.add_theme_stylebox_override("hover", _make_s(Color(0.15, 0.15, 0.2, 0.5), Color.TRANSPARENT, 0, 4))
+	cb.pressed.connect(_close_panel); panel.add_child(cb)
+	
+	# Content area
+	var ct := VBoxContainer.new()
+	ct.anchor_left = 0.1; ct.anchor_right = 0.9; ct.anchor_top = 0.16; ct.anchor_bottom = 0.92
+	ct.add_theme_constant_override("separation", 8)
+	panel.add_child(ct)
+	
+	var rows := [
+		["Oynanan Oyun", "%d" % pu.games_played, Color(0.6, 0.8, 1.0)],
+		["Toplam Öldürme", _format_number(pu.total_kills), Color(0.9, 0.5, 0.4)],
+		["En Yüksek Dalga", "%d" % pu.highest_wave, Color(0.9, 0.7, 0.3)],
+		["Toplam Dalga", "%d" % pu.total_waves, Color(0.9, 0.7, 0.3)],
+		["Toplam Altın", _format_number(pu.total_gold_earned) + " ✦", ACCENT_GOLD],
+		["Harcanabilir Altın", _format_number(pu.get_spendable_gold()) + " ✦", SUCCESS],
+		["Toplam Yükseltme", "%d" % upg_count, BLUE_ACCENT],
+	]
+	
+	# Divider helper
+	var _add_div := func() -> void:
+		var d := ColorRect.new(); d.custom_minimum_size = Vector2(0, 1)
+		d.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		d.color = Color(0.3, 0.3, 0.4, 0.3); ct.add_child(d)
+	
+	var idx := 0
+	for r in rows:
+		if idx == 3 or idx == 5: _add_div.call()
+		var hb := HBoxContainer.new(); hb.custom_minimum_size = Vector2(0, 36)
+		var lb := Label.new(); lb.text = r[0]
+		lb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		lb.add_theme_font_size_override("font_size", FONT_SMALL)
+		lb.add_theme_color_override("font_color", TEXT_MAIN)
+		hb.add_child(lb)
+		var vb := Label.new(); vb.text = r[1]
+		vb.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		vb.add_theme_font_size_override("font_size", FONT_SMALL)
+		vb.add_theme_color_override("font_color", r[2])
+		vb.add_theme_constant_override("outline_size", 1)
+		hb.add_child(vb)
+		ct.add_child(hb)
+		idx += 1
 
 func _on_menu_button(button_id: String) -> void:
 	match button_id:
@@ -261,6 +311,7 @@ func _on_menu_button(button_id: String) -> void:
 			else: _show_message("Kayıtlı oyun yok!", true)
 		"new_game": _show_confirm_dialog()
 		"upgrades": _show_upgrades_panel()
+		"stats": _show_stats_panel()
 		"settings": _show_settings_panel()
 		"quit": _show_confirm_quit()
 
@@ -288,12 +339,14 @@ func _replay_intro() -> void: _play_intro_animation()
 
 ## ─── DIALOGS ───
 func _show_confirm_dialog() -> void:
-	_make_confirm("Yeni Oyun", "Yeni oyun başlatmak istediğinize\nemin misiniz?", ACCENT_GOLD,
-		func(c,d): d.queue_free(); if c: _start_new_game())
+	var d := _make_confirm("Yeni Oyun", "Yeni oyun başlatmak istediğinize\nemin misiniz?", ACCENT_GOLD,
+		func(c, p): _current_panel = null; p.queue_free(); if c: _start_new_game())
+	_current_panel = d
 
 func _show_confirm_quit() -> void:
-	_make_confirm("Çıkış", "Oyundan çıkmak istediğinize\nemin misiniz?", DANGER,
-		func(c,d): d.queue_free(); if c: get_tree().quit())
+	var d := _make_confirm("Çıkış", "Oyundan çıkmak istediğinize\nemin misiniz?", DANGER,
+		func(c, p): _current_panel = null; p.queue_free(); if c: get_tree().quit())
+	_current_panel = d
 
 func _make_confirm(title_text: String, msg: String, border: Color, cb: Callable) -> Panel:
 	var d := Panel.new()
@@ -301,14 +354,14 @@ func _make_confirm(title_text: String, msg: String, border: Color, cb: Callable)
 	d.offset_left=-200; d.offset_right=200; d.offset_top=-90; d.offset_bottom=90
 	d.add_theme_stylebox_override("panel", _make_s(Color(0.05,0.05,0.1,0.98), border, 2, 8))
 	var t := Label.new(); t.text=title_text; t.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
-	t.offset_left=10; t.offset_right=-10; t.offset_top=12; t.offset_bottom=40
+	t.anchor_left=0.0; t.anchor_right=1.0; t.offset_left=10; t.offset_right=-10; t.offset_top=12; t.offset_bottom=40
 	t.add_theme_color_override("font_color", border); t.add_theme_font_size_override("font_size", FONT_SECTION); d.add_child(t)
 	var m := Label.new(); m.text=msg; m.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
-	m.vertical_alignment=VERTICAL_ALIGNMENT_CENTER; m.offset_left=20; m.offset_right=-20
+	m.vertical_alignment=VERTICAL_ALIGNMENT_CENTER; m.anchor_left=0.0; m.anchor_right=1.0; m.offset_left=20; m.offset_right=-20
 	m.offset_top=40; m.offset_bottom=90
 	m.add_theme_color_override("font_color", TEXT_MAIN); m.add_theme_font_size_override("font_size", 14); d.add_child(m)
 	var hb := HBoxContainer.new(); hb.alignment=BoxContainer.ALIGNMENT_CENTER
-	hb.offset_left=30; hb.offset_right=-30; hb.offset_top=95; hb.offset_bottom=130
+	hb.anchor_left=0.0; hb.anchor_right=1.0; hb.offset_left=30; hb.offset_right=-30; hb.offset_top=95; hb.offset_bottom=130
 	hb.add_theme_constant_override("separation", 20); d.add_child(hb)
 	var yb := Button.new(); yb.text="EVET"; yb.custom_minimum_size=Vector2(90,38)
 	yb.add_theme_font_size_override("font_size",14); yb.add_theme_color_override("font_color",SUCCESS)
@@ -342,6 +395,11 @@ func _close_panel() -> void:
 		var tw := create_tween().set_parallel().set_trans(Tween.TRANS_BACK)
 		tw.tween_property(p,"scale",Vector2(0.8,0.8),0.15); tw.tween_property(p,"modulate:a",0.0,0.15)
 		tw.tween_callback(p.queue_free)
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel") and _current_panel:
+		get_viewport().set_input_as_handled()
+		_close_panel()
 
 func _create_upgrades_panel() -> Panel:
 	var panel := Panel.new(); panel.name = "UpgradesPanel"

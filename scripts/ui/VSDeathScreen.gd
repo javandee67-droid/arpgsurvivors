@@ -80,8 +80,6 @@ func _build_ui() -> void:
 	menu_normal.bg_color = Color(0.12, 0.08, 0.05, 0.9)
 	menu_normal.border_width_left = 2
 	menu_normal.border_width_right = 2
-	menu_normal.border_width_top = 2
-	menu_normal.border_width_bottom = 2
 	menu_normal.border_color = Color(0.85, 0.65, 0.25, 0.8)
 	menu_btn.add_theme_stylebox_override("normal", menu_normal)
 
@@ -92,13 +90,19 @@ func _build_ui() -> void:
 
 	menu_btn.add_theme_color_override("font_color", Color(0.85, 0.65, 0.25))
 	menu_btn.add_theme_font_size_override("font_size", 16)
-
 	menu_btn.pressed.connect(func(): return_to_menu.emit())
 	add_child(menu_btn)
 
-func set_stats(level: int, kills: int, time_survived: float, gold_earned: int = 0, essence_earned: int = 0) -> void:
+func set_stats(level: int, kills: int, time_survived: float, gold_earned: int = 0, essence_earned: int = 0, wave: int = 0) -> void:
+	# Persist wave data for main menu stats
+	var pu = PersistentUpgrades.get_instance()
+	if wave > 0:
+		pu.record_wave(wave)
 	var stats_label := get_node_or_null("StatsLabel") as Label
 	if stats_label:
 		var minutes: int = int(time_survived) / 60
 		var seconds: int = int(time_survived) % 60
-		stats_label.text = "Seviye: %d | Öldürülen: %d\nHayatta Kalma: %d:%02d" % [level, kills, minutes, seconds]
+		stats_label.text = "Dalga: %d  |  Seviye: %d  |  Öldürülen: %d
+Hayatta Kalma: %d:%02d
+
+Kazanılan Altın: %d  |  Öz: %d" % [wave, level, kills, minutes, seconds, gold_earned, essence_earned]

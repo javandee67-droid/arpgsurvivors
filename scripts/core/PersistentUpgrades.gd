@@ -1,6 +1,6 @@
 extends Node
 class_name PersistentUpgrades
-## Persistent Upgrade System - Gold-based permanent upgrades.
+## Persistent Upgrade System — Gold-based permanent upgrades.
 ## These upgrades persist across game sessions and are saved to a file.
 ## Used to give players a sense of progression and meta-game.
 
@@ -30,16 +30,18 @@ const UPGRADES := {
 		"icon": "✦",
 	},
 	"starting_essence": {
-		"name": "Başlangıç Özü",
-		"description": "Yeni oyuna başlarken +{value} öz ile başla",
+		"name": "Başlangıç Küreleri",
+		"description": "Yeni oyuna başlarken envanterde +{value} rastgele küre ile başla",
 		"category": Category.GENERAL,
 		"base_cost": 150,
 		"cost_scale": 2.0,
 		"max_level": 10,
 		"effect": "starting_essence_bonus",
-		"value_per_level": 5,
+		"value_per_level": 1,
 		"icon": "✧",
 	},
+
+	# === GENERAL ===
 
 	# === OFFENSE ===
 	"damage_boost": {
@@ -306,12 +308,15 @@ const UPGRADES := {
 	},
 }
 
+
 ## Save data structure
 var upgrade_levels: Dictionary = {}  # {upgrade_id: level}
 var total_gold_earned: float = 0.0
 var gold_spent: float = 0.0
 var total_kills: int = 0
 var games_played: int = 0
+var highest_wave: int = 0
+var total_waves: int = 0
 
 ## Singleton pattern
 static var _instance: PersistentUpgrades = null
@@ -368,13 +373,14 @@ func purchase_upgrade(upgrade_id: String, gold: float) -> bool:
 	return true
 
 ## Get all bonuses as a dictionary (for applying to new games)
+## Get all bonuses as a dictionary (for applying to new games)
 func get_all_bonuses() -> Dictionary:
 	var bonuses: Dictionary = {}
 	for upgrade_id in UPGRADES.keys():
-		var def: Dictionary = UPGRADES[upgrade_id]
-		var effect: String = def.get("effect", "")
-		var value: float = get_value(upgrade_id)
-		if not effect.is_empty() and value > 0:
+		var def_dict: Dictionary = UPGRADES[upgrade_id]
+		var effect: String = def_dict.get("effect", "")
+		if not effect.is_empty():
+			var value: float = get_value(upgrade_id)
 			bonuses[effect] = value
 	return bonuses
 
@@ -383,10 +389,10 @@ func get_starting_gold() -> int:
 	var bonus: float = get_value("starting_gold")
 	return int(100 + bonus)  # Base 100 gold
 
-## Calculate starting essence for a new game
+## Kaç adet rastgele küre verileceğini döndürür (her level = 1 küre)
 func get_starting_essence() -> int:
-	var bonus: float = get_value("starting_essence")
-	return int(bonus)
+	var lvl: int = get_level("starting_essence")
+	return lvl
 
 ## Add earned gold (for stats tracking)
 func add_gold(amount: float) -> void:
@@ -396,6 +402,12 @@ func add_gold(amount: float) -> void:
 ## Add kill (for stats tracking)
 func add_kill() -> void:
 	total_kills += 1
+	save_data()
+
+func record_wave(wave: int) -> void:
+	total_waves += 1
+	if wave > highest_wave:
+		highest_wave = wave
 	save_data()
 
 ## Increment games played
@@ -424,8 +436,10 @@ func save_data() -> void:
 		"gold_spent": gold_spent,
 		"total_kills": total_kills,
 		"games_played": games_played,
+		"highest_wave": highest_wave,
+		"total_waves": total_waves,
 	}
-	var json_str := JSON.stringify(save_data, "\t")
+	var json_str := JSON.stringify(save_data, "	")
 	save_file.store_line(json_str)
 	save_file.close()
 	print("Persistent upgrades saved!")
@@ -458,6 +472,8 @@ func load_data() -> void:
 	gold_spent = data.get("gold_spent", 0.0)
 	total_kills = data.get("total_kills", 0)
 	games_played = data.get("games_played", 0)
+	highest_wave = data.get("highest_wave", 0)
+	total_waves = data.get("total_waves", 0)
 	print("Persistent upgrades loaded! Games played: ", games_played)
 
 ## Reset all upgrades (for testing)
@@ -467,6 +483,8 @@ func reset_all() -> void:
 	gold_spent = 0.0
 	total_kills = 0
 	games_played = 0
+	highest_wave = 0
+	total_waves = 0
 	save_data()
 
 ## Get formatted description for an upgrade
@@ -487,6 +505,7 @@ func get_upgrade_description(upgrade_id: String) -> String:
 		desc += " [MAX]"
 	else:
 		var next_value: float = value_per_level * (current_level + 1)
-		desc += "\nSonraki: " + desc_template.format({"value": "%.1f" % next_value})
+		desc += "
+Sonraki: " + desc_template.format({"value": "%.1f" % next_value})
 
 	return desc

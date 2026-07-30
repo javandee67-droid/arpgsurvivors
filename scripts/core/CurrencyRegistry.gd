@@ -50,73 +50,68 @@ static func make_orb_item(orb_id: String) -> ItemData:
 	item.rarity = "currency"
 	item.icon = cd.get_icon()
 	item.stackable = true
-	item.stack_count = 1
-	item.item_level = 1
 	return item
 
 static func _register_all() -> void:
 	if not _orb_ids.is_empty():
 		return
-	_orb_ids.clear()
-	_orbs.clear()
+	if _orb_ids.is_empty():
+		_orb_ids.clear()
 
-	# ──────────────────────────────────────────────
-	# POE 1/2 TARZI ORBLAR
-	# ──────────────────────────────────────────────
-
-	_orb("chaos_orb", "Kaos Küresi", "Tüm affix'leri yeniden rastgele yap",
+	# POE 1/2 TARZ
+	_orb("chaos_orb", "Kaos Küresi", "Büyülü veya Nadir eşyaların üzerindeki tüm özellikleri yeniden rastgele yapar",
 		CurrencyData.EffectType.REROLL_ALL, 30,
 		"res://assets/generated/icon_chaos_orb_frame_0.png", [], ["magic","rare"])
 
-	_orb("exalted_orb", "Yüce Küre", "Rare item'a yeni bir affix ekle",
+	_orb("exalted_orb", "Yüce Küre", "Nadir eşyaya yeni bir özellik ekler",
 		CurrencyData.EffectType.ADD_MOD, 5,
 		"res://assets/generated/icon_exalted_orb_frame_0.png", [], ["rare"])
 
-	_orb("divine_orb", "İlahi Küre", "Tüm affix değerlerini yeniden rolla",
+	_orb("divine_orb", "İlahi Küre", "Tüm özellik değerlerini yeniden belirler",
 		CurrencyData.EffectType.REROLL_VALUES, 8,
 		"res://assets/generated/icon_divine_orb_frame_0.png", [], ["magic","rare"])
 
-	_orb("alchemy_orb", "Simya Küresi", "Normal item'ı Rare yap",
+	_orb("alchemy_orb", "Simya Küresi", "Sıradan bir eşyayı Nadir eşyaya dönüştürür",
 		CurrencyData.EffectType.MAKE_RARE, 20,
 		"res://assets/generated/icon_alchemy_orb_frame_0.png", [], ["normal"])
 
-	_orb("regal_orb", "Kraliyet Küresi", "Magic→Rare yap (+1 affix)",
+	_orb("regal_orb", "Kraliyet Küresi", "Büyülü eşyayı Nadir eşyaya yükseltir (+1 özellik)",
 		CurrencyData.EffectType.UPGRADE_RARITY, 15,
 		"res://assets/generated/icon_regal_orb_frame_0.png", [], ["magic"])
 
-	_orb("scouring_orb", "Arındırma Küresi", "Tüm affix'leri sil, normal yap",
+	_orb("scouring_orb", "Arındırma Küresi", "Büyülü veya Nadir eşyaların üzerindeki tüm özellikleri siler",
 		CurrencyData.EffectType.DOWNGRADE_RARITY, 18,
 		"res://assets/generated/icon_scouring_orb_frame_0.png", [], ["magic","rare"])
 
-	_orb("transmutation_orb", "Dönüşüm Küresi", "Normal item'ı Magic yap (1 affix)",
+	_orb("transmutation_orb", "Dönüşüm Küresi", "Sıradan eşyayı Büyülü eşyaya dönüştürür (1 özellik)",
 		CurrencyData.EffectType.MAKE_MAGIC, 40,
 		"res://assets/generated/icon_transmutation_orb_frame_0.png", [], ["normal"])
 
-	_orb("augmentation_orb", "Artırım Küresi", "Magic item'a 2. affix ekle",
+	_orb("augmentation_orb", "Artırım Küresi", "Büyülü eşyaya ikinci özelliği ekler",
 		CurrencyData.EffectType.AUGMENT_MAGIC, 35,
 		"res://assets/generated/icon_augmentation_orb_frame_0.png", [], ["magic"])
 
-	_orb("alteration_orb", "Değişim Küresi", "Magic affix'lerini yenile",
+	_orb("alteration_orb", "Değişim Küresi", "Büyülü eşyanın özelliklerini yeniden belirler",
 		CurrencyData.EffectType.REROLL_MAGIC, 50,
 		"res://assets/generated/icon_alteration_orb_frame_0.png", [], ["magic"])
 
-	_orb("annulment_orb", "Fesih Küresi", "Rastgele bir affix sil",
+	_orb("annulment_orb", "Fesih Küresi", "Eşyadan rastgele bir özellik siler",
 		CurrencyData.EffectType.REMOVE_MOD, 10,
 		"res://assets/generated/icon_annulment_orb_frame_0.png", [], ["magic","rare"])
 
-	_orb("vaal_orb", "Vaal Küresi", "Item'ı yozlaştır — sonuç tahmin edilemez!",
+	_orb("vaal_orb", "Vaal Küresi", "Eşyayı yozlaştırır — sonuç tahmin edilemez!",
 		CurrencyData.EffectType.CORRUPT, 6,
 		"res://assets/generated/icon_vaal_orb_frame_0.png", [], ["normal","magic","rare"])
 
-	_orb("orb_of_fate", "Kader Küresi", "Item'ı tamamen rastgele yap (sıfırdan)",
+	_orb("orb_of_fate", "Kader Küresi", "Eşyayı tamamen sıfırdan rastgele oluşturur",
 		CurrencyData.EffectType.FULLY_RANDOMIZE, 3,
 		"res://assets/generated/icon_orb_of_fate_frame_0.png", [], ["magic","rare"])
 
-	_orb("orb_of_resistance", "Direnç Küresi", "Rastgele bir direnç affix'i ekle",
+	_orb("orb_of_resistance", "Direnç Küresi", "Eşyaya rastgele bir direnç özelliği ekler",
 		CurrencyData.EffectType.ADD_RESISTANCE, 12,
 		"res://assets/generated/icon_orb_of_resistance_frame_0.png", [], ["magic","rare"])
 
-	_orb("quality_orb", "Bileği Taşı", "Item kalitesini artır (+%5, max %100)",
+	_orb("quality_orb", "Bileği Taşı", "Eşya kalitesini artırır (+%5, en fazla %100)",
 		CurrencyData.EffectType.INCREASE_QUALITY, 25,
 		"res://assets/generated/icon_scouring_orb_frame_0.png", [], ["normal","magic","rare","unique"])
 

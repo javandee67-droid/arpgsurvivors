@@ -4,13 +4,39 @@ class_name GameUI
 signal essence_inventory_changed
 enum LeftTab { INVENTORY }
 
-const INV_COLUMNS: int = 8
-const EQUIP_SLOT_SIZE := Vector2(48, 48)
+const INV_COLUMNS: int = 10
+const EQUIP_SLOT_SIZE := Vector2(56, 56)
 const TEXT_COLOR := Color(0.85, 0.82, 0.78)
 const SLOT_ENUM_TO_NAME: Dictionary = {
 	0: "weapon", 1: "offhand", 2: "helmet", 3: "body_armour",
 	4: "gloves", 5: "boots", 6: "belt", 7: "amulet", 8: "ring_1", 9: "ring_2"
 }
+static func _slot_name_tr(en_name: String) -> String:
+	match en_name.to_lower():
+		"weapon": return "Silah"
+		"offhand": return "Savunma"
+		"helmet": return "Kask"
+		"body_armour": return "Gövde"
+		"gloves": return "Eldiven"
+		"boots": return "Çizme"
+		"belt": return "Kemer"
+		"amulet": return "Kolye"
+		"ring_1": return "Yüzük 1"
+		"ring_2": return "Yüzük 2"
+	return en_name.capitalize()
+
+static func _item_type_tr(type: String, equip_slot: String = "") -> String:
+	if equip_slot in ["ring_1", "ring_2"]: return "Yüzük"
+	if type == "helmet": return "Kask"
+	if type == "body_armour": return "Gövde Zırhı"
+	if type == "gloves": return "Eldiven"
+	if type == "boots": return "Çizme"
+	if type == "belt": return "Kemer"
+	if type == "amulet": return "Kolye"
+	if type == "weapon": return "Silah"
+	if type == "offhand": return "Savunma"
+	if type == "currency": return "Küre"
+	return type.capitalize()
 
 var _drag_item: ItemData = null
 var _drag_source_idx: int = -1
@@ -43,12 +69,7 @@ var _right_vbox: VBoxContainer = null
 var _off_label: RichTextLabel = null
 var _def_label: RichTextLabel = null
 var _util_label: RichTextLabel = null
-var _off_arrow: Button = null
-var _def_arrow: Button = null
-var _util_arrow: Button = null
-var _off_expanded: bool = true
-var _def_expanded: bool = true
-var _util_expanded: bool = true
+# collapse kaldirildi - tum bolumler acik
 var _off_header: HBoxContainer = null
 var _def_header: HBoxContainer = null
 var _util_header: HBoxContainer = null
@@ -97,7 +118,8 @@ func _on_inventory_item_added(item: ItemData) -> void:
 	lbl.add_theme_font_size_override("normal_font_size", 14)
 	lbl.fit_content = true
 	lbl.scroll_active = false
-	lbl.position = Vector2(get_viewport().size.x / 2 - 100, 80)
+	var vp_sz: Vector2 = get_viewport().size
+	lbl.position = Vector2(vp_sz.x / 2 - 100, vp_sz.y * 0.06)
 	lbl.size = Vector2(200, 24)
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	lbl.z_index = 1000
@@ -127,74 +149,68 @@ func _panel_style(p: Panel) -> void:
 	bg_bottom.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	p.add_child(bg_bottom)
 
-	# İç çerçeve (subtle highlight)
-	var inner_border := StyleBoxFlat.new()
-	inner_border.bg_color = Color(0.0, 0.0, 0.0, 0.0)
-	inner_border.border_width_left = 1
-	inner_border.border_width_right = 1
-	inner_border.border_width_top = 1
-	inner_border.border_width_bottom = 1
-	inner_border.border_color = Color(0.3, 0.28, 0.35, 0.15)  # Hafif iç parlama
-	inner_border.set_corner_radius_all(6)
-	p.add_theme_stylebox_override("panel", inner_border)
-
-	# Dış çerçeve ve gölge
+	# Panel çerçevesi (gölge + border)
 	var border := StyleBoxFlat.new()
 	border.bg_color = Color(0.0, 0.0, 0.0, 0.0)
 	border.border_width_left = 2
 	border.border_width_right = 2
 	border.border_width_top = 2
 	border.border_width_bottom = 2
-	border.border_color = Color(0.35, 0.32, 0.4, 0.9)  # Daha belirgin
+	border.border_color = Color(0.45, 0.42, 0.5, 0.9)  # Daha belirgin
 	border.set_corner_radius_all(8)
 	border.shadow_color = Color(0, 0, 0, 0.6)
-	border.shadow_size = 10
-	border.shadow_offset = Vector2(0, 5)
+	border.shadow_size = 8
+	border.shadow_offset = Vector2(0, 4)
 	p.add_theme_stylebox_override("panel", border)
 
 func _build_right_stats(right_w: float, parent: Control = null) -> void:
 	_right_vbox = VBoxContainer.new()
 	_right_vbox.name = "RightStats"
-	_right_vbox.position = Vector2(4, 4)
-	_right_vbox.size = Vector2(right_w - 8, 0)
+	_right_vbox.anchor_right = 1.0
+	_right_vbox.offset_left = 4
+	_right_vbox.offset_right = -4
+	_right_vbox.offset_top = 4
 	_right_vbox.add_theme_constant_override("separation", 6)
 	_right_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	if parent: parent.add_child(_right_vbox)
 	else: get_node("RightPanel").add_child(_right_vbox)
-	_off_header = _make_section_header("SALDIRI", "_off_label")
+	_off_header = _make_section_header("SALDIRI", "_off_unused")
 	_right_vbox.add_child(_off_header)
 	_off_label = RichTextLabel.new()
 	_off_label.name = "OffLabel"
 	_off_label.bbcode_enabled = true
 	_off_label.fit_content = true
 	_off_label.scroll_active = false
+	_off_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_off_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_off_label.add_theme_color_override("default_color", TEXT_COLOR)
 	_off_label.add_theme_font_size_override("normal_font_size", 10)
-	_off_label.custom_minimum_size = Vector2(right_w, 0)
 	_right_vbox.add_child(_off_label)
 	_right_vbox.add_child(HSeparator.new())
-	_def_header = _make_section_header("SAVUNMA", "_def_label")
+	_def_header = _make_section_header("SAVUNMA", "_def_unused")
 	_right_vbox.add_child(_def_header)
 	_def_label = RichTextLabel.new()
 	_def_label.name = "DefLabel"
 	_def_label.bbcode_enabled = true
 	_def_label.fit_content = true
 	_def_label.scroll_active = false
+	_def_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_def_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_def_label.add_theme_color_override("default_color", TEXT_COLOR)
 	_def_label.add_theme_font_size_override("normal_font_size", 10)
-	_def_label.custom_minimum_size = Vector2(right_w, 0)
 	_right_vbox.add_child(_def_label)
 	_right_vbox.add_child(HSeparator.new())
-	_util_header = _make_section_header("YARDIMCI", "_util_label")
+	_util_header = _make_section_header("MOBILITE", "_util_unused")
 	_right_vbox.add_child(_util_header)
 	_util_label = RichTextLabel.new()
 	_util_label.name = "UtilLabel"
 	_util_label.bbcode_enabled = true
 	_util_label.fit_content = true
 	_util_label.scroll_active = false
+	_util_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_util_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_util_label.add_theme_color_override("default_color", TEXT_COLOR)
 	_util_label.add_theme_font_size_override("normal_font_size", 10)
-	_util_label.custom_minimum_size = Vector2(right_w, 0)
 	_right_vbox.add_child(_util_label)
 	_update_right_stats()
 
@@ -256,46 +272,28 @@ func _sync_char_sprite() -> void:
 	if sf.get_animation_names().size() > 0:
 		portrait.play(sf.get_animation_names()[0])
 
-func _make_section_header(title: String, label_var_name: String) -> HBoxContainer:
+func _make_section_header(title: String, _unused: String) -> HBoxContainer:
 	var hb := HBoxContainer.new()
-	var arrow := Button.new()
-	arrow.text = "v"
-	arrow.flat = true
-	arrow.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
-	arrow.add_theme_font_size_override("font_size", 10)
-	arrow.custom_minimum_size = Vector2(16, 16)
-	arrow.pressed.connect(_toggle_section.bind(label_var_name))
-	hb.add_child(arrow)
-	if label_var_name == "_off_label": _off_arrow = arrow
-	if label_var_name == "_def_label": _def_arrow = arrow
-	if label_var_name == "_util_label": _util_arrow = arrow
 	var lbl := Label.new()
 	lbl.text = title
-	lbl.add_theme_font_size_override("font_size", 12)
+	lbl.add_theme_font_size_override("font_size", 18)
+	lbl.add_theme_constant_override("outline_size", 2)
 	var hdr_color: Color
-	match label_var_name:
-		"_off_label": hdr_color = Color(0.83, 0.72, 0.48)  # gold
-		"_def_label": hdr_color = Color(0.48, 0.72, 0.91)  # blue
-		"_util_label": hdr_color = Color(0.48, 0.91, 0.63)  # green
-		_: hdr_color = Color(0.65, 0.65, 0.7)
+	match title:
+		"SALDIRI": hdr_color = Color(0.83, 0.72, 0.48)  # gold
+		"SAVUNMA": hdr_color = Color(0.48, 0.72, 0.91)  # blue
+		_: hdr_color = Color(0.48, 0.91, 0.63)  # green (MOBİLİTE)
 	lbl.add_theme_color_override("font_color", hdr_color)
-	var bold_font := Theme.new()
-	lbl.theme = bold_font
 	hb.add_child(lbl)
-	hb.add_theme_constant_override("separation", 4)
-	# thin accent line below
+	# Bold underline accent line
 	var spacer := ColorRect.new()
-	spacer.custom_minimum_size = Vector2(0, 1)
+	spacer.custom_minimum_size = Vector2(0, 2)
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	spacer.color = Color(hdr_color.r, hdr_color.g, hdr_color.b, 0.3)
+	spacer.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	spacer.color = Color(hdr_color.r, hdr_color.g, hdr_color.b, 0.5)
 	hb.add_child(spacer)
+	hb.add_theme_constant_override("separation", 6)
 	return hb
-
-func _toggle_section(label_var_name: String) -> void:
-	match label_var_name:
-		"_off_label": _off_expanded = not _off_expanded; _off_arrow.text = "v" if _off_expanded else ">"; _off_label.visible = _off_expanded
-		"_def_label": _def_expanded = not _def_expanded; _def_arrow.text = "v" if _def_expanded else ">"; _def_label.visible = _def_expanded
-		"_util_label": _util_expanded = not _util_expanded; _util_arrow.text = "v" if _util_expanded else ">"; _util_label.visible = _util_expanded
 
 func _build_ui() -> void:
 	var vp := get_viewport()
@@ -304,10 +302,10 @@ func _build_ui() -> void:
 	var bg := ColorRect.new()
 	bg.name = "UIBg"
 	bg.color = Color(0.0, 0.0, 0.0, 0.65)
-	bg.size = Vector2(w, h)
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(bg)
-	var right_w := 300.0
+	var right_w := maxf(300.0, w * 0.33)
 	var left_w: float = w - right_w
 	var left_panel := Panel.new()
 	left_panel.name = "LeftPanel"
@@ -355,28 +353,36 @@ func _build_inventory_content() -> void:
 	_essence_grid = null
 	var c := _left_content
 	var w: float = c.size.x
-	var total_h: float = max(c.size.y, 640.0)
-	_inv_total_h = total_h
+	var h: float = c.size.y
 	var esz := EQUIP_SLOT_SIZE
-	var doll_h: float = min(esz.y * 5.0 + 40.0, 300.0)
+	
+	# ─── TOP ROW: PAPERDOLL (sol) + STAT PANEL (sağ) ──────
+	var stat_pw: float = min(520.0, w * 0.42)  # Stat panel ~2.4x bigger
+	var eq_w: float = w - stat_pw - 12.0       # Paperdoll width
+	var row_h0: float = 280.0                  # Taller top row
 	var doll_section := Control.new()
 	doll_section.name = "PaperdollSection"
 	doll_section.position = Vector2(0, 0)
-	doll_section.size = Vector2(w, doll_h)
+	doll_section.size = Vector2(eq_w, row_h0)
 	c.add_child(doll_section)
-	var portrait_sz: float = min(w * 0.40, 160.0)
-	var portrait_x: float = w * 0.5 - portrait_sz * 0.5
-	var portrait_y: float = 18.0
+	
+	# Geniş paperdoll için daha büyük portre + geniş slot aralığı
+	var portrait_sz: float = min(eq_w * 0.30, 160.0)
+	var portrait_x: float = eq_w * 0.5 - portrait_sz * 0.5
+	var portrait_y: float = esz.y + 10.0
+	
+	# Helmet - en üst orta
 	var btn_helm := _make_equip_btn(Equipment.Slot.HELMET)
-	btn_helm.position = Vector2(w * 0.5 - esz.x * 0.5, 0)
+	btn_helm.position = Vector2(eq_w * 0.5 - esz.x * 0.5, 0)
 	doll_section.add_child(btn_helm)
+	
 	var class_id: String = "warrior"
 	if player and not player.character_class.is_empty():
 		class_id = player.character_class.to_lower()
-	# Character portrait sprite — static image from portrait_frame_0
 	var tex_p := "res://assets/generated/char_%s_portrait_frame_0.png" % class_id
 	if not ResourceLoader.exists(tex_p):
 		tex_p = "res://assets/generated/char_warrior_portrait_frame_0.png"
+	
 	var portrait2 := Sprite2D.new()
 	portrait2.name = "CharPortrait"
 	portrait2.centered = true
@@ -385,27 +391,46 @@ func _build_inventory_content() -> void:
 	if ResourceLoader.exists(tex_p):
 		portrait2.texture = load(tex_p) as Texture2D
 	doll_section.add_child(portrait2)
-	var left_x: float = max(portrait_x - esz.x - 6.0, 4.0)
-	var right_x: float = min(portrait_x + portrait_sz + 6.0, w - esz.x - 4.0)
-	var left_items := [Equipment.Slot.WEAPON, Equipment.Slot.GLOVES, Equipment.Slot.RING_1, Equipment.Slot.BELT]
-	var col_y: float = portrait_y + 4.0
-	var gap: float = (portrait_sz - 4.0 - left_items.size() * esz.y) / float(left_items.size() - 1) if left_items.size() > 1 else 4.0
-	if gap < 4.0: gap = 4.0
+	
+	# Sol sütun (daha geniş aralıklı)
+	var left_x: float = max(portrait_x - esz.x - 16.0, 4.0)
+	var left_items := [Equipment.Slot.WEAPON, Equipment.Slot.GLOVES]
 	for i in left_items.size():
 		var btn := _make_equip_btn(left_items[i])
-		btn.position = Vector2(left_x, col_y + float(i) * (esz.y + gap))
+		btn.position = Vector2(left_x, portrait_y + 4.0 + float(i) * (esz.y + 8.0))
 		doll_section.add_child(btn)
-	var right_items := [Equipment.Slot.OFFHAND, Equipment.Slot.BODY_ARMOUR, Equipment.Slot.RING_2, Equipment.Slot.AMULET]
+	var b2 := _make_equip_btn(Equipment.Slot.RING_1)
+	b2.position = Vector2(left_x, portrait_y + portrait_sz - esz.y)
+	doll_section.add_child(b2)
+	var b3 := _make_equip_btn(Equipment.Slot.BELT)
+	b3.position = Vector2(left_x, portrait_y + portrait_sz + 8.0)
+	doll_section.add_child(b3)
+	
+	# Sağ sütun (daha geniş aralıklı)
+	var right_x: float = min(portrait_x + portrait_sz + 16.0, eq_w - esz.x - 4.0)
+	var right_items := [Equipment.Slot.OFFHAND, Equipment.Slot.BODY_ARMOUR]
 	for i in right_items.size():
 		var btn := _make_equip_btn(right_items[i])
-		btn.position = Vector2(right_x, col_y + float(i) * (esz.y + gap))
+		btn.position = Vector2(right_x, portrait_y + 4.0 + float(i) * (esz.y + 8.0))
 		doll_section.add_child(btn)
-	var belt_y: float = portrait_y + portrait_sz + 4.0
+	var b4 := _make_equip_btn(Equipment.Slot.RING_2)
+	b4.position = Vector2(right_x, portrait_y + portrait_sz - esz.y)
+	doll_section.add_child(b4)
+	var b5 := _make_equip_btn(Equipment.Slot.AMULET)
+	b5.position = Vector2(right_x, portrait_y + portrait_sz + 8.0)
+	doll_section.add_child(b5)
+	
+	# Çizme - en alt orta
 	var btn_boots := _make_equip_btn(Equipment.Slot.BOOTS)
-	btn_boots.position = Vector2(w * 0.5 - esz.x * 0.5, belt_y)
+	btn_boots.position = Vector2(eq_w * 0.5 - esz.x * 0.5, portrait_y + portrait_sz + 8.0)
 	doll_section.add_child(btn_boots)
-	_build_stat_panel(doll_section, w, doll_h)
-	var stats_y: float = doll_h + 2
+	
+	# ─── STR/DEX/INT PANEL (2.4x büyük!) ────────────────────
+	var sp_x: float = eq_w + 8.0
+	_build_stat_panel_ex(c, sp_x, 0.0, stat_pw, row_h0)
+	
+	# ─── STATSLABEL (full width) ──────────────────────────
+	var stats_y: float = row_h0 + 6.0
 	_stats_label = RichTextLabel.new()
 	_stats_label.name = "StatsLabel"
 	_stats_label.position = Vector2(4, stats_y)
@@ -413,20 +438,26 @@ func _build_inventory_content() -> void:
 	_stats_label.bbcode_enabled = true
 	_stats_label.scroll_active = false
 	_stats_label.fit_content = true
+	_stats_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stats_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_stats_label.add_theme_color_override("default_color", TEXT_COLOR)
-	_stats_label.add_theme_font_size_override("normal_font_size", 11)
+	_stats_label.add_theme_font_size_override("normal_font_size", 12)
 	c.add_child(_stats_label)
-	var cell_sz := 40.0
-	var sep := 3.0
-	var row_h: float = cell_sz + sep
+	
+	# ─── BÜYÜK ENVANTER (geniş, alta) ─────────────────────
+	var cell_sz := 56.0           # Bigger cells
+	var sep := 4.0                # More spacing
+	var row_h1: float = cell_sz + sep
 	var grid_w: float = INV_COLUMNS * cell_sz + (INV_COLUMNS - 1) * sep
-	var inv_y: float = stats_y + 72.0
-	var avail_h: float = max(total_h - inv_y - 4, 0.0)
-	var visible_rows: int = maxi(floori(avail_h / row_h), 6)
-	var inv_h: float = visible_rows * row_h
+	var grid_x: float = 4.0
+	var inv_y: float = stats_y + 60.0
+	var total_h: float = max(h - inv_y, 400.0)
+	var visible_rows: int = maxi(floori(total_h / row_h1), 8)
+	var inv_h: float = visible_rows * row_h1
+	
 	_inv_scroll = ScrollContainer.new()
 	_inv_scroll.name = "InvScroll"
-	_inv_scroll.position = Vector2(2, inv_y)
+	_inv_scroll.position = Vector2(grid_x, inv_y)
 	_inv_scroll.size = Vector2(grid_w, inv_h)
 	_inv_scroll.clip_contents = true
 	_inv_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -440,22 +471,24 @@ func _build_inventory_content() -> void:
 	grid.size_flags_horizontal = Control.SIZE_FILL
 	_inv_scroll.add_child(grid)
 	inventory_grid = grid
+	
 	_notif_label = Label.new()
 	_notif_label.name = "EquipNotif"
 	_notif_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_notif_label.custom_minimum_size = Vector2(grid_w, 24)
 	_notif_label.size = Vector2(grid_w, 24)
-	_notif_label.add_theme_font_size_override("font_size", 11)
+	_notif_label.add_theme_font_size_override("font_size", 12)
 	_notif_label.visible = false
 	_notif_label.modulate = Color(0.95, 0.3, 0.3, 0.0)
-	_notif_label.position = Vector2(2, inv_y + inv_h - 24)
+	_notif_label.position = Vector2(grid_x, inv_y + inv_h + 4)
 	c.add_child(_notif_label)
-	# Essence grid: inventory'nin saginda, ayni Y'de
-	var ess_cell := 40.0; var ess_sep := 4.0
+	
+	# ─── ÖZ KÜRELERİ (envanter sağında, büyük) ────────────
+	var ess_cell := 52.0; var ess_sep := 5.0
 	var ess_rows := 4; var ess_cols := 4
 	var ess_gw: float = ess_cell * ess_cols + ess_sep * (ess_cols - 1)
 	var ess_gh: float = ess_cell * ess_rows + ess_sep * (ess_rows - 1)
-	var ess_grid_x: float = grid_w + 10.0
+	var ess_grid_x: float = grid_w + 14.0
 	_essence_grid = GridContainer.new()
 	_essence_grid.name = "EssenceGrid"
 	_essence_grid.columns = ess_cols
@@ -465,48 +498,49 @@ func _build_inventory_content() -> void:
 	_essence_grid.add_theme_constant_override("v_separation", ess_sep)
 	c.add_child(_essence_grid)
 	var ess_header := Label.new()
-	ess_header.text = "OZLER"
+	ess_header.text = "ÖZLER"
 	ess_header.position = Vector2(ess_grid_x, inv_y)
-	ess_header.size = Vector2(ess_gw, 14)
+	ess_header.size = Vector2(ess_gw, 16)
 	ess_header.add_theme_color_override("font_color", Color(0.55, 0.35, 0.95))
-	ess_header.add_theme_font_size_override("font_size", 9)
+	ess_header.add_theme_font_size_override("font_size", 10)
 	c.add_child(ess_header)
 	for i in range(ess_rows * ess_cols):
 		var btn := Button.new()
 		btn.custom_minimum_size = Vector2(ess_cell, ess_cell)
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		btn.add_theme_font_size_override("font_size", 8)
+		btn.add_theme_font_size_override("font_size", 9)
 		_style_inv_btn(btn)
 		var s2 := StyleBoxFlat.new()
 		s2.bg_color = Color(0.1, 0.07, 0.15, 0.9)
 		s2.border_color = Color(0.45, 0.3, 0.6, 0.6)
 		s2.border_width_left = 1; s2.border_width_right = 1
 		s2.border_width_top = 1; s2.border_width_bottom = 1
-		s2.set_corner_radius_all(3)
+		s2.set_corner_radius_all(4)
 		btn.add_theme_stylebox_override("normal", s2)
 		btn.add_theme_stylebox_override("pressed", s2)
 		btn.add_theme_stylebox_override("hover", s2)
 		btn.set_meta("essence_slot", i)
-		# Tooltip hover (click/pressed yok — sadece drag ile item üstüne bırak)
 		btn.mouse_entered.connect(_on_essence_slot_hover.bind(i))
 		btn.mouse_exited.connect(_on_inv_slot_unhover)
 		_essence_grid.add_child(btn)
 		_essence_buttons.append(btn)
-	# ─── ÖRS (Sadece item parçalama) ────────────────────────────
-	var anvil_x2: float = ess_grid_x
-	var anvil_y2: float = inv_y + 14 + ess_gh + 8.0
-	var anvil_w2 := 138.0
-	var anvil_h2 := 62.0
+	
+	# ─── ÖRS (özlerin altında, büyük) ──────────────────────
+	var anvil_x: float = ess_grid_x
+	var anvil_y: float = inv_y + 14 + ess_gh + 10.0
+	var anvil_w := 188.0
+	var anvil_h := 72.0
 	_anvil_zone = Control.new()
 	_anvil_zone.name = "AnvilZone"
-	_anvil_zone.position = Vector2(anvil_x2, anvil_y2)
-	_anvil_zone.size = Vector2(anvil_w2, anvil_h2)
-	_anvil_zone.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_anvil_zone.position = Vector2(anvil_x, anvil_y)
+	_anvil_zone.size = Vector2(anvil_w, anvil_h)
+	_anvil_zone.mouse_filter = Control.MOUSE_FILTER_STOP
+	_anvil_zone.mouse_entered.connect(_on_anvil_hover)
+	_anvil_zone.mouse_exited.connect(_on_anvil_unhover)
 	c.add_child(_anvil_zone)
 	var a_bg := ColorRect.new()
 	a_bg.color = Color(0.08, 0.06, 0.12, 0.85)
-	a_bg.size = Vector2(anvil_w2, anvil_h2)
-	a_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	a_bg.size = Vector2(anvil_w, anvil_h)
 	var a_border := StyleBoxFlat.new()
 	a_border.bg_color = Color(0.08, 0.06, 0.12, 0.85)
 	a_border.border_width_left = 2; a_border.border_width_right = 2
@@ -515,51 +549,31 @@ func _build_inventory_content() -> void:
 	a_border.set_corner_radius_all(8)
 	a_bg.add_theme_stylebox_override("panel", a_border)
 	_anvil_zone.add_child(a_bg)
-	# Başlık + alt yazı
-	var a_label := Label.new()
-	a_label.text = "ÖRS"
-	a_label.add_theme_font_size_override("font_size", 12)
-	a_label.add_theme_color_override("font_color", Color(0.65, 0.55, 0.85, 0.8))
-	a_label.position = Vector2(6, 2)
-	a_label.size = Vector2(60, 16)
-	a_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_anvil_zone.add_child(a_label)
-	var a_hint := Label.new()
-	a_hint.text = "İtem bırak → parçala"
-	a_hint.add_theme_font_size_override("font_size", 8)
-	a_hint.add_theme_color_override("font_color", Color(0.5, 0.4, 0.6, 0.6))
-	a_hint.position = Vector2(50, 4)
-	a_hint.size = Vector2(84, 12)
-	a_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_anvil_zone.add_child(a_hint)
-	# İtem slotu (tek slot — görsel)
+	var a_sprite := TextureRect.new()
+	a_sprite.texture = preload("res://assets/mics/anvil_on_inv/anvil.png")
+	a_sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	a_sprite.position = Vector2(8, 8)
+	a_sprite.size = Vector2(anvil_w - 100, anvil_h - 16)
+	a_sprite.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_anvil_zone.add_child(a_sprite)
 	_anvil_item_slot = TextureRect.new()
 	_anvil_item_slot.name = "AnvilItemSlot"
-	_anvil_item_slot.position = Vector2(8, 20)
-	_anvil_item_slot.size = Vector2(36, 36)
+	_anvil_item_slot.position = Vector2(anvil_w - 52, 18)
+	_anvil_item_slot.size = Vector2(42, 42)
 	_anvil_item_slot.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_anvil_item_slot.modulate = Color(0.4, 0.4, 0.5, 0.3)
 	var a_item_slot_bg := ColorRect.new()
 	a_item_slot_bg.color = Color(0.15, 0.12, 0.2, 0.8)
-	a_item_slot_bg.size = Vector2(36, 36)
+	a_item_slot_bg.size = Vector2(42, 42)
 	a_item_slot_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_anvil_item_slot.add_child(a_item_slot_bg)
 	_anvil_zone.add_child(_anvil_item_slot)
-	# Info yazısı (sağda)
-	var a_info := Label.new()
-	a_info.text = "Parçalanan\nitem'lar orba\ndönüşür"
-	a_info.add_theme_font_size_override("font_size", 7)
-	a_info.add_theme_color_override("font_color", Color(0.55, 0.45, 0.65, 0.7))
-	a_info.position = Vector2(52, 22)
-	a_info.size = Vector2(80, 36)
-	a_info.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_anvil_zone.add_child(a_info)
 
 func _make_equip_btn(slot: int) -> Button:
 	var btn := Button.new()
 	btn.custom_minimum_size = EQUIP_SLOT_SIZE
-	btn.text = Equipment.Slot.keys()[slot].capitalize()
-	btn.add_theme_font_size_override("font_size", 7)
+	btn.text = _slot_name_tr(Equipment.Slot.keys()[slot])
+	btn.add_theme_font_size_override("font_size", 8)
 	btn.set_meta("slot_enum", slot)
 
 	# Slot bazlı renkler
@@ -657,39 +671,54 @@ func _style_inv_btn(btn: Button) -> void:
 	btn.add_theme_color_override("font_hover_color", Color(1.0, 0.98, 1.0))
 	btn.add_theme_color_override("font_pressed_color", Color(0.9, 0.88, 0.95))
 
-func _build_stat_panel(parent: Control, w: float, doll_h: float) -> void:
+func _build_stat_panel_ex(parent: Control, x: float, y: float, pw: float, ph: float) -> void:
 	var panel := Panel.new()
 	panel.name = "StatPanel"
-	var pw: float = 114.0
-	panel.position = Vector2(w - pw - 4.0, 4)
-	panel.size = Vector2(pw, doll_h - 8)
+	panel.position = Vector2(x, y)
+	panel.size = Vector2(pw, ph)
 	var s := StyleBoxFlat.new()
-	s.bg_color = Color(0.04, 0.04, 0.06, 0.0)
+	s.bg_color = Color(0.04, 0.04, 0.06, 0.85)
 	s.border_width_left = 1; s.border_width_right = 1
 	s.border_width_top = 1; s.border_width_bottom = 1
-	s.border_color = Color(0.15, 0.12, 0.2, 0.3)
+	s.border_color = Color(0.4, 0.3, 0.5, 0.6)
 	s.set_corner_radius_all(4)
 	panel.add_theme_stylebox_override("panel", s)
 	parent.add_child(panel)
+
+	# Başlık
+	var title_lbl := Label.new()
+	title_lbl.name = "StatPanelTitle"
+	title_lbl.text = "STATLAR"
+	title_lbl.position = Vector2(2, 2)
+	title_lbl.size = Vector2(pw - 4, 16)
+	title_lbl.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8, 0.9))
+	title_lbl.add_theme_font_size_override("font_size", 11 if pw > 400 else 10)
+	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	panel.add_child(title_lbl)
+
+	var title_offset: float = 22.0 if pw > 400 else 18.0
 	var stat_keys := ["strength", "dexterity", "intelligence"]
 	var stat_names := ["STR", "DEX", "INT"]
 	var stat_colors := [Color(0.9, 0.4, 0.3), Color(0.3, 0.8, 0.4), Color(0.3, 0.5, 0.9)]
 	var stat_tooltips := {
-		"strength": "GÜÇ\n• Fiziksel hasarı artırır (+%10/her puan)\n• Yüksek güç gerektiren itemları takabilirsin",
-		"dexterity": "ÇEVİKİKLİK\n• Saldırı hızını artırır\n• Kaçınma şansını artırır (+%5/her puan)\n• Çeviklik gerektiren itemları takabilirsin",
-		"intelligence": "ZEKA\n• Büyü hasarını artırır (+%10/her puan)\n• Enerji kalkanını artırır\n• Zeka gerektiren itemları takabilirsin"
+		"strength": "[b][color=#ff8844]GÜÇ[/color][/b]\n[color=#aaaaaa]• Fiziksel hasarı artırır (+%10/her puan)\n• Yüksek güç gerektiren itemları takabilirsin[/color]",
+		"dexterity": "[b][color=#44cc66]ÇEVİKLİK[/color][/b]\n[color=#aaaaaa]• Saldırı hızını artırır\n• Kaçınma şansını artırır (+%5/her puan)\n• Çeviklik gerektiren itemları takabilirsin[/color]",
+		"intelligence": "[b][color=#4488ff]ZEKA[/color][/b]\n[color=#aaaaaa]• Büyü hasarını artırır (+%10/her puan)\n• Enerji kalkanını artırır\n• Zeka gerektiren itemları takabilirsin[/color]"
 	}
+	var row_spacing: float = 40.0 if pw > 400 else 28.0 if pw > 150 else 22.0
 	for i in 3:
-		var row_y: float = 4.0 + float(i) * 22.0
+		var row_y: float = title_offset + 4.0 + float(i) * row_spacing
 		var stat_key: String = stat_keys[i]
 
 		# "-" button
 		var btn_minus := Button.new()
 		btn_minus.name = stat_names[i] + "_Minus"
+		var btn_sz: float = 30.0 if pw > 400 else 22.0 if pw > 150 else 18.0
 		btn_minus.position = Vector2(2, row_y)
-		btn_minus.size = Vector2(18, 18)
+		btn_minus.size = Vector2(btn_sz, btn_sz)
 		btn_minus.text = "-"
-		btn_minus.add_theme_font_size_override("font_size", 12)
+		btn_minus.add_theme_font_size_override("font_size", 18 if pw > 400 else 14 if pw > 150 else 12)
 		btn_minus.add_theme_constant_override("outline_size", 0)
 		btn_minus.pressed.connect(_on_stat_minus.bind(stat_key))
 		panel.add_child(btn_minus)
@@ -697,11 +726,10 @@ func _build_stat_panel(parent: Control, w: float, doll_h: float) -> void:
 		# Value label with tooltip
 		var lbl := Label.new()
 		lbl.name = stat_names[i]
-		lbl.position = Vector2(22, row_y)
-		lbl.size = Vector2(70, 18)
+		lbl.position = Vector2(26, row_y)
+		lbl.size = Vector2(pw - 52, 30 if pw > 400 else 22 if pw > 150 else 18)
 		lbl.add_theme_color_override("font_color", stat_colors[i])
-		lbl.add_theme_font_size_override("font_size", 13)
-		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.add_theme_font_size_override("font_size", 18 if pw > 400 else 15 if pw > 150 else 13)
 		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		lbl.set_meta("stat_key", stat_key)
 		lbl.set_meta("stat_tooltip", stat_tooltips[stat_key])
@@ -713,10 +741,10 @@ func _build_stat_panel(parent: Control, w: float, doll_h: float) -> void:
 		# "+" button
 		var btn_plus := Button.new()
 		btn_plus.name = stat_names[i] + "_Plus"
-		btn_plus.position = Vector2(pw - 20, row_y)
-		btn_plus.size = Vector2(18, 18)
+		btn_plus.position = Vector2(pw - btn_sz - 2, row_y)
+		btn_plus.size = Vector2(btn_sz, btn_sz)
 		btn_plus.text = "+"
-		btn_plus.add_theme_font_size_override("font_size", 12)
+		btn_plus.add_theme_font_size_override("font_size", 18 if pw > 400 else 14 if pw > 150 else 12)
 		btn_plus.add_theme_constant_override("outline_size", 0)
 		btn_plus.pressed.connect(_on_stat_plus.bind(stat_key))
 		panel.add_child(btn_plus)
@@ -724,10 +752,10 @@ func _build_stat_panel(parent: Control, w: float, doll_h: float) -> void:
 	# Remaining points label
 	var rem := Label.new()
 	rem.name = "RemainingLabel"
-	rem.position = Vector2(2, 4.0 + 3.0 * 22.0)
+	rem.position = Vector2(2, title_offset + 4.0 + 3.0 * row_spacing)
 	rem.size = Vector2(pw - 4, 18)
 	rem.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
-	rem.add_theme_font_size_override("font_size", 11)
+	rem.add_theme_font_size_override("font_size", 14 if pw > 400 else 13 if pw > 150 else 12)
 	rem.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	rem.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	rem.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -749,13 +777,11 @@ func _on_remaining_points_hover() -> void:
 func _show_stat_tooltip(stat_key: String, text: String, global_pos: Vector2) -> void:
 	if not is_instance_valid(_tooltip_panel): return
 
-	var header_color: String = "#ffffff"
-	if stat_key == "strength": header_color = "#e66a5c"
-	elif stat_key == "dexterity": header_color = "#5cb85c"
-	elif stat_key == "intelligence": header_color = "#5c8de6"
-	elif stat_key == "points": header_color = "#ffd700"
-
-	var s: String = "[color=" + header_color + "][b]" + text + "[/b][/color]"
+	# Stat tooltip'leri zaten iceride BBCode ile formatli
+	# "points" icin ayri bir format kullan
+	var s: String = text
+	if stat_key == "points":
+		s = "[b][color=#ffd700]" + text + "[/color][/b]"
 
 	_tooltip_label.text = s
 	_tooltip_label.size = Vector2(280, 0)
@@ -768,6 +794,7 @@ func _show_stat_tooltip(stat_key: String, text: String, global_pos: Vector2) -> 
 		px = global_pos.x + 30.0
 	if py + _tooltip_panel.size.y > vp_size.y:
 		py = vp_size.y - _tooltip_panel.size.y - 10.0
+	if py < 0: py = 10.0
 	_tooltip_panel.position = Vector2(px, py)
 	_tooltip_panel.visible = true
 
@@ -798,7 +825,7 @@ func _build_tooltip() -> void:
 	_tooltip_label.bbcode_enabled = true; _tooltip_label.scroll_active = false
 	_tooltip_label.fit_content = true
 	_tooltip_label.add_theme_color_override("default_color", TEXT_COLOR)
-	_tooltip_label.add_theme_font_size_override("normal_font_size", 16)
+	_tooltip_label.add_theme_font_size_override("normal_font_size", 17)
 	_tooltip_label.position = Vector2(8, 6); _tooltip_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_tooltip_panel.add_child(_tooltip_label)
 
@@ -914,11 +941,9 @@ func _fmt_def(stats: CharacterStats, dc: String, ec: String, sh: String, se: Str
 	t += "Yıldırım Direnci: " + dc + str(int(stats.lightning_resistance)) + "%" + ec + "  Kaos Direnci: " + dc + str(int(stats.chaos_resistance)) + "%" + ec + nl
 	t += nl + sh + "═══ YENİLEME & EMME ═══" + se + nl
 	t += "Can Yenileme: " + dc + "+" + str(int(stats.life_regen_per_second)) + "/s" + ec + nl
-	t += "Mana Yenileme: " + dc + "+" + str(int(stats.mana_regen_per_second)) + "/s" + ec + nl
 	t += "Enerji Kalkanı Yenileme: " + dc + "+" + str(int(stats.es_regen_per_second)) + "/s" + ec + nl
-	t += "Can Emme Oranı: " + dc + str(int(stats.life_leech_percent)) + "%" + ec + "  Mana Emme Oranı: " + dc + str(int(stats.mana_leech_percent)) + "%" + ec + nl
+	t += "Can Emme Oranı: " + dc + str(int(stats.life_leech_percent)) + "%" + ec + nl
 	t += "Her Vuruşta Can: " + dc + str(int(stats.life_gain_on_hit)) + ec + "  Öldürme Başına Can: " + dc + str(int(stats.life_on_kill)) + ec + nl
-	t += "Öldürme Başına Mana: " + dc + str(int(stats.mana_on_kill)) + ec + nl
 	t += "Enerji Kalkanı Şarjı: " + dc + str(snapped(stats.es_recharge_delay, 0.1)) + "sn  " + str(int(stats.es_recharge_rate_percent)) + "%/sn" + ec + nl
 	return t
 
@@ -927,14 +952,10 @@ func _fmt_util(stats: CharacterStats, uc: String, ec: String, sh: String, se: St
 	t += sh + "═══ TEMEL ═══" + se + nl
 	var ms := int((stats.movement_speed - 1.0) * 100.0)
 	t += "Hareket Hızı: " + uc + "+" + str(ms) + "%" + ec + "  Menzil: " + uc + "+" + str(int(stats.melee_range_bonus * 100.0)) + "%" + ec + nl
-	var mana_node: Node = player.get_node_or_null("Mana")
-	if mana_node:
-		t += "Can: " + uc + str(player.health.current_health) + "/" + str(player.health.max_health) + ec + "  Mana: " + uc + str(mana_node.current_mana) + "/" + str(mana_node.max_mana) + ec + nl
-	else:
-		t += "Can: " + uc + str(player.health.current_health) + "/" + str(player.health.max_health) + ec + nl
+	t += "Can: " + uc + str(player.health.current_health) + "/" + str(player.health.max_health) + ec + nl
 	t += nl + sh + "═══ GERİ KAZANIM ═══" + se + nl
-	t += "Can Geri Kazanım Hızı: " + uc + "+" + str(int(stats.life_recovery_rate)) + "%" + ec + "  Mana Geri Kazanım Hızı: " + uc + "+" + str(int(stats.mana_recovery_rate)) + "%" + ec + nl
-	t += "Hasardan Geri Kazan (Can): " + uc + str(int(stats.life_recoup_pct)) + "%" + ec + "  (Mana): " + uc + str(int(stats.mana_recoup_pct)) + "%" + ec + "  Hız: " + uc + str(int(stats.recoup_speed)) + "%" + ec + nl
+	t += "Can Geri Kazanım Hızı: " + uc + "+" + str(int(stats.life_recovery_rate)) + "%" + ec + nl
+	t += "Hasardan Geri Kazan (Can): " + uc + str(int(stats.life_recoup_pct)) + "%" + ec + "  Hız: " + uc + str(int(stats.recoup_speed)) + "%" + ec + nl
 	t += nl + sh + "═══ EZİYET ═══" + se + nl
 	t += "Eziyet Etkisi: " + uc + "+" + str(int(stats.ailment_effect)) + "%" + ec + "  Eziyet Şansı: " + uc + "+" + str(int(stats.ailment_chance)) + "%" + ec + nl
 	t += "Eziyet Süresi: " + uc + "+" + str(int(stats.ailment_duration)) + "%" + ec + "  Eziyet Şiddeti: " + uc + "+" + str(int(stats.ailment_magnitude)) + "%" + ec + nl
@@ -961,7 +982,12 @@ func _open_ui() -> void:
 	call_deferred("_update_stat_panel")
 	if not _connected: _connect_signals()
 
-func _close_ui() -> void: visible_ui = false; visible = false; _hide_tooltip(); get_tree().paused = false
+func _close_ui() -> void:
+	visible_ui = false; visible = false; _hide_tooltip()
+	var ig_menu = get_node_or_null("/root/InGameMenu") as InGameMenu
+	if ig_menu and ig_menu.is_menu_visible():
+		ig_menu.hide_menu()
+	get_tree().paused = false
 
 func ui_is_open() -> bool: return visible_ui
 
@@ -977,9 +1003,7 @@ func _connect_signals() -> void:
 		player.stats.stats_changed.connect(_on_stats_changed)
 	if not player.health.health_changed.is_connected(_on_health_changed_for_stats):
 		player.health.health_changed.connect(_on_health_changed_for_stats)
-	var mana_node: Node = player.get_node_or_null("Mana")
-	if mana_node and not mana_node.mana_changed.is_connected(_on_mana_changed_for_stats):
-		mana_node.mana_changed.connect(_on_mana_changed_for_stats)
+	# mana_changed baglantisi kaldirildi (mana sistemi yok)
 	_connected = true
 	_update_stats(); _update_equipment(); _update_inventory()
 	_update_essence_inventory(); _update_stat_panel()
@@ -1048,15 +1072,11 @@ func _on_inv_slot_hover(item: ItemData) -> void:
 	else:
 		_show_tooltip(item, mp)
 
-func _show_requirement_warning(item: ItemData, global_pos: Vector2, failures: String) -> void:
-	"""Item'ın giyilememe nedenini gösteren uyarı tooltip'i."""
+func _show_requirement_warning(item: ItemData, global_pos: Vector2, _failures: String) -> void:
+	"""Item'ın giyilemediğini basitçe göster."""
 	if not is_instance_valid(_tooltip_panel): return
 
-	var s := "[center][color=#ff6b6b][b]⚠ GİYİLEMEZ[/b][/color][/center]\n"
-	s += "[color=#888888]%s[/color]" % item.display_name
-	s += "\n[color=#ffaaaa]" + failures + "[/color]"
-	s += "\n[color=#666666]─────────────────[/color]"
-	s += "\n[color=#aaaaaa]Detaylar için tekrar bak:[/color]"
+	var s := "[color=#ff6b6b]⚠ [b]Giyilemez[/b][/color]"
 
 	_tooltip_label.text = s
 	_tooltip_label.size = Vector2(360, 0)
@@ -1070,6 +1090,7 @@ func _show_requirement_warning(item: ItemData, global_pos: Vector2, failures: St
 		px = global_pos.x - _tooltip_panel.size.x - 16.0
 	if py + _tooltip_panel.size.y > vp_size.y:
 		py = global_pos.y - _tooltip_panel.size.y - 16.0
+	if py < 0: py = 10.0
 	_tooltip_panel.position = Vector2(px, py)
 	_tooltip_panel.visible = true
 
@@ -1129,7 +1150,7 @@ func _update_equipment() -> void:
 			if not btn.mouse_exited.is_connected(_on_inv_slot_unhover):
 				btn.mouse_exited.connect(_on_inv_slot_unhover)
 		else:
-			btn.icon = null; btn.text = Equipment.Slot.keys()[slot].capitalize()
+			btn.icon = null; btn.text = _slot_name_tr(Equipment.Slot.keys()[slot])
 			btn.remove_meta("item_data")
 			if btn.mouse_entered.is_connected(_on_equip_slot_hover):
 				btn.mouse_entered.disconnect(_on_equip_slot_hover)
@@ -1143,8 +1164,6 @@ func _update_stats() -> void:
 	s += "Seviye: %d\n" % ls.level
 	s += "XP: %d/%d\n" % [ls.current_xp, ls.get_xp_required()]
 	s += "Can: %d/%d\n" % [player.health.current_health, player.health.max_health]
-	var mana_node: Node = player.get_node_or_null("Mana")
-	if mana_node: s += "Mana: %d/%d\n" % [mana_node.current_mana, mana_node.max_mana]
 	if player.has_node("EnergyShield"):
 		var es = player.get_node("EnergyShield")
 		if es.has_method("get_current") and es.has_method("get_max"):
@@ -1271,6 +1290,10 @@ func _input(event: InputEvent) -> void:
 				if visible_ui:
 					_close_ui()
 				else:
+					# ESC menusu acikken inventory acma
+					var ig_menu = get_node_or_null("/root/InGameMenu")
+					if ig_menu and ig_menu.is_menu_visible():
+						return
 					_close_all_other_uis()
 					_open_ui()
 				get_viewport().set_input_as_handled()
@@ -1488,7 +1511,7 @@ func _do_drag_equip(slot_idx: int) -> void:
 	var sn: String = SLOT_ENUM_TO_NAME.get(slot_idx, "")
 	if sn.is_empty(): return
 	if not _can_equip_to_slot(_drag_item, sn):
-		_show_equip_error("Bu item " + sn + " slot'una takilamaz!"); return
+		_show_equip_error("Bu item " + _slot_name_tr(sn) + " slot'una takılamaz!"); return
 	if not player.inventory.can_equip_item(_drag_item):
 		_show_equip_error("Yetersiz stat! " + player.inventory.get_requirement_failures(_drag_item)); return
 	player.inventory.equip_item(_drag_item, player.equipment, "offhand") if sn == "offhand" and _drag_item.equip_slot == "weapon" else player.inventory.equip_item(_drag_item, player.equipment)
@@ -1498,7 +1521,7 @@ func _do_drag_equip_swap(target_slot: int) -> void:
 	var tsn: String = SLOT_ENUM_TO_NAME.get(target_slot, "")
 	if tsn.is_empty(): return
 	if not _can_equip_to_slot(_drag_item, tsn):
-		_show_equip_error("Bu item " + tsn + " slot'una takilamaz!"); return
+		_show_equip_error("Bu item " + _slot_name_tr(tsn) + " slot'una takılamaz!"); return
 	var eq: Equipment = player.equipment
 	var ti: ItemData = eq.get_item_in_slot(target_slot)
 	eq.slots[_drag_source_slot] = null
@@ -1616,6 +1639,7 @@ func _show_tooltip(item: ItemData, global_pos: Vector2) -> void:
 		px = global_pos.x - _tooltip_panel.size.x - 16.0
 	if py + _tooltip_panel.size.y > vp_size.y:
 		py = global_pos.y - _tooltip_panel.size.y - 16.0
+	if py < 0: py = 10.0
 	_tooltip_panel.position = Vector2(px, py)
 	_tooltip_panel.visible = true
 
@@ -1642,16 +1666,17 @@ func _build_item_tooltip(item: ItemData) -> String:
 		s += "[font_size=13][color=#888888]Orb  •  Envanterde stack'lenir[/color][/font_size]\n"
 		if cd:
 			var app_str: String = ""
+			var rarity_names := {"normal":"Normal", "magic":"Büyülü", "rare":"Nadir", "unique":"Eşsiz"}
 			for arr in cd.allowed_rarities:
 				if not app_str.is_empty(): app_str += ", "
-				app_str += arr.capitalize()
+				app_str += rarity_names.get(arr, arr.capitalize())
 			if not app_str.is_empty():
 				s += "[font_size=13][color=#aaaaaa]Kullanılabilir: " + app_str + " item'lar[/color][/font_size]\n"
 		return s
 	# === ITEM TÜRÜ VE LEVEL ===
-	s += "[center][font_size=13][color=#888888]" + item.item_type.capitalize()
-	s += "  •  Item Level: " + str(item.item_level)
-	s += "  •  Gereken Level: " + str(item.required_level) + "[/color][/font_size][/center]\n"
+	s += "[center][font_size=13][color=#888888]" + _item_type_tr(item.item_type, item.equip_slot)
+	s += "  •  Eşya Seviyesi: " + str(item.item_level)
+	s += "  •  Gerekli Seviye: " + str(item.required_level) + "[/color][/font_size][/center]\n"
 	# === BASE STATS (kalite çarpanı uygulanmış) ===
 	var qm: float = item.get_quality_multiplier()
 	var has_q: bool = item.quality > 0
@@ -1728,6 +1753,28 @@ func _on_essence_slot_hover(slot_idx: int) -> void:
 	var mp: Vector2 = get_viewport().get_mouse_position()
 	_show_tooltip(item, mp)
 
+# ─── ANVIL HOVER TOOLTIP ──────────────────────────────────────
+func _on_anvil_hover() -> void:
+	if not is_instance_valid(_tooltip_panel): return
+	var tooltip := "[b][color=#c896ff]ÖRS[/color][/b]\n[color=#aaaaaa]• Item'ları sürükleyip bırakarak parçala\n• Rastgele orb'lar elde et\n• Nadir item'ler daha çok orb verir[/color]"
+	_tooltip_label.text = tooltip
+	_tooltip_label.size = Vector2(220, 0)
+	_tooltip_panel.size = Vector2(240, max(_tooltip_label.get_content_height() + 20, 60))
+	var mp: Vector2 = get_viewport().get_mouse_position()
+	var vp_size: Vector2 = get_viewport().get_visible_rect().size
+	var px: float = mp.x + 16.0
+	var py: float = mp.y + 16.0
+	if px + _tooltip_panel.size.x > vp_size.x:
+		px = mp.x - _tooltip_panel.size.x - 16.0
+	if py + _tooltip_panel.size.y > vp_size.y:
+		py = vp_size.y - _tooltip_panel.size.y - 10.0
+	if py < 0: py = 10.0
+	_tooltip_panel.position = Vector2(px, py)
+	_tooltip_panel.visible = true
+
+func _on_anvil_unhover() -> void:
+	_hide_tooltip()
+
 # ─── ANVIL / CRAFTING HANDLERS ─────────────────────────────────
 func _handle_anvil_drop() -> void:
 	if not _drag_item:
@@ -1766,4 +1813,4 @@ func _handle_anvil_drop() -> void:
 				if player.essence_inventory.add_essence(orb_item):
 					orbs_added += 1
 
-	_show_equip_note(item_name + " parçalandı! " + str(orbs_added) + " orb envantere eklendi.", true)
+	# Örs yazısı kaldırıldı — item sessizce parçalanır

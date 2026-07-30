@@ -5,10 +5,30 @@
 [sub_resource type="CircleShape2D" id="CircleShape2D_6s2gn"]
 radius = 14.0
 
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_x7z4h"]
+blend_mode = 1
+
 [node name="Projectile" type="Area2D" unique_id=55568898]
 script = ExtResource("1_e8efe")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=54822817]
+material = SubResource("CanvasItemMaterial_x7z4h")
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 8
+lifetime = 0.3
+one_shot = false
+preprocess = 0.0
+speed_scale = 1.0
+explosiveness = 0.0
+randomness = 0.2
+fixed_fps = 0
+fract_delta = true
+interpolate = true
+local_coords = false
+z_index = -1
+process_material = null
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=253603939]
 shape = SubResource("CircleShape2D_6s2gn")

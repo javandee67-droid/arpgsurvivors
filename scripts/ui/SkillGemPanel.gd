@@ -703,12 +703,7 @@ func _build_modifier_lines(sd: SupportData) -> String:
 	if sd.extra_projectiles > 0:
 		lines += "\n  [color=#88ff88]+" + str(sd.extra_projectiles) + " Ekstra Mermi[/color]"
 
-	# mana_multiplier
-	if sd.mana_multiplier != 1.0:
-		var mana_pct: float = (sd.mana_multiplier - 1.0) * 100.0
-		var mana_sign: String = "+" if mana_pct > 0 else ""
-		var mana_color: String = "#ff6666" if mana_pct > 0 else "#66ff66"
-		lines += "\n  [color=" + mana_color + "]Mana Maliyeti: " + mana_sign + str(mana_pct) + "%[/color]"
+	# mana_multiplier kaldirildi (mana sistemi yok)
 
 	return lines
 

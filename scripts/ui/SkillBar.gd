@@ -631,11 +631,11 @@ func _on_slot_hover(slot_idx: int) -> void:
 			if has_life_res:
 				tt += "[color=#dd6666]Reserve:[/color] %s%% Life\n" % str(skill_data.aura_reservation_percent)
 			else:
-				tt += "[color=#5588dd]Reserve:[/color] %s%% Mana\n" % str(skill_data.aura_reservation_percent)
+				tt += "[color=#dd6666]Reserve (Life):[/color] %s%%\n" % str(skill_data.aura_reservation_percent)
 		elif skill_data.aura_reservation_flat > 0.0:
-			tt += "[color=#5588dd]Reserve:[/color] %g Mana\n" % skill_data.aura_reservation_flat
+			tt += "[color=#dd6666]Reserve (Life):[/color] %g\n" % skill_data.aura_reservation_flat
 		else:
-			tt += "[color=#5588dd]Reserve:[/color] 25%% Mana\n"
+			tt += "[color=#dd6666]Reserve (Life):[/color] 25%%\n"
 		
 		# Buff etkileri (buff_tags'ten oku: "attack_speed:30" -> +30% Attack Speed)
 		if skill_data.buff_tags.size() > 0:
@@ -1120,22 +1120,17 @@ func _on_slot_hover(slot_idx: int) -> void:
 				tt += "  • " + sd.display_name + " [color=#88aacc](" + ", ".join(desc_parts) + ")[/color]\n"
 	else:
 		# Support yok, hasarı göster
-		tt += _per_type_damage_text(final_min_buckets, final_max_buckets, "Damage") + inc_label + "\n"
+		tt += _per_type_damage_text(final_min_buckets, final_max_buckets, "Hasar") + inc_label + "\n"
 	
-	# Mana / Life cost (efektif, passive + support dahil)
+	# Mana cost kaldirildi (mana sistemi yok) — sadece Life cost
 	if skill_data.mana_cost > 0:
-		var mana_cost: float = player._calc_effective_mana_cost(skill_path, skill_data)
 		var life_cost: float = player._calc_effective_life_cost(skill_path, skill_data)
-		if mana_cost > 0.0 and life_cost > 0.0:
-			tt += "\n[color=#5588dd]Mana Cost:[/color] " + str(int(mana_cost)) + "  [color=#dd6666]Life Cost:[/color] " + str(int(life_cost)) + "\n"
-		elif mana_cost > 0.0:
-			tt += "\n[color=#5588dd]Mana Cost:[/color] " + str(int(mana_cost)) + "\n"
-		elif life_cost > 0.0:
-			tt += "\n[color=#dd6666]Life Cost:[/color] " + str(int(life_cost)) + "\n"
+		if life_cost > 0.0:
+			tt += "\n[color=#dd6666]Can Bedeli:[/color] " + str(int(life_cost)) + "\n"
 	
 	# Cooldown
 	if skill_data.cooldown > 0:
-		tt += "[color=#88aadd]Cooldown:[/color] " + str(skill_data.cooldown) + "s\n"
+		tt += "[color=#88aadd]Bekleme Süresi:[/color] " + str(skill_data.cooldown) + "s\n"
 	
 	_tooltip_label.text = tt
 	_tooltip_panel.size = Vector2(250, _tooltip_label.get_content_height() + 12)

@@ -38,6 +38,7 @@ var _passive_nodes_owned: Array[String] = []
 var _skill_tree_instance: Control = null
 var _wave: int = 1
 var _enemies_killed_in_wave: int = 0
+var _gold_earned_in_run: int = 0
 const ENEMIES_PER_WAVE: int = 20
 
 # Boss sistemi
@@ -94,6 +95,7 @@ func _start_full_game() -> void:
 	_last_boss = null
 	_wave = 1
 	_enemies_killed_in_wave = 0
+	_gold_earned_in_run = 0
 	
 	# Generate map
 	_generate_large_map()
@@ -217,6 +219,7 @@ func _init_game() -> void:
 	return
 	
 	_kill_count = 0
+	_gold_earned_in_run = 0
 	_difficulty_tier = 1
 	_next_difficulty_at = 100
 	_game_time = 0.0
@@ -496,10 +499,8 @@ func _on_passive_node_unlocked(node_id: String) -> void:
 				player.stats.base_critical_multiplier += value
 			"accuracy":
 				player.stats.base_accuracy += value
-			"max_mana":
-				player.stats.base_mana += value
-			"mana_regen_per_second":
-				player.stats.base_mana_regen += value
+			# max_mana kaldirildi
+			# mana_regen_per_second kaldirildi
 			"pickup_radius":
 				player.stats.pickup_radius += value
 			"gold_find":
@@ -723,6 +724,7 @@ func _count_alive_enemies() -> int:
 func _on_vs_enemy_killed() -> void:
 	_kill_count += 1
 	_enemies_killed_in_wave += 1
+	_gold_earned_in_run += 2  # her dusman 2 altin
 	if _enemies_killed_in_wave >= ENEMIES_PER_WAVE:
 		_wave += 1
 		_enemies_killed_in_wave = 0
@@ -1005,7 +1007,7 @@ func _on_player_died() -> void:
 	add_child(death_screen)
 	
 	var p_level: int = player.level_system.level if player else 1
-	death_screen.set_stats(p_level, _kill_count, _game_time)
+	death_screen.set_stats(p_level, _kill_count, _game_time, _gold_earned_in_run, 0, _wave)
 	
 	death_screen.respawn_requested.connect(_on_respawn)
 	death_screen.return_to_menu.connect(_on_return_to_menu_from_death)
@@ -1014,7 +1016,7 @@ func _on_return_to_menu_from_death() -> void:
 	"""Handle return to menu from death screen"""
 	# Track stats before clearing
 	var upgrades = PersistentUpgrades.get_instance()
-	upgrades.add_gold(100)  # Reward for surviving
+	upgrades.add_gold(_gold_earned_in_run)  # Gerçek kazanılan altın
 	upgrades.add_kill()
 	upgrades.save_data()
 	

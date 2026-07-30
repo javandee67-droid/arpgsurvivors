@@ -11,8 +11,8 @@ signal stats_changed
 
 # --- Base values ---
 @export var base_life: float = 100.0
-@export var base_mana: float = 60.0
-@export var base_mana_regen: float = 2.0  ## Sabit pasif mana yenilenmesi (saniyede)
+@export var base_mana: float = 0.0
+@export var base_mana_regen: float = 0.0
 @export var base_energy_shield: float = 0.0
 @export var base_armour: float = 0.0
 @export var base_evasion: float = 0.0
@@ -382,16 +382,13 @@ func recalculate() -> void:
 	total_dexterity = dexterity + flat.get("dexterity", 0.0)
 	total_intelligence = intelligence + flat.get("intelligence", 0.0)
 
-	# --- Attribute passive bonuses ---
-	# Strength: +2 HP per point, +1 physical damage per point
 	# --- Dual Wield Check (hem WEAPON hem OFFHAND'te silah var mı?) ---
 	is_dual_wielding = false
 	if _equipment:
 		var main_wp: ItemData = _equipment.get_item_in_slot(Equipment.Slot.WEAPON)
 		var off_wp: ItemData = _equipment.get_item_in_slot(Equipment.Slot.OFFHAND)
-		if main_wp and off_wp:
-			if off_wp.base_physical_damage_min > 0.0 or off_wp.base_physical_damage_max > 0.0:
-				is_dual_wielding = true
+		if main_wp and off_wp and not (main_wp.item_type in ["weapon", "staff"]):
+			is_dual_wielding = true
 
 	var life_from_str: float = total_strength * 2.0
 	var phys_from_str: float = total_strength * 1.0
@@ -400,10 +397,9 @@ func recalculate() -> void:
 	var mana_from_int: float = total_intelligence * 2.0
 	var es_from_int_flat: float = total_intelligence * 1.0
 
-	# Dexterity: +0.1% evasion per point, +0.2% attack speed per point
+	# Dexterity: +0.1% evasion per point, +0.2% attack speed per point, +2 accuracy per point
 	var dex_evasion_pct: float = total_dexterity * 0.1
 	var dex_attack_speed_pct: float = total_dexterity * 0.2
-
 	var accuracy_from_dex: float = total_dexterity * 2.0
 
 	# --- Life / Mana / ES ---
@@ -491,15 +487,14 @@ func recalculate() -> void:
 	lightning_damage_increased = increased.get("lightning_damage", 0.0)
 	chaos_damage_increased = increased.get("chaos_damage", 0.0)
 	damage_over_time_increased = increased.get("damage_over_time", 0.0)
-	projectile_damage_increased = increased.get("projectile_damage", 0.0)
-	area_damage_increased = increased.get("area_damage", 0.0)
-	all_damage_increased = increased.get("all_damage", 0.0)
-
-	# --- Regen & Leech ---
-	life_recovery_rate = increased.get("life_recovery_rate", 0.0)
-	life_regen_per_second = (flat.get("life_regen", 0.0) + max_life * increased.get("life_regen", 0.0) / 100.0) * (1.0 + life_recovery_rate / 100.0)
-	mana_recovery_rate = increased.get("mana_recovery_rate", 0.0)
-	mana_regen_per_second = (base_mana_regen + flat.get("mana_regen", 0.0) + max_mana * increased.get("mana_regen", 0.0) / 100.0) * (1.0 + mana_recovery_rate / 100.0)
+	mana_recovery_rate = 0.0  # mana sistemi kaldirildi
+	mana_regen_per_second = 0.0
+	es_regen_per_second = max_energy_shield * increased.get("energy_shield_regen", 0.0) / 100.0
+	life_leech_percent = flat.get("life_leech", 0.0)  # affix zaten % olarak (0.6 = %0.6)
+	mana_leech_percent = 0.0  # mana sistemi kaldirildi
+	life_gain_on_hit = flat.get("life_gain_on_hit", 0.0)
+	life_on_kill = flat.get("life_on_kill", 0.0)
+	mana_on_kill = 0.0  # mana sistemi kaldirildiincreased.get("mana_regen", 0.0) / 100.0) * (1.0 + mana_recovery_rate / 100.0)
 	es_regen_per_second = max_energy_shield * increased.get("energy_shield_regen", 0.0) / 100.0
 	life_leech_percent = flat.get("life_leech", 0.0)  # affix zaten % olarak (0.6 = %0.6)
 	mana_leech_percent = flat.get("mana_leech", 0.0)  # affix zaten % olarak
@@ -527,8 +522,7 @@ func recalculate() -> void:
 	# Passive tree bonuses
 	melee_range_bonus = flat.get("melee_range", 0.0)
 	armour_elemental_pct = flat.get("armour_elemental_pct", 0.0)
-
-	# --- New mechanic stats ---
+	mana_recoup_pct = 0.0  # mana sistemi kaldirildi
 	penetration_fire = flat.get("penetration_fire", 0.0)
 	penetration_cold = flat.get("penetration_cold", 0.0)
 	penetration_lightning = flat.get("penetration_lightning", 0.0)
@@ -582,8 +576,9 @@ func recalculate() -> void:
 	ailment_speed = increased.get("ailment_speed", 0.0)
 	ignite_speed = increased.get("ignite_speed", 0.0)
 	bleed_speed = increased.get("bleed_speed", 0.0)
-	poison_duration = increased.get("poison_duration", 0.0)
-	bleeding_duration = increased.get("bleeding_duration", 0.0)
+	mana_cost_efficiency = 0.0  # mana sistemi kaldirildi
+	reservation_efficiency = increased.get("reservation_efficiency", 0.0)
+	mana_cost_pct = 0.0  # mana sistemi kaldirildi
 	freeze_duration_on_enemies = increased.get("freeze_duration_on_enemies", 0.0)
 	chill_duration = increased.get("chill_duration", 0.0)
 	ailment_threshold = increased.get("ailment_threshold", 0.0)

@@ -5,10 +5,7 @@ class_name Affix
 ## Stat adlarını Türkçe/güzel isimlere çevir
 ## NOT: Bu isimler zaten tek başına anlamlı, "%" işaretini kod ekliyor
 const STAT_NAMES := {
-	"max_life": "Maksimum Can",
-	"max_life_percent": "Maksimum Can",
-	"max_mana": "Maksimum Mana",
-	"max_mana_percent": "Maksimum Mana",
+	"max_life_percent": "Maksimum Can %",
 	"max_energy_shield": "Maksimum Enerji Kalkanı",
 	"max_energy_shield_percent": "Maksimum Enerji Kalkanı",
 	"armour": "Zırh",
@@ -33,10 +30,7 @@ const STAT_NAMES := {
 	"attack_speed": "Saldırı Hızı",
 	"cast_speed": "Büyü Hızı",
 	"movement_speed": "Hareket Hızı",
-	"life_regen": "Can Yenilenmesi",
-	"mana_regen": "Mana Yenilenmesi",
 	"life_leech": "Can Çalma",
-	"mana_leech": "Mana Çalma",
 	"attack_block_chance": "Saldırı Blok Şansı",
 	"spell_block_chance": "Büyü Blok Şansı",
 	"attack_dodge_chance": "Kaçınma (Evasion)",  # _collect_affixes'te evasion'a eklenir
@@ -47,18 +41,15 @@ const STAT_NAMES := {
 	"area_damage": "Alan Hasarı",
 	# "critical_chance_spells" kaldirildi
 	"energy_shield_regen": "Enerji Kalkanı Yenilenmesi",
-	# spell_dodge_chance removed - spells can't be dodged
-	"life_gain_on_hit": "Vuruş Başına Can",
+	# spell_dodge_chance removed - spells cannot be dodged
 	"base_life": "Temel Can",
 	"base_mana": "Temel Mana",
 	"strength": "Güç",
-	"dexterity": "Çeviklik",
-	"intelligence": "Zeka",
 	"life_on_kill": "Öldürmede Can",
 	"mana_on_kill": "Öldürmede Mana",
 	"cooldown_recovery": "Bekleme Süresi Hızı",
 	# "flask_effect" kaldirildi
-	"ailment_effect": "Ailment Etkisi",
+	"ailment_effect": "Eziyet Etkisi",
 	"block_chance": "Blok Şansı",
 	"base_accuracy": "Temel İsabet",
 	"energy_shield": "Enerji Kalkanı",
@@ -135,10 +126,9 @@ func get_colored_text() -> String:
 	# Negatif değerler için kırmızı (kayıp/güçlük)
 	if value < 0:
 		color = "#ff6b6b"  # kırmızı (negatif = kötü)
+	# mana rengi kaldirildi (mana sistemi yok)
 	elif stat_name.contains("life") or stat_name.contains("health"):
 		color = "#6fdc8c"  # yeşil (can = iyi)
-	elif stat_name.contains("mana"):
-		color = "#5b9cff"  # mavi (mana = iyi)
 	elif stat_name.contains("damage") or stat_name.contains("attack"):
 		color = "#ff7b6b"  # kırmızı (hasar = iyi)
 	elif stat_name.contains("resistance"):

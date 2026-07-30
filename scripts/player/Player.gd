@@ -143,9 +143,8 @@ func set_class(class_id: String) -> void:
 	var unlocked: Array = get_meta("passive_unlocked", [])
 	if "center" not in unlocked:
 		unlocked.append("center")
-		# Center node bonuslarını otomatik uygula: +10 base_life, +10 base_mana
+		# Center node bonusu: +10 base_life (mana kaldirildi)
 		stats.base_life += 10
-		stats.base_mana += 10
 	# Merkeze yakin gercek node ID'lerini unlock et
 	var start_nodes: Array = [20499, 2653, 18441, 2955, 42452]
 	for sid in start_nodes:
@@ -445,7 +444,8 @@ func _try_basic_attack_key(_approach_type: String = "melee_distance") -> void:
 	var melee_range: float = BASIC_MELEE_RANGE
 	if stats and stats.melee_range_bonus > 0.0:
 		melee_range += stats.melee_range_bonus * 35.0  # her birim bonus = 35px ek menzil
-	var nearest: Node = _find_nearest_enemy(melee_range)
+	# Genis ara: uzaktaki dusmani da bul, sonra menzil kontrolu asagida
+	var nearest: Node = _find_nearest_enemy(maxf(melee_range, 300.0))
 	if not nearest or not is_instance_valid(nearest):
 		return
 	_try_basic_attack_at(nearest)
@@ -529,11 +529,14 @@ func _vs_auto_attack() -> void:
 		as_mult = 0.01
 	_auto_attack_timer = 1.0 / as_mult
 	
-	# Attack animasyonu
+	# Attack animasyonu (gorunur olsun diye yavastan)
+	var anim_speed5: float = maxf(0.5, as_mult * 0.8)
+	_attack_anim_timer = 1.2 / anim_speed5
 	if animated_sprite and animated_sprite.sprite_frames:
 		var atk_anim: String = _get_dir_anim("attack", _last_dir)
 		if animated_sprite.sprite_frames.has_animation(atk_anim):
 			animated_sprite.play(atk_anim)
+			animated_sprite.speed_scale = maxf(0.4, anim_speed5 * 0.3)
 
 func _vs_auto_cast_skill(skill_path: String) -> void:
 	"""Bir skill'i en yakin dusmana otomatik atesle."""
@@ -555,8 +558,8 @@ func _vs_auto_cast_skill(skill_path: String) -> void:
 		_auto_skill_timers[skill_path] = 0.1
 		return
 	
-	# En yakin dusmani bul
-	var cast_range: float = 400.0
+	# En yakin dusmani bul — genis menzil (uzaktan skill atabilmek icin)
+	var cast_range: float = 700.0
 	var nearest: Node = _find_nearest_enemy(cast_range)
 	if not nearest or not is_instance_valid(nearest):
 		_auto_skill_timers[skill_path] = 0.5
@@ -577,18 +580,13 @@ func _vs_auto_cast_skill(skill_path: String) -> void:
 	if skill_data.cooldown > 0.0:
 		_skill_cooldowns[skill_path] = adjusted_cd
 	
-	# Uzaklik kontrolu — skill menzili varsa cok yakindan atma
-	var min_range: float = skill_data.melee_range
-	if min_range <= 0.0:
-		min_range = 50.0
-	if skill_data.skill_type == SkillData.SkillType.PROJECTILE or skill_data.skill_type == SkillData.SkillType.AOE:
-		min_range = 80.0
+	# Skill her mesafeden atilabilir — cok yakindaysa mermi hemen carpar
+	# Sadece cakisma ihtimaline karsi cok kucuk bir alt sinir koyuyoruz
+	var min_range: float = 15.0
 	var dist_to_enemy: float = global_position.distance_to(nearest.global_position)
 	if dist_to_enemy < min_range:
-		# Cok yakindaysa skill atma, normal saldiri yap
-		_vs_auto_attack()
-		_auto_skill_timers[skill_path] = adjusted_cd
-		return
+		# Dusman uzerimizdeyse yine de skill at (mermi hemen carpar)
+		pass
 
 	# Skill tipine gore yonlendir — her skill benzersiz mekanik
 	match skill_data.id:
@@ -614,9 +612,10 @@ func _vs_auto_cast_skill(skill_path: String) -> void:
 			_cast_frost_explosion_vs(skill_data, nearest, skill_path)
 		"slice_wave":
 			_cast_slice_wave(skill_data, nearest)
-		"fireball", "ice_nova":
-			# Eski skill'ler — fallback
-			_cast_projectile_skill(skill_data, nearest, skill_path)
+		"fireball":
+			_cast_fireball(skill_data, nearest)
+		"ice_nova":
+			_cast_ice_nova(skill_data, nearest)
 		_:
 			_cast_projectile_skill(skill_data, nearest, skill_path)
 	
@@ -669,14 +668,14 @@ func _cast_projectile_skill(skill_data: SkillData, target: Node, skill_path: Str
 			tex = "res://assets/generated/proj_fireball_anim.png"
 			hit_tex = "res://assets/generated/vfx_fire_explosion.png"
 		"cold":
-			tex = "res://assets/generated/proj_fireball_anim.png"
-			hit_tex = "res://assets/generated/hit_slash_arc_new.png"
+			tex = "res://assets/generated/proj_frostbolt_anim.png"
+			hit_tex = "res://assets/generated/hit_ice_burst.png"
 		"lightning":
-			tex = "res://assets/generated/proj_fireball_anim.png"
-			hit_tex = "res://assets/generated/vfx_fire_explosion.png"
+			tex = "res://assets/generated/proj_lightning_anim.png"
+			hit_tex = "res://assets/generated/hit_lightning_strike_new.png"
 		"chaos":
 			tex = "res://assets/generated/proj_fireball_anim.png"
-			hit_tex = "res://assets/generated/hit_slash_arc_new.png"
+			hit_tex = "res://assets/generated/hit_dark_explosion.png"
 	
 	if stats and stats.projectile_speed > 0.0:
 		proj_speed *= (1.0 + stats.projectile_speed / 100.0)
@@ -1778,11 +1777,17 @@ func _cast_normal_attack() -> void:
 		_:
 			_try_basic_attack()
 
-func _cast_fireball(skill_data: SkillData) -> void:
-	"""Fireball: hedefe dogru ates topu mermisi firlat. Dusman yoksa fare yonune ates et."""
-	var target_pos: Vector2 = get_global_mouse_position()
-	var enemy := _find_enemy_at_mouse_pos(target_pos)
-	# Dusman yoksa bile fare yonune mermi at (hedefsiz)
+func _cast_fireball(skill_data: SkillData, auto_target: Node = null) -> void:
+	"""Fireball: hedefe dogru ates topu mermisi firlat. Dusman yoksa fare yonune ates et.
+	VS auto-cast: auto_target ile hedefe, yoksa fare yonune."""
+	var target_pos: Vector2
+	var enemy: Node
+	if auto_target and is_instance_valid(auto_target):
+		enemy = auto_target
+		target_pos = enemy.global_position
+	else:
+		target_pos = get_global_mouse_position()
+		enemy = _find_enemy_at_mouse_pos(target_pos)
 	var has_target: bool = enemy != null and is_instance_valid(enemy)
 	var aim_pos: Vector2 = enemy.global_position if has_target else target_pos
 	
@@ -1997,7 +2002,7 @@ func _cast_slice_wave(skill_data: SkillData, auto_target: Node = null) -> void:
 		["attack", "physical", "projectile", "area"] as Array[String],
 		self,
 		"res://assets/generated/proj_slice_wave_frame_0.png",
-		"res://assets/generated/vfx_fire_explosion.png",
+		"res://assets/generated/hit_slash_arc_new.png",
 		"slice_wave",
 		false,
 		0.0,
@@ -2032,10 +2037,16 @@ func _cast_slice_wave(skill_data: SkillData, auto_target: Node = null) -> void:
 	_add_momentum_stack()
 
 
-func _cast_ice_nova(skill_data: SkillData) -> void:
-	"""Ice Nova: etrafa buz dairesi (AoE) gonderir. Dusman yoksa fare pozisyonunda patlat."""
-	var target_pos: Vector2 = get_global_mouse_position()
-	var enemy := _find_enemy_at_mouse_pos(target_pos)
+func _cast_ice_nova(skill_data: SkillData, auto_target: Node = null) -> void:
+	"""Ice Nova: etrafa buz dairesi (AoE) gonderir. VS auto-cast'te auto_target kullanilir."""
+	var target_pos: Vector2
+	var enemy: Node
+	if auto_target and is_instance_valid(auto_target):
+		enemy = auto_target
+		target_pos = enemy.global_position
+	else:
+		target_pos = get_global_mouse_position()
+		enemy = _find_enemy_at_mouse_pos(target_pos)
 	var has_target: bool = enemy != null and is_instance_valid(enemy)
 	var center_pos: Vector2 = enemy.global_position if has_target else target_pos
 	
@@ -2095,11 +2106,13 @@ func _cast_ice_nova(skill_data: SkillData) -> void:
 	as_mult = si_in.get_final_stat("cast_speed", as_mult)
 	if as_mult <= 0.0:
 		as_mult = 0.01
-	_attack_anim_timer = 0.4 / as_mult
+	var anim_speed4: float = maxf(0.5, as_mult * 0.8)
+	_attack_anim_timer = 1.2 / anim_speed4
 	if animated_sprite and animated_sprite.sprite_frames:
 		var atk_anim: String = _get_dir_anim("attack", _last_dir)
 		if animated_sprite.sprite_frames.has_animation(atk_anim):
 			animated_sprite.play(atk_anim)
+			animated_sprite.speed_scale = maxf(0.4, anim_speed4 * 0.3)
 
 func _cast_dash(_skill_data: SkillData) -> void:
 	"""Dash: fare yönüne doğru süper hızlı hareket + trail efekti."""
@@ -2318,13 +2331,14 @@ func _cast_fire_bolt_vs(skill_data: SkillData, target: Node, skill_path: String)
 		tw.tween_property(fire, "modulate:a", 0.0, 2.8)
 		tw.tween_callback(func(): if is_instance_valid(fire): fire.queue_free())
 	, CONNECT_ONE_SHOT)
-	proj.setup(target_pos, dmg, skill_data.tags.duplicate(), self,
-		"res://assets/generated/proj_fireball_anim.png",
-		"res://assets/generated/vfx_fire_explosion.png", "fire_bolt", false, 0.0, "fire")
+	# Yeni fire_bolt sprite'ı: 1024x1024, metadata.json'dan frame bilgileri okunur
 	proj.proj_anim_fw = 32; proj.proj_anim_fh = 32
 	proj.proj_anim_cols = 4; proj.proj_anim_count = 8; proj.proj_anim_fps = 12.0
 	proj.hit_effect_fw = 48; proj.hit_effect_fh = 48
 	proj.hit_effect_cols = 4; proj.hit_effect_count = 16
+	proj.setup(target_pos, dmg, skill_data.tags.duplicate(), self,
+		"res://assets/vfx/fireball/fire_bolt.png",
+		"res://assets/generated/vfx_fire_explosion.png", "fire_bolt", false, 0.0, "fire")
 	proj.set_meta("attacker_stats", stats)
 
 # ─── 2. DELİCİ BUZ (ice_shard) ──────────────────────────────────────
@@ -2528,13 +2542,39 @@ func _create_lightning_bolt(at_pos: Vector2, target_pos: Vector2) -> Node2D:
 	container.add_child(asp)
 	asp.play()
 	
+	# ─── GPUParticles2D trail (fire_bolt tactic) ───────────
+	var trail := GPUParticles2D.new()
+	trail.name = "TrailParticles"
+	trail.emitting = false
+	trail.one_shot = false
+	trail.lifetime = 0.25
+	trail.amount = 8
+	trail.z_index = -1
+	trail.local_coords = false
+	
+	var pm := ParticleProcessMaterial.new()
+	pm.direction = Vector3(0, -1, 0)
+	pm.spread = 180.0
+	pm.gravity = Vector3.ZERO
+	pm.initial_velocity_min = 12.0
+	pm.initial_velocity_max = 30.0
+	pm.scale_min = 0.1
+	pm.scale_max = 0.25
+	pm.color = Color(1.0, 0.9, 0.3, 0.5)
+	var first_tex: Texture2D = asp.sprite_frames.get_frame_texture("vfx", 0) if asp.sprite_frames else null
+	if first_tex:
+		trail.texture = first_tex
+	trail.process_material = pm
+	trail.emitting = true
+	container.add_child(trail)
+	
 	get_tree().current_scene.add_child(container)
 	return container
 
 ## 60 FPS sabiti (kullanılmayan sabit yerine)
 const LIGHTNING_SHEET_TRAVEL := "res://assets/vfx/lightning-strike/lightining4-Sheet.png"
 
-# (parçacıklar kaldırıldı — sadece AnimatedSprite2D yıldırımı kullanılıyor)
+# (GPUParticles2D trail — _create_lightning_bolt içinde ekleniyor)
 
 ## Bir lightning spritesheet'ten AnimatedSprite2D oluştur, sahneye ekle ve oynat.
 ## loop=true ise sonsuza dek döner (uçan mermi gibi).
@@ -2594,63 +2634,39 @@ func _play_yildirim_anim(sheet_path: String, at_pos: Vector2, loop: bool, scale_
 
 # ─── 4. BOOMERANG (arcane_orb) ──────────────────────────────────────
 func _cast_arcane_orb_vs(skill_data: SkillData, target: Node, skill_path: String) -> void:
-	"""Gizem Küresi: 200px gider, geri döner, iki yönde hasar verir."""
+	"""Gizem Küresi: Projectile.tscn kullanarak bumerang mermisi."""
 	var dmg := _calc_skill_damage(skill_data, skill_path)
 	var target_pos: Vector2 = target.global_position
 	var dir: Vector2 = (target_pos - global_position).normalized()
 	var fly_dist: float = 200.0
 	var speed_val: float = 350.0
-	var return_start: Vector2 = global_position + dir * fly_dist
-	var t_total: float = fly_dist / speed_val  # ileri gitme süresi
 	
-	# Basit Area2D + AnimatedSprite2D ile manuel bumerang
-	var orb := Area2D.new()
-	var col := CollisionShape2D.new()
-	col.shape = CircleShape2D.new()
-	col.shape.radius = 12.0
-	orb.add_child(col)
-	var sprite := AnimatedSprite2D.new()
-	sprite.sprite_frames = SpriteFrames.new()
-	sprite.sprite_frames.add_animation("default")
+	var proj := _basic_projectile_scene.instantiate() as Projectile
+	if not proj:
+		return
+	get_tree().current_scene.add_child(proj)
+	proj.global_position = global_position
+	proj.speed = speed_val
+	proj.lifetime = 3.0  # Yeterli süre
+	proj.pierce_count = 10  # Çoklu vuruş
+	proj.area_damage_radius = 20.0
+	
 	var tex_path := "res://assets/generated/projectile_arcane_frame_0.png"
-	if ResourceLoader.exists(tex_path):
-		var tex := load(tex_path) as Texture2D
-		var fw := 32; var fh := 32
-		for row in range(2):
-			for col2 in range(4):
-				var at := AtlasTexture.new()
-				at.atlas = tex
-				at.region = Rect2(col2 * fw, row * fh, fw, fh)
-				sprite.sprite_frames.add_frame("default", at)
-	sprite.sprite_frames.set_animation_speed("default", 10)
-	sprite.play("default")
-	sprite.z_index = 8
-	orb.add_child(sprite)
+	proj.setup(target_pos, dmg * 0.5, skill_data.tags.duplicate(), self,
+		tex_path,
+		"res://assets/generated/hit_slash_arc_new.png", "arcane_orb", false, 0.0, skill_data.damage_type)
+	proj.proj_anim_fw = 32; proj.proj_anim_fh = 32
+	proj.proj_anim_cols = 4; proj.proj_anim_count = 8; proj.proj_anim_fps = 10.0
+	proj.hit_effect_fw = 48; proj.hit_effect_fh = 48
+	proj.hit_effect_cols = 4; proj.hit_effect_count = 16
+	proj.set_meta("attacker_stats", stats)
 	
-	get_tree().current_scene.add_child(orb)
-	orb.global_position = global_position
-	orb.z_index = 8
-	
-	var boomerang_hit: Array[Node] = []
-	orb.body_entered.connect(func(body: Node):
-		# Oyuncunun kendi bumerangi kendine vurmasin!
-		if body in boomerang_hit or not body.has_node("Health") or body == self:
-			return
-		boomerang_hit.append(body)
-		body.get_node("Health").take_damage(dmg * 0.5, self, skill_data.tags.duplicate())
-		_spawn_basic_hit_effect(body.global_position)
-	)
-	
-	# Tween ile hareket: ileri 200px, sonra geri
-	var tw := create_tween()
-	tw.set_parallel(false)
-	# İLERİ
-	tw.tween_property(orb, "global_position", return_start, t_total)
-	# GERİ
-	tw.tween_property(orb, "global_position", global_position, t_total)
-	tw.tween_callback(func():
-		if is_instance_valid(orb):
-			orb.queue_free()
+	# Boomerang: yarı mesafede ters dön
+	var mid_time: float = fly_dist / speed_val
+	var boomerang_timer := get_tree().create_timer(mid_time)
+	boomerang_timer.timeout.connect(func():
+		if is_instance_valid(proj):
+			proj.reverse_velocity(0.8)
 	)
 
 # ─── 5. ZEHİR HAVUZU (toxic_circle) ─────────────────────────────────
@@ -2841,7 +2857,7 @@ func _cast_holy_nova_vs(skill_data: SkillData, target: Node, skill_path: String)
 	sf.set_animation_speed("vfx", 16.0)
 	burst.sprite_frames = sf
 	burst.play("vfx")
-	var s: float = radius * 2.0 / 48.0
+	var s: float = radius / 64.0
 	burst.scale = Vector2(s, s)
 	burst.position = global_position
 	burst.z_index = 10
@@ -2942,6 +2958,6 @@ func _find_hotbar_idx(skill_name: String) -> int:
 		var sp := hotbar[i]
 		if not sp.is_empty():
 			var sd: SkillData = _get_skill_data_from_setup(sp)
-			if sd and sd.name.to_lower() == skill_name.to_lower():
+			if sd and sd.id.to_lower() == skill_name.to_lower():
 				return i
 	return -1

@@ -6,8 +6,6 @@ const AFFIX_POOL = {
 	# === TEMEL STATLAR (10) - T99=minimum, T1=maksimum (ultra rare) ===
 	"max_life": {"min": 5.0, "max": 3500.0, "pct": false, "types": []},
 	"max_life_percent": {"min": 1.0, "max": 35.0, "pct": true, "types": []},
-	"max_mana": {"min": 5.0, "max": 2000.0, "pct": false, "types": []},
-	"max_mana_percent": {"min": 1.0, "max": 30.0, "pct": true, "types": []},
 	"max_energy_shield": {"min": 3.0, "max": 1500.0, "pct": false, "types": ["helmet", "body_armour", "offhand"]},
 	"max_energy_shield_percent": {"min": 1.0, "max": 50.0, "pct": true, "types": ["helmet", "body_armour"]},
 	"armour": {"min": 3.0, "max": 3000.0, "pct": false, "types": ["helmet", "body_armour", "gloves", "boots", "offhand"]},
@@ -51,14 +49,12 @@ const AFFIX_POOL = {
 	"attack_speed": {"min": 1.0, "max": 60.0, "pct": true, "types": ["weapon", "gloves"]},
 	"cast_speed": {"min": 1.0, "max": 60.0, "pct": true, "types": ["weapon", "amulet"]},
 	"movement_speed": {"min": 1.0, "max": 50.0, "pct": true, "types": ["boots"]},
-	"cooldown_recovery": {"min": 3.0, "max": 80.0, "pct": true, "types": ["amulet", "belt"]},
+	"cooldown_recovery": {"min": 3.0, "max": 50.0, "pct": true, "types": ["amulet", "belt"]},
 
 	# === YENILENME / EMME (6) ===
-	"life_regen": {"min": 1.0, "max": 80.0, "pct": true, "types": []},
-	"mana_regen": {"min": 3.0, "max": 100.0, "pct": true, "types": []},
+	"life_regen": {"min": 0.1, "max": 30.0, "pct": true, "types": []},
 	"energy_shield_regen": {"min": 1.0, "max": 50.0, "pct": true, "types": ["helmet", "body_armour"]},
 	"life_leech": {"min": 0.1, "max": 15.0, "pct": false, "types": ["weapon", "gloves"]},
-	"mana_leech": {"min": 0.1, "max": 10.0, "pct": false, "types": ["weapon"]},
 	"life_gain_on_hit": {"min": 1.0, "max": 80.0, "pct": false, "types": ["weapon", "gloves"]},
 
 	# === SAVUNMA (4) ===
@@ -74,9 +70,7 @@ const AFFIX_POOL = {
 
 	# === UTILITY (5) ===
 	"item_rarity": {"min": 3.0, "max": 120.0, "pct": true, "types": []},
-	"item_quantity": {"min": 3.0, "max": 80.0, "pct": true, "types": []},
-	"accuracy": {"min": 5.0, "max": 1000.0, "pct": false, "types": ["weapon", "gloves", "helmet"]},
-	"mana_on_kill": {"min": 1.0, "max": 50.0, "pct": false, "types": []},
+	"accuracy": {"min": 5.0, "max": 500.0, "pct": false, "types": []},
 	"life_on_kill": {"min": 1.0, "max": 80.0, "pct": false, "types": []},
 }
 # Toplam: ~55 affix — T1-T99 sistemi ile yeniden dengelendi

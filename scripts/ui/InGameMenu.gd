@@ -84,10 +84,10 @@ func _build_ui() -> void:
 
 	# Button configs
 	var button_configs := [
-		{"text": "▶  DEVAM ET", "id": "resume", "color": Color(0.4, 0.9, 0.5, 1.0)},
-		{"text": "⚙  AYARLAR", "id": "settings", "color": Color(0.7, 0.7, 0.75, 1.0)},
-		{"text": "🏠  ANA MENÜ", "id": "menu", "color": Color(0.85, 0.65, 0.25, 1.0)},
-		{"text": "✕  CIKIS", "id": "quit", "color": DANGER_COLOR},
+		{"text": "DEVAM ET", "id": "resume", "color": Color(0.4, 0.9, 0.5, 1.0)},
+		{"text": "AYARLAR", "id": "settings", "color": Color(0.7, 0.7, 0.75, 1.0)},
+		{"text": "ANA MENÜ", "id": "menu", "color": Color(0.85, 0.65, 0.25, 1.0)},
+		{"text": "CIKIS", "id": "quit", "color": DANGER_COLOR},
 	]
 
 	for config in button_configs:
@@ -184,6 +184,10 @@ func hide_menu() -> void:
 		tween.tween_property(panel, "offset_top", -20.0, 0.2).set_trans(Tween.TRANS_BACK)
 		await tween.finished
 
+	# Inventory aciksa kapat (overlap onleme)
+	var game_ui = get_node_or_null("/root/GameUI")
+	if game_ui and game_ui.visible_ui:
+		game_ui._close_ui()
 	visible = false
 	get_tree().paused = false
 

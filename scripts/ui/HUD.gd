@@ -94,7 +94,7 @@ func set_game_time(time_sec: float) -> void:
 
 func set_wave(wave: int) -> void:
 	if _wave_label:
-		_wave_label.text = "Wave: %d" % wave
+		_wave_label.text = "Dalga: %d" % wave
 
 func set_tier(tier: int) -> void:
 	if _tier_label:
@@ -117,7 +117,7 @@ func set_tier(tier: int) -> void:
 			5: icon = "✦✦✦"
 			_: icon = "⚠"
 		
-		_tier_label.text = "%s TIER %d" % [icon, tier]
+		_tier_label.text = "%s ZORLUK %d" % [icon, tier]
 		_tier_label.add_theme_color_override("font_color", tier_color)
 
 func _ready() -> void:
@@ -411,7 +411,7 @@ func _build_ui() -> void:
 	_wave_label.add_theme_constant_override("shadow_outline_size", 2)
 	_wave_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_wave_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_wave_label.text = "Wave: 1"
+	_wave_label.text = "Dalga: 1"
 	add_child(_wave_label)
 
 	# Difficulty tier label (wave'ın altında)
